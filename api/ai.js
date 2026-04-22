@@ -1,9 +1,10 @@
 
-const GEMINI_KEY = process.env.GEMINI_API_KEY;
-const MODEL = 'gemini-2.5-flash'; // Optimized for speed/cost
+const geminiKey = () => process.env.GEMINI_API_KEY;
+const MODEL = 'gemini-1.5-flash';
 
 async function callGemini(prompt, imageB64, imageMime) {
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent?key=${GEMINI_KEY}`;
+    const key = geminiKey();
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent?key=${key}`;
 
     const parts = [];
     if (imageB64 && imageMime) {
