@@ -1,6 +1,6 @@
 
 const geminiKey = () => process.env.GEMINI_API_KEY;
-const MODEL = 'gemini-1.5-flash';
+const MODEL = 'gemini-2.5-flash';
 
 async function callGemini(prompt, imageB64, imageMime) {
     const key = geminiKey();
