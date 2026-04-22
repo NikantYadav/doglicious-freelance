@@ -1,0 +1,41 @@
+import dotenv from 'dotenv';
+dotenv.config({ path: '.env.backend' });
+import express from 'express';
+import cors from 'cors';
+
+// Import our API handler files
+import sendOtp from './api/send-otp.js';
+import verifyOtp from './api/verify-otp.js';
+import hsContact from './api/hs-contact.js';
+import hsReport from './api/hs-report.js';
+import aiHandler from './api/ai.js';
+
+const app = express();
+app.use(cors());
+app.use(express.json());
+
+// Express wrapper for Vercel-style (req, res) handler functions
+const wrap = (handler) => async (req, res) => {
+    try {
+        await handler(req, res);
+    } catch (err) {
+        console.error(`[Express] Error in ${req.path}:`, err);
+        if (!res.headersSent) {
+            res.status(500).json({ error: err.message });
+        }
+    }
+};
+
+app.post('/api/send-otp', wrap(sendOtp));
+app.post('/api/verify-otp', wrap(verifyOtp));
+app.post('/api/hs-contact', wrap(hsContact));
+app.post('/api/hs-report', wrap(hsReport));
+app.post('/api/ai', wrap(aiHandler));
+
+const PORT = process.env.PORT || 5000;
+app.listen(PORT, () => {
+    console.log(`\n======================================`);
+    console.log(`🚀 API Server running on port ${PORT}`);
+    console.log(`🔑 HubSpot Key loaded: ${process.env.HUBSPOT_API_KEY ? 'YES' : 'NO'}`);
+    console.log(`======================================\n`);
+});
