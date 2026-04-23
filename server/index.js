@@ -13,6 +13,7 @@ import verifyOtp from './api/verify-otp.js';
 import hsContact from './api/hs-contact.js';
 import hsReport from './api/hs-report.js';
 import aiHandler from './api/ai.js';
+import healthHandler from './api/health.js';
 
 const app = express();
 app.use(cors());
@@ -36,6 +37,7 @@ app.post('/api/verify-otp', wrap(verifyOtp));
 app.post('/api/hs-contact', wrap(hsContact));
 app.post('/api/hs-report', wrap(hsReport));
 app.post('/api/ai', wrap(aiHandler));
+app.get('/api/health', wrap(healthHandler));
 
 // Export for Vercel
 export default app;
