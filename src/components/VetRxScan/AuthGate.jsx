@@ -55,8 +55,9 @@ const AuthGate = ({ onAuthenticated }) => {
                 setError(result.error || 'Invalid or expired code. Try again.');
                 return;
             }
-            saveSession({ email, contactId: result.contactId, scanCount: result.scanCount });
-            onAuthenticated({ email, contactId: result.contactId, scanCount: result.scanCount });
+            const paidScans = result.paidScans ?? 0;
+            saveSession({ email, contactId: result.contactId, scanCount: result.scanCount, paidScans });
+            onAuthenticated({ email, contactId: result.contactId, scanCount: result.scanCount, paidScans });
         } catch (err) {
             setError(err.message || 'Verification failed. Please try again.');
         } finally {

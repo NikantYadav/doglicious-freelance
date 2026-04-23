@@ -44,12 +44,16 @@ async function getOrCreateContact(email) {
     // Search by email
     const searchRes = await hsPost('/crm/v3/objects/contacts/search', {
         filterGroups: [{ filters: [{ propertyName: 'email', operator: 'EQ', value: email }] }],
-        properties: ['email', 'scan_count'],
+        properties: ['email', 'scan_count', 'paid_scans'],
     });
 
     if (searchRes.results && searchRes.results.length > 0) {
         const c = searchRes.results[0];
-        return { id: c.id, scanCount: parseInt(c.properties.scan_count || '0', 10) };
+        return {
+            id: c.id,
+            scanCount: parseInt(c.properties.scan_count || '0', 10),
+            paidScans: parseInt(c.properties.paid_scans || '0', 10),
+        };
     }
 
     // Create — this is synchronous in HubSpot, ID is returned immediately
@@ -70,7 +74,7 @@ async function getOrCreateContact(email) {
         throw new Error('Failed to create HubSpot contact: ' + JSON.stringify(createRes));
     }
 
-    return { id: createRes.id, scanCount: 0 };
+    return { id: createRes.id, scanCount: 0, paidScans: 0 };
 }
 
 // ── Handler ──────────────────────────────────────────────────────────
@@ -98,11 +102,11 @@ export default async function handler(req, res) {
 
     // 3. Get or create HubSpot contact
     try {
-        const { id: contactId, scanCount } = await getOrCreateContact(payload.email);
-        return res.status(200).json({ valid: true, contactId, scanCount });
+        const { id: contactId, scanCount, paidScans } = await getOrCreateContact(payload.email);
+        return res.status(200).json({ valid: true, contactId, scanCount, paidScans });
     } catch (err) {
         console.error('[verify-otp HubSpot]', err.message);
         // Return the HS error so it's visible during debugging
-        return res.status(200).json({ valid: true, contactId: null, scanCount: 0, _hsError: err.message });
+        return res.status(200).json({ valid: true, contactId: null, scanCount: 0, paidScans: 0, _hsError: err.message });
     }
 }

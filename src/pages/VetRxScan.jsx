@@ -12,17 +12,44 @@ import FollowUpScreen from '../components/VetRxScan/FollowUp';
 import AuthGate from '../components/VetRxScan/AuthGate';
 import PaywallScreen from '../components/VetRxScan/PaywallScreen';
 
-import { getSession, updateSessionScanCount } from '../services/auth';
+import { getSession, updateSessionScanCount, updateSessionPaidScans } from '../services/auth';
 import { pushReport } from '../services/hubspot';
+
+// How many paid scans does one payment unlock? Mirrors NUM_SCAN env on the backend.
+// VITE_NUM_SCAN is optional — defaults to 5 matching the backend.
+const NUM_SCAN = parseInt(import.meta.env.VITE_NUM_SCAN || '5', 10);
+const API = import.meta.env.VITE_API_URL ?? '';
 
 const VetRxScan = () => {
   // ── Auth state ──────────────────────────────────────────────────────
-  const [authUser, setAuthUser] = useState(null);   // { email, contactId, scanCount }
+  const [authUser, setAuthUser] = useState(null);   // { email, contactId, scanCount, paidScans }
   const [authReady, setAuthReady] = useState(false); // true once localStorage checked
+  const [payuMessage, setPayuMessage] = useState(null); // feedback after PayU redirect
 
   useEffect(() => {
+    // Handle PayU callback params BEFORE restoring session so paidScans is already correct
+    const urlParams = new URLSearchParams(window.location.search);
+    const payuStatus = urlParams.get('payu_status');
+    let payuPaidScans = 0;
+
+    if (payuStatus) {
+      if (payuStatus === 'payment_success') {
+        payuPaidScans = parseInt(urlParams.get('paidScans') || '0', 10);
+        if (payuPaidScans > 0) {
+          updateSessionPaidScans(payuPaidScans);
+        }
+        setPayuMessage({ type: 'success', text: `🎉 Payment successful! You now have ${NUM_SCAN} new scans.` });
+      } else {
+        setPayuMessage({ type: 'error', text: '❌ Payment was not completed. Please try again.' });
+      }
+      // Clean URL without reload
+      window.history.replaceState({}, '', window.location.pathname);
+    }
+
+    // Restore session — if we just updated paidScans in localStorage, getSession() will return the fresh value
     const session = getSession();
     if (session) setAuthUser(session);
+
     setAuthReady(true);
   }, []);
 
@@ -156,9 +183,10 @@ const VetRxScan = () => {
           selectedSymptoms,
         });
         if (hsResult?.scanCount != null) {
-          const newCount = hsResult.scanCount;
-          updateSessionScanCount(newCount);
-          setAuthUser(prev => prev ? { ...prev, scanCount: newCount } : prev);
+          updateSessionScanCount(hsResult.scanCount);
+          const newPaid = hsResult.paidScans ?? authUser.paidScans ?? 0;
+          updateSessionPaidScans(newPaid);
+          setAuthUser(prev => prev ? { ...prev, scanCount: hsResult.scanCount, paidScans: newPaid } : prev);
         }
       }
     } catch (e) {
@@ -193,18 +221,45 @@ const VetRxScan = () => {
     return <AuthGate onAuthenticated={handleAuthenticated} />;
   }
 
-  // Logged in but already used free scan → paywall
-  // We only show the paywall if they are at the start (disclaimer/welcome).
-  // If they are in the middle of a scan or viewing a report, we let them finish.
+  // Quota logic:
+  // - 1 free scan always available (scanCount === 0 means not used yet)
+  // - After first free scan, user needs paid_scans > 0 to continue
+  // scanCount tracks total scans ever done; paidScans tracks remaining purchased quota
+  const usedFreeScan = authUser.scanCount >= 1;
+  const paidRemaining = authUser.paidScans ?? 0;
   const isAtStart = ['disclaimer', 'welcome'].includes(currentScreen);
-  if (authUser.scanCount >= 1 && isAtStart) {
-    return <PaywallScreen email={authUser.email} onLogout={handleLogout} />;
+
+  if (usedFreeScan && paidRemaining <= 0 && isAtStart) {
+    return (
+      <PaywallScreen
+        email={authUser.email}
+        contactId={authUser.contactId}
+        phone={authUser.phone || ''}
+        firstname={authUser.firstname || authUser.email?.split('@')[0] || ''}
+        numScans={NUM_SCAN}
+        onLogout={handleLogout}
+        payuMessage={payuMessage}
+      />
+    );
   }
 
   // ── Main app ─────────────────────────────────────────────────────────
   return (
     <div className="vetrx-container">
       <div className="vetrx-app" id="app">
+
+        {/* PayU Payment Feedback Banner */}
+        {payuMessage && (
+          <div style={{
+            position: 'fixed', top: 0, left: 0, right: 0, zIndex: 9999,
+            padding: '12px 20px', textAlign: 'center', fontWeight: 600, fontSize: '14px',
+            background: payuMessage.type === 'success' ? '#166534' : '#991b1b',
+            color: '#fff',
+          }}>
+            {payuMessage.text}
+            <button onClick={() => setPayuMessage(null)} style={{ marginLeft: 12, background: 'none', border: 'none', color: '#fff', cursor: 'pointer', fontSize: 16 }}>✕</button>
+          </div>
+        )}
 
         {/* Error Banner */}
         {error && (

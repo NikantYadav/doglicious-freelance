@@ -26,7 +26,18 @@ const properties = [
             { label: 'Converted', value: 'converted', hidden: false },
             { label: 'Lost', value: 'lost', hidden: false }
         ]
-    }
+    },
+    // ── PayU Payment Properties ──────────────────────────────────────
+    { name: 'paid_scans', label: 'Paid Scans Remaining', type: 'number', fieldType: 'number', groupName: 'contactinformation' },
+    { name: 'payu_txnid', label: 'PayU Transaction ID', type: 'string', fieldType: 'text', groupName: 'contactinformation' },
+    {
+        name: 'payu_status', label: 'PayU Payment Status', type: 'enumeration', fieldType: 'select', groupName: 'contactinformation',
+        options: [
+            { label: 'Success', value: 'success', hidden: false },
+            { label: 'Failure', value: 'failure', hidden: false },
+            { label: 'Pending', value: 'pending', hidden: false },
+        ]
+    },
 ];
 
 async function setupProperties() {

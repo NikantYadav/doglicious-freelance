@@ -32,10 +32,15 @@ export default async function handler(req, res) {
     if (!contactId) return res.status(400).json({ error: 'contactId required' });
 
     try {
-        // Read current scan_count
-        const current = await hsGet(`/crm/v3/objects/contacts/${contactId}?properties=scan_count`);
+        // Read current scan_count and paid_scans
+        const current = await hsGet(`/crm/v3/objects/contacts/${contactId}?properties=scan_count,paid_scans`);
         const prevCount = parseInt(current.properties?.scan_count || '0', 10);
+        const prevPaid = parseInt(current.properties?.paid_scans || '0', 10);
         const newCount = prevCount + 1;
+
+        // If this is a paid scan (not the first free scan), decrement paid_scans
+        const isPaidScan = prevCount >= 1;
+        const newPaid = isPaidScan ? Math.max(0, prevPaid - 1) : prevPaid;
 
         const dog = dogProfile || {};
         const r = report || {};
@@ -68,11 +73,12 @@ export default async function handler(req, res) {
             // Lead status
             lead_status: 'new',
             hs_lead_status: 'NEW',
+            paid_scans: String(newPaid),
         };
 
         await hsPatch(`/crm/v3/objects/contacts/${contactId}`, { properties });
 
-        return res.status(200).json({ ok: true, scanCount: newCount });
+        return res.status(200).json({ ok: true, scanCount: newCount, paidScans: newPaid });
     } catch (err) {
         console.error('[hs-report]', err);
         return res.status(500).json({ error: err.message || 'Internal error' });

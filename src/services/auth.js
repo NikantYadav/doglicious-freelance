@@ -20,8 +20,8 @@ export function getSession() {
     }
 }
 
-export function saveSession({ email, contactId, scanCount }) {
-    const session = { email, contactId, scanCount, expiresAt: Date.now() + SESSION_TTL };
+export function saveSession({ email, contactId, scanCount, paidScans = 0 }) {
+    const session = { email, contactId, scanCount, paidScans, expiresAt: Date.now() + SESSION_TTL };
     localStorage.setItem(SESSION_KEY, JSON.stringify(session));
 }
 
@@ -35,6 +35,16 @@ export function updateSessionScanCount(scanCount) {
         if (!raw) return;
         const s = JSON.parse(raw);
         s.scanCount = scanCount;
+        localStorage.setItem(SESSION_KEY, JSON.stringify(s));
+    } catch { /* ignore */ }
+}
+
+export function updateSessionPaidScans(paidScans) {
+    try {
+        const raw = localStorage.getItem(SESSION_KEY);
+        if (!raw) return;
+        const s = JSON.parse(raw);
+        s.paidScans = paidScans;
         localStorage.setItem(SESSION_KEY, JSON.stringify(s));
     } catch { /* ignore */ }
 }
@@ -58,5 +68,5 @@ export async function verifyOtp(email, otp, token) {
     });
     const data = await res.json();
     if (!res.ok) throw new Error(data.error || 'Verification failed');
-    return data; // { valid, contactId, scanCount }
+    return data; // { valid, contactId, scanCount, paidScans }
 }

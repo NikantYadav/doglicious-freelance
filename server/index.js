@@ -14,6 +14,9 @@ import hsContact from './api/hs-contact.js';
 import hsReport from './api/hs-report.js';
 import aiHandler from './api/ai.js';
 import healthHandler from './api/health.js';
+import payuInitiate from './api/payu-initiate.js';
+import payuSuccess from './api/payu-success.js';
+import payuFailure from './api/payu-failure.js';
 
 const app = express();
 app.use(cors());
@@ -38,6 +41,9 @@ app.post('/api/hs-contact', wrap(hsContact));
 app.post('/api/hs-report', wrap(hsReport));
 app.post('/api/ai', wrap(aiHandler));
 app.get('/api/health', wrap(healthHandler));
+app.post('/api/payu-initiate', wrap(payuInitiate));
+app.post('/api/payu-success', wrap(payuSuccess));
+app.post('/api/payu-failure', wrap(payuFailure));
 
 // Export for Vercel
 export default app;
@@ -51,6 +57,7 @@ if (process.env.NODE_ENV !== 'production' && !process.env.VERCEL) {
         console.log(`📂 Env Path: ${path.join(__dirname, '.env.backend')}`);
         console.log(`🔑 HubSpot Key loaded: ${process.env.HUBSPOT_API_KEY ? 'YES' : 'NO'}`);
         console.log(`🤖 Gemini Key loaded: ${process.env.GEMINI_API_KEY ? 'YES' : 'NO'}`);
+        console.log(`🧠 Claude Key loaded: ${(process.env.CLUADE_API_KEY || process.env.CLAUDE_API_KEY) ? 'YES' : 'NO'}`);
         console.log(`======================================\n`);
     });
 }
