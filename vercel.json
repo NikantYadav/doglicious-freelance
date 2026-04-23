@@ -1,16 +1,14 @@
 {
     "version": 2,
-    "buildCommand": "npm run build",
-    "devCommand": "vite --port $PORT",
-    "outputDirectory": "dist",
     "rewrites": [
         {
             "source": "/api/(.*)",
-            "destination": "/api/$1"
-        },
-        {
-            "source": "/(.*)",
-            "destination": "/index.html"
+            "destination": "/server/index.js"
         }
-    ]
+    ],
+    "functions": {
+        "server/index.js": {
+            "maxDuration": 15
+        }
+    }
 }
