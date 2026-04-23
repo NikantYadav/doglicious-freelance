@@ -1,5 +1,9 @@
 import dotenv from 'dotenv';
-dotenv.config({ path: '.env.backend' });
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+dotenv.config({ path: path.join(__dirname, '.env.backend') });
 import express from 'express';
 import cors from 'cors';
 
@@ -37,6 +41,7 @@ const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
     console.log(`\n======================================`);
     console.log(`🚀 API Server running on port ${PORT}`);
+    console.log(`📂 Env Path: ${path.join(__dirname, '.env.backend')}`);
     console.log(`🔑 HubSpot Key loaded: ${process.env.HUBSPOT_API_KEY ? 'YES' : 'NO'}`);
     console.log(`🤖 Gemini Key loaded: ${process.env.GEMINI_API_KEY ? 'YES' : 'NO'}`);
     console.log(`======================================\n`);
