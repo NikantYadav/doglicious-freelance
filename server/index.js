@@ -37,12 +37,18 @@ app.post('/api/hs-contact', wrap(hsContact));
 app.post('/api/hs-report', wrap(hsReport));
 app.post('/api/ai', wrap(aiHandler));
 
+// Export for Vercel
+export default app;
+
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
-    console.log(`\n======================================`);
-    console.log(`🚀 API Server running on port ${PORT}`);
-    console.log(`📂 Env Path: ${path.join(__dirname, '.env.backend')}`);
-    console.log(`🔑 HubSpot Key loaded: ${process.env.HUBSPOT_API_KEY ? 'YES' : 'NO'}`);
-    console.log(`🤖 Gemini Key loaded: ${process.env.GEMINI_API_KEY ? 'YES' : 'NO'}`);
-    console.log(`======================================\n`);
-});
+// Only listen locally, Vercel handles the serverless execution
+if (process.env.NODE_ENV !== 'production' && !process.env.VERCEL) {
+    app.listen(PORT, () => {
+        console.log(`\n======================================`);
+        console.log(`🚀 API Server running on port ${PORT}`);
+        console.log(`📂 Env Path: ${path.join(__dirname, '.env.backend')}`);
+        console.log(`🔑 HubSpot Key loaded: ${process.env.HUBSPOT_API_KEY ? 'YES' : 'NO'}`);
+        console.log(`🤖 Gemini Key loaded: ${process.env.GEMINI_API_KEY ? 'YES' : 'NO'}`);
+        console.log(`======================================\n`);
+    });
+}
