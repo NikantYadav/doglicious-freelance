@@ -15,7 +15,8 @@ export default defineConfig(({ mode }) => {
         workbox: {
           clientsClaim: true,
           skipWaiting: true,
-          cleanupOutdatedCaches: true
+          cleanupOutdatedCaches: true,
+          navigateFallbackDenylist: [/^\/api/]
         },
         includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'masked-icon.svg'],
         manifest: {

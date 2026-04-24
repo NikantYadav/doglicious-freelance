@@ -9,7 +9,34 @@ const WelcomeScreen = ({ photo, onPhotoUploaded, onClearPhoto, onNext }) => {
         if (!file) return;
         const reader = new FileReader();
         reader.onload = (ev) => {
-            onPhotoUploaded({ b64: ev.target.result.split(',')[1], mime: file.type, url: ev.target.result });
+            const img = new Image();
+            img.onload = () => {
+                const canvas = document.createElement('canvas');
+                let width = img.width;
+                let height = img.height;
+                const maxDim = 1000; // max width/height
+
+                if (width > height && width > maxDim) {
+                    height *= maxDim / width;
+                    width = maxDim;
+                } else if (height > maxDim) {
+                    width *= maxDim / height;
+                    height = maxDim;
+                }
+
+                canvas.width = width;
+                canvas.height = height;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0, width, height);
+
+                const dataUrl = canvas.toDataURL('image/jpeg', 0.8);
+                onPhotoUploaded({
+                    b64: dataUrl.split(',')[1],
+                    mime: 'image/jpeg',
+                    url: dataUrl
+                });
+            };
+            img.src = ev.target.result;
         };
         reader.readAsDataURL(file);
     };
