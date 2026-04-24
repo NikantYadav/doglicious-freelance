@@ -38,8 +38,11 @@ export default async function handler(req, res) {
         const prevPaid = parseInt(current.properties?.paid_scans || '0', 10);
         const newCount = prevCount + 1;
 
-        // If this is a paid scan (not the first free scan), decrement paid_scans
-        const isPaidScan = prevCount >= 1;
+        // Number of free scans allowed
+        const numFree = parseInt(process.env.NUM_FREE_SCAN || '1', 10);
+
+        // If this is a paid scan (exceeded free limit), decrement paid_scans
+        const isPaidScan = prevCount >= numFree;
         const newPaid = isPaidScan ? Math.max(0, prevPaid - 1) : prevPaid;
 
         const dog = dogProfile || {};

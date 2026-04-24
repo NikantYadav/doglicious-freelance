@@ -56,8 +56,9 @@ const AuthGate = ({ onAuthenticated }) => {
                 return;
             }
             const paidScans = result.paidScans ?? 0;
-            saveSession({ email, contactId: result.contactId, scanCount: result.scanCount, paidScans });
-            onAuthenticated({ email, contactId: result.contactId, scanCount: result.scanCount, paidScans });
+            const config = result.config ?? null;
+            saveSession({ email, contactId: result.contactId, scanCount: result.scanCount, paidScans, config });
+            onAuthenticated({ email, contactId: result.contactId, scanCount: result.scanCount, paidScans, config });
         } catch (err) {
             setError(err.message || 'Verification failed. Please try again.');
         } finally {

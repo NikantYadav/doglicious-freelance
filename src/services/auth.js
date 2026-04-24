@@ -20,8 +20,15 @@ export function getSession() {
     }
 }
 
-export function saveSession({ email, contactId, scanCount, paidScans = 0 }) {
-    const session = { email, contactId, scanCount, paidScans, expiresAt: Date.now() + SESSION_TTL };
+export function saveSession({ email, contactId, scanCount, paidScans = 0, config = null }) {
+    const session = {
+        email,
+        contactId,
+        scanCount,
+        paidScans,
+        config,
+        expiresAt: Date.now() + SESSION_TTL
+    };
     localStorage.setItem(SESSION_KEY, JSON.stringify(session));
 }
 
@@ -68,5 +75,11 @@ export async function verifyOtp(email, otp, token) {
     });
     const data = await res.json();
     if (!res.ok) throw new Error(data.error || 'Verification failed');
-    return data; // { valid, contactId, scanCount, paidScans }
+    return data; // { valid, contactId, scanCount, paidScans, config }
+}
+
+export async function getConfig() {
+    const res = await fetch(`${API}/api/config`);
+    if (!res.ok) throw new Error('Failed to fetch config');
+    return await res.json(); // { numFreeScans, numPaidScansPerPack, ... }
 }

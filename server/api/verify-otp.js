@@ -103,7 +103,16 @@ export default async function handler(req, res) {
     // 3. Get or create HubSpot contact
     try {
         const { id: contactId, scanCount, paidScans } = await getOrCreateContact(payload.email);
-        return res.status(200).json({ valid: true, contactId, scanCount, paidScans });
+        return res.status(200).json({
+            valid: true,
+            contactId,
+            scanCount,
+            paidScans,
+            config: {
+                numFreeScans: parseInt(process.env.NUM_FREE_SCAN || '1', 10),
+                numPaidScansPerPack: parseInt(process.env.NUM_SCAN || '5', 10)
+            }
+        });
     } catch (err) {
         console.error('[verify-otp HubSpot]', err.message);
         // Return the HS error so it's visible during debugging

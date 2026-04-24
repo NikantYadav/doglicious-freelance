@@ -31,7 +31,7 @@ export default async function handler(req, res) {
     if (!key || !salt) return res.status(500).json({ error: 'PayU credentials not configured' });
 
     const amount = process.env.PAYU_AMOUNT || '99.00';
-    const productinfo = process.env.PAYU_PRODUCT || 'VetRx Scan — Additional Scans Pack';
+    const productinfo = process.env.PAYU_PRODUCT || 'VetRx Scan - Additional Scans Pack';
     const txnid = `VRX${Date.now()}${Math.floor(Math.random() * 1000)}`;
 
     // udf1 stores the HubSpot contactId so we can look it up on success callback

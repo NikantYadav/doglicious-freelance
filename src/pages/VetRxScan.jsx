@@ -12,21 +12,36 @@ import FollowUpScreen from '../components/VetRxScan/FollowUp';
 import AuthGate from '../components/VetRxScan/AuthGate';
 import PaywallScreen from '../components/VetRxScan/PaywallScreen';
 
-import { getSession, updateSessionScanCount, updateSessionPaidScans } from '../services/auth';
+import { getSession, saveSession, updateSessionScanCount, updateSessionPaidScans, getConfig } from '../services/auth';
 import { pushReport } from '../services/hubspot';
 
-// How many paid scans does one payment unlock? Mirrors NUM_SCAN env on the backend.
-// VITE_NUM_SCAN is optional — defaults to 5 matching the backend.
-const NUM_SCAN = parseInt(import.meta.env.VITE_NUM_SCAN || '5', 10);
 const API = import.meta.env.VITE_API_URL ?? '';
 
 const VetRxScan = () => {
   // ── Auth state ──────────────────────────────────────────────────────
-  const [authUser, setAuthUser] = useState(null);   // { email, contactId, scanCount, paidScans }
+  const [authUser, setAuthUser] = useState(null);   // { email, contactId, scanCount, paidScans, config }
   const [authReady, setAuthReady] = useState(false); // true once localStorage checked
   const [payuMessage, setPayuMessage] = useState(null); // feedback after PayU redirect
+  const [config, setConfig] = useState({
+    numFreeScans: 1,
+    numPaidScansPerPack: 5
+  });
 
   useEffect(() => {
+    // Proactively fetch global config from backend
+    getConfig()
+      .then(data => {
+        if (data) {
+          setConfig(data);
+          // If we have a session but it's missing config, update it
+          const session = getSession();
+          if (session && !session.config) {
+            saveSession({ ...session, config: data });
+          }
+        }
+      })
+      .catch(err => console.error('[VetRxScan] Failed to fetch config:', err));
+
     // Handle PayU callback params BEFORE restoring session so paidScans is already correct
     const urlParams = new URLSearchParams(window.location.search);
     const payuStatus = urlParams.get('payu_status');
@@ -38,7 +53,7 @@ const VetRxScan = () => {
         if (payuPaidScans > 0) {
           updateSessionPaidScans(payuPaidScans);
         }
-        setPayuMessage({ type: 'success', text: `🎉 Payment successful! You now have ${NUM_SCAN} new scans.` });
+        setPayuMessage({ type: 'success', text: '🎉 Payment successful! Your new scans are now available.' });
       } else {
         setPayuMessage({ type: 'error', text: '❌ Payment was not completed. Please try again.' });
       }
@@ -48,7 +63,12 @@ const VetRxScan = () => {
 
     // Restore session — if we just updated paidScans in localStorage, getSession() will return the fresh value
     const session = getSession();
-    if (session) setAuthUser(session);
+    if (session) {
+      setAuthUser(session);
+      if (session.config) {
+        setConfig(session.config);
+      }
+    }
 
     setAuthReady(true);
   }, []);
@@ -222,10 +242,12 @@ const VetRxScan = () => {
   }
 
   // Quota logic:
-  // - 1 free scan always available (scanCount === 0 means not used yet)
-  // - After first free scan, user needs paid_scans > 0 to continue
-  // scanCount tracks total scans ever done; paidScans tracks remaining purchased quota
-  const usedFreeScan = authUser.scanCount >= 1;
+  // - Number of free scans allowed (scanCount < numFreeScans means free is still available)
+  // - After free scans used, user needs paidScans > 0 to continue
+  const numFree = config?.numFreeScans || 1;
+  const numPaidPerPack = config?.numPaidScansPerPack || 5;
+
+  const usedFreeScan = authUser.scanCount >= numFree;
   const paidRemaining = authUser.paidScans ?? 0;
   const isAtStart = ['disclaimer', 'welcome'].includes(currentScreen);
 
@@ -236,7 +258,7 @@ const VetRxScan = () => {
         contactId={authUser.contactId}
         phone={authUser.phone || ''}
         firstname={authUser.firstname || authUser.email?.split('@')[0] || ''}
-        numScans={NUM_SCAN}
+        numScans={numPaidPerPack}
         onLogout={handleLogout}
         payuMessage={payuMessage}
       />

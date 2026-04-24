@@ -18,6 +18,7 @@ import healthHandler from './api/health.js';
 import payuInitiate from './api/payu-initiate.js';
 import payuSuccess from './api/payu-success.js';
 import payuFailure from './api/payu-failure.js';
+import configHandler from './api/config.js';
 
 const app = express();
 app.use(cors());
@@ -45,6 +46,7 @@ app.get('/api/health', wrap(healthHandler));
 app.post('/api/payu-initiate', wrap(payuInitiate));
 app.post('/api/payu-success', wrap(payuSuccess));
 app.post('/api/payu-failure', wrap(payuFailure));
+app.get('/api/config', wrap(configHandler));
 
 // Export for Vercel
 export default app;

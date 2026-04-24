@@ -78,6 +78,7 @@ This starts the Express backend on port `5000` and the Vite dev server on port `
 | `PAYU_AMOUNT` | ✅ | Payment amount, e.g. `99.00` |
 | `PAYU_PRODUCT` | ✅ | Product name shown on PayU checkout |
 | `NUM_SCAN` | ✅ | Number of scans unlocked per payment (e.g. `5`) |
+| `NUM_FREE_SCAN` | optional | Number of free scans allowed per user (e.g. `1`) |
 | `SERVER_URL` | ✅ | Full URL of this backend (used for PayU `surl`/`furl`) |
 | `FRONTEND_URL` | ✅ | Full URL of the frontend (PayU redirects land here) |
 | `CLUADE_API_KEY` | ⚠️ | Anthropic API key — used if `GEMINI_API_KEY` is not set |
@@ -90,8 +91,9 @@ This starts the Express backend on port `5000` and the Vite dev server on port `
 
 | Variable | Required | Description |
 |---|---|---|
-| `VITE_API_URL` | ✅ | Backend URL. Empty string in production if same origin. |
-| `VITE_NUM_SCAN` | optional | Mirrors `NUM_SCAN` for display purposes. Defaults to `5`. |
+| `VITE_API_URL` | ✅ | Backend URL. Empty string in local dev if using Vite proxy. |
+
+> Note: Scan quotas (`NUM_SCAN`, `NUM_FREE_SCAN`) are now fetched directly from the backend, so they no longer need to be set in the frontend environment.
 
 ---
 
