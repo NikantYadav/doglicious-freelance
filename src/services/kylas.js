@@ -1,5 +1,5 @@
 // src/services/kylas.js
-// Frontend Kylas CRM service — calls backend Vercel API functions.
+// Frontend Kylas CRM service — calls backend API.
 
 const API = import.meta.env.VITE_API_URL ?? '';
 

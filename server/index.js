@@ -25,7 +25,7 @@ app.use(cors());
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ limit: '10mb', extended: true }));
 
-// Express wrapper for Vercel-style (req, res) handler functions
+// Express wrapper for (req, res) handler functions
 const wrap = (handler) => async (req, res) => {
     try {
         await handler(req, res);
@@ -48,19 +48,13 @@ app.post('/api/payu-success', wrap(payuSuccess));
 app.post('/api/payu-failure', wrap(payuFailure));
 app.get('/api/config', wrap(configHandler));
 
-// Export for Vercel
-export default app;
-
 const PORT = process.env.PORT || 5000;
-// Listen unless running inside Vercel's serverless environment
-if (!process.env.VERCEL) {
-    app.listen(PORT, () => {
-        console.log(`\n======================================`);
-        console.log(`🚀 API Server running on port ${PORT}`);
-        console.log(`📂 Env Path: ${path.join(__dirname, '.env.backend')}`);
-        console.log(`🔑 Kylas Key loaded: ${process.env.KYLAS_API_KEY ? 'YES' : 'NO'}`);
-        console.log(`🤖 Gemini Key loaded: ${process.env.GEMINI_API_KEY ? 'YES' : 'NO'}`);
-        console.log(`🧠 Claude Key loaded: ${(process.env.CLUADE_API_KEY || process.env.CLAUDE_API_KEY) ? 'YES' : 'NO'}`);
-        console.log(`======================================\n`);
-    });
-}
+app.listen(PORT, () => {
+    console.log(`\n======================================`);
+    console.log(`🚀 API Server running on port ${PORT}`);
+    console.log(`📂 Env Path: ${path.join(__dirname, '.env.backend')}`);
+    console.log(`🔑 Kylas Key loaded: ${process.env.KYLAS_API_KEY ? 'YES' : 'NO'}`);
+    console.log(`🤖 Gemini Key loaded: ${process.env.GEMINI_API_KEY ? 'YES' : 'NO'}`);
+    console.log(`🧠 Claude Key loaded: ${(process.env.CLUADE_API_KEY || process.env.CLAUDE_API_KEY) ? 'YES' : 'NO'}`);
+    console.log(`======================================\n`);
+});

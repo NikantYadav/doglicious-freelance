@@ -1,9 +1,9 @@
-import { defineConfig, loadEnv } from 'vite'
+import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import { VitePWA } from 'vite-plugin-pwa'
 import dotenv from 'dotenv'
 
-export default defineConfig(({ mode }) => {
+export default defineConfig(() => {
   // Explicitly load .env.frontend so Vite can see it
   dotenv.config({ path: '.env.frontend' });
 
@@ -16,7 +16,9 @@ export default defineConfig(({ mode }) => {
           clientsClaim: true,
           skipWaiting: true,
           cleanupOutdatedCaches: true,
-          navigateFallbackDenylist: [/^\/api/]
+          navigateFallbackDenylist: [/^\/api/],
+          // Cache busting: service worker will detect new asset hashes and update automatically
+          runtimeCaching: []
         },
         includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'masked-icon.svg'],
         manifest: {
@@ -33,6 +35,20 @@ export default defineConfig(({ mode }) => {
         }
       })
     ],
+
+    build: {
+      // Content-hash every output file so nginx can cache them forever
+      // and users automatically get new files on deploy
+      rollupOptions: {
+        output: {
+          entryFileNames: 'assets/[name]-[hash].js',
+          chunkFileNames: 'assets/[name]-[hash].js',
+          assetFileNames: 'assets/[name]-[hash][extname]',
+        }
+      }
+    },
+
+    // Dev server: proxy /api to local backend
     server: {
       proxy: {
         '/api': {
