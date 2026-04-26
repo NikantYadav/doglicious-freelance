@@ -1,0 +1,168 @@
+/* ── Natural Healing Page ── */
+:root {
+  --nh-brand:       #3C2E07;
+  --nh-brand-mid:   #5a4510;
+  --nh-brand-pale:  #f7f3ea;
+  --nh-brand-pale2: #ede5d0;
+  --nh-orange:      #E8551A;
+  --nh-green:       #2A7A4B;
+  --nh-ink:         #1C1C1C;
+  --nh-mid:         #6B6B6B;
+  --nh-border:      #E4DDD0;
+  --nh-bg:          #FDFBF7;
+  --nh-white:       #FFFFFF;
+}
+
+/* Breadcrumb */
+.nh-breadcrumb {
+  padding: 10px 20px;
+  font-size: 12px;
+  color: var(--nh-mid);
+  background: var(--nh-brand-pale);
+  border-bottom: 1px solid var(--nh-border);
+}
+.nh-breadcrumb a { color: var(--nh-brand); font-weight: 600; text-decoration: none; }
+.nh-breadcrumb a:hover { color: var(--nh-orange); }
+.nh-breadcrumb span { margin: 0 6px; color: var(--nh-border); }
+
+.nh-mx { max-width: 900px; margin: 0 auto; }
+
+/* Hero */
+.nh-page-hero {
+  padding: 40px 20px 32px;
+  text-align: center;
+  background: var(--nh-bg);
+}
+.nh-page-hero h1 {
+  font-size: clamp(26px, 6vw, 42px);
+  font-weight: 900;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+  margin-bottom: 12px;
+  color: var(--nh-brand);
+}
+.nh-page-hero h1 em { color: var(--nh-orange); font-style: italic; }
+.nh-page-hero p {
+  font-size: 16px;
+  color: var(--nh-mid);
+  max-width: 640px;
+  margin: 0 auto;
+  line-height: 1.7;
+}
+
+/* Content */
+.nh-content { padding: 0 20px 40px; background: var(--nh-bg); }
+.nh-content .nh-mx > p {
+  font-size: 15px; color: var(--nh-ink); line-height: 1.75; margin-bottom: 16px;
+}
+.nh-content h2 {
+  font-size: clamp(20px, 4.5vw, 30px); font-weight: 800; color: var(--nh-brand);
+  margin: 32px 0 12px; letter-spacing: -0.02em; line-height: 1.25;
+}
+.nh-content h3 {
+  font-size: clamp(17px, 3.5vw, 22px); font-weight: 700; color: var(--nh-ink);
+  margin: 24px 0 8px;
+}
+.nh-content ul { margin: 0 0 16px 24px; line-height: 1.8; }
+.nh-content li { font-size: 15px; margin-bottom: 6px; color: var(--nh-ink); }
+
+/* Inline link buttons */
+.nh-link-btn {
+  background: none; border: none; padding: 0;
+  color: var(--nh-orange); font-weight: 600;
+  font-family: inherit; font-size: inherit; cursor: pointer;
+  border-bottom: 1.5px solid rgba(232, 85, 26, 0.2);
+  transition: border-color 0.2s;
+}
+.nh-link-btn:hover { border-color: var(--nh-orange); }
+
+/* Tip card */
+.nh-tip-card {
+  background: var(--nh-brand-pale);
+  border-left: 4px solid var(--nh-green);
+  border-radius: 0 10px 10px 0;
+  padding: 16px 18px; margin: 20px 0;
+}
+.nh-tip-card strong {
+  color: var(--nh-green); font-size: 13px;
+  text-transform: uppercase; letter-spacing: 0.05em;
+  display: block; margin-bottom: 4px;
+}
+.nh-tip-card p { margin: 0; font-size: 14px; color: var(--nh-ink); line-height: 1.6; }
+
+/* CTA Box */
+.nh-cta-box {
+  background: var(--nh-brand-pale); border: 2px solid var(--nh-brand-pale2);
+  border-radius: 14px; padding: 24px; margin: 28px 0; text-align: center;
+}
+.nh-cta-box h3 { color: var(--nh-brand); font-size: 18px; font-weight: 800; margin-bottom: 8px; }
+.nh-cta-box p  { color: var(--nh-mid); margin-bottom: 14px; font-size: 14px; }
+.nh-cta-btn {
+  display: inline-block; background: var(--nh-brand); color: #fff;
+  border-radius: 8px; padding: 13px 28px; font-weight: 700; font-size: 14px;
+  text-decoration: none; transition: background 0.2s, transform 0.2s;
+}
+.nh-cta-btn:hover { background: var(--nh-brand-mid); transform: translateY(-2px); }
+
+/* Related */
+.nh-related {
+  background: var(--nh-white); border: 1px solid var(--nh-border);
+  border-radius: 12px; padding: 24px; margin: 36px 0;
+}
+.nh-related h3 { color: var(--nh-brand); font-size: 18px; margin: 0 0 14px; }
+.nh-related-grid { display: grid; grid-template-columns: 1fr; gap: 10px; }
+@media (min-width: 600px) { .nh-related-grid { grid-template-columns: repeat(2, 1fr); } }
+.nh-related-card {
+  display: flex; align-items: center; gap: 12px; padding: 12px;
+  background: var(--nh-brand-pale); border-radius: 10px;
+  border: none; cursor: pointer; font-family: inherit;
+  text-align: left; transition: transform 0.2s; width: 100%;
+}
+.nh-related-card:hover { transform: translateX(4px); }
+.nh-rc-emoji { font-size: 24px; flex-shrink: 0; }
+.nh-rc-text  { font-size: 13.5px; font-weight: 600; color: var(--nh-ink); }
+
+/* Tools section */
+.nh-tools-section {
+  padding: 36px 20px;
+  background: var(--nh-white);
+  border-top: 1px solid var(--nh-border);
+  border-bottom: 1px solid var(--nh-border);
+}
+.nh-tools-section h2 {
+  font-size: clamp(20px, 4.5vw, 28px); font-weight: 800; color: var(--nh-brand);
+  text-align: center; margin-bottom: 6px;
+}
+.nh-ts-sub { text-align: center; font-size: 14px; color: var(--nh-mid); margin-bottom: 20px; }
+.nh-tools-grid {
+  display: grid; grid-template-columns: 1fr; gap: 12px;
+  max-width: 900px; margin: 0 auto;
+}
+@media (min-width: 600px) { .nh-tools-grid { grid-template-columns: repeat(2, 1fr); } }
+.nh-tool-card {
+  display: flex; align-items: center; gap: 12px;
+  background: var(--nh-brand-pale); border: 1.5px solid var(--nh-brand-pale2);
+  border-radius: 12px; padding: 16px; cursor: pointer;
+  font-family: inherit; text-align: left;
+  transition: border-color 0.2s, transform 0.2s, box-shadow 0.2s; width: 100%;
+}
+.nh-tool-card:hover {
+  border-color: var(--nh-brand); transform: translateY(-2px);
+  box-shadow: 0 6px 24px rgba(60, 46, 7, 0.08);
+}
+.nh-tc-emoji {
+  font-size: 28px; width: 48px; height: 48px; background: var(--nh-white);
+  border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+}
+.nh-tc-info { flex: 1; }
+.nh-tc-info h4 { font-size: 14px; font-weight: 700; color: var(--nh-ink); margin-bottom: 2px; }
+.nh-tc-info p  { font-size: 12px; color: var(--nh-mid); margin: 0; line-height: 1.4; }
+.nh-tc-arrow { font-size: 16px; font-weight: 700; color: var(--nh-brand); transition: transform 0.2s; }
+.nh-tool-card:hover .nh-tc-arrow { transform: translateX(3px); }
+
+@media (min-width: 960px) {
+  .nh-page-hero { padding: 50px 40px 36px; }
+  .nh-content   { padding: 0 40px 50px; }
+  .nh-content .nh-mx > p { font-size: 16px; }
+  .nh-content li { font-size: 16px; }
+}

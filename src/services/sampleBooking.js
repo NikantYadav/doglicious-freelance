@@ -32,6 +32,7 @@ export async function initiatePayU({ dogName, phone, price, recipe, grams }) {
             firstname: dogName || 'Dog Parent',
             email: `${phone}@doglicious.in`,   // phone-based email since we don't collect email here
             phone,
+            price: String(price),              // pass the actual displayed price to the backend
             // udf1 used to carry order info back on success callback
             udf1: `${recipe}|${grams}g|₹${price}`,
         }),

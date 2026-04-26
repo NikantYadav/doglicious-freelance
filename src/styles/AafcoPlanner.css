@@ -1,0 +1,318 @@
+/* ── AAFCO Planner Page ── */
+
+:root {
+  --aafco-brand:       #1B6FA0;
+  --aafco-brand-mid:   #2A7BB5;
+  --aafco-brand-pale:  #E8F4FC;
+  --aafco-brand-pale2: #D5ECFA;
+  --aafco-orange:      #E23D3D;
+  --aafco-green:       #2A7A4B;
+  --aafco-ink:         #1C1C1C;
+  --aafco-mid:         #6B6B6B;
+  --aafco-border:      #D0E4EF;
+  --aafco-bg:          #FAFCFE;
+}
+
+/* Breadcrumb */
+.aafco-breadcrumb {
+  padding: 10px 20px;
+  font-size: 12px;
+  color: var(--aafco-mid);
+  background: var(--aafco-brand-pale);
+  border-bottom: 1px solid var(--aafco-border);
+}
+.aafco-breadcrumb a {
+  color: var(--aafco-brand);
+  font-weight: 600;
+  text-decoration: none;
+}
+.aafco-breadcrumb a:hover { color: var(--aafco-orange); }
+.aafco-breadcrumb span { margin: 0 6px; color: var(--aafco-border); }
+
+/* Max-width container */
+.aafco-mx {
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+/* Hero */
+.aafco-page-hero {
+  padding: 48px 24px 36px;
+  text-align: center;
+  background: var(--aafco-bg);
+}
+.aafco-page-hero h1 {
+  font-size: clamp(26px, 6vw, 42px);
+  font-weight: 900;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+  margin-bottom: 12px;
+  color: var(--aafco-brand);
+}
+.aafco-page-hero h1 em {
+  color: var(--aafco-orange);
+  font-style: italic;
+}
+.aafco-page-hero p {
+  font-size: 16px;
+  color: var(--aafco-mid);
+  max-width: 640px;
+  margin: 0 auto;
+  line-height: 1.7;
+}
+
+/* Content section */
+.aafco-content {
+  padding: 0 24px 48px;
+  background: var(--aafco-bg);
+}
+.aafco-content .aafco-mx > p {
+  font-size: 15px;
+  color: var(--aafco-ink);
+  line-height: 1.75;
+  margin-bottom: 16px;
+}
+.aafco-content h2 {
+  font-size: clamp(20px, 4.5vw, 30px);
+  font-weight: 800;
+  color: var(--aafco-brand);
+  margin: 36px 0 12px;
+  letter-spacing: -0.02em;
+  line-height: 1.25;
+}
+.aafco-content h3 {
+  font-size: clamp(16px, 3vw, 20px);
+  font-weight: 700;
+  color: var(--aafco-ink);
+  margin: 24px 0 8px;
+}
+.aafco-content ul,
+.aafco-content ol {
+  margin: 0 0 16px 24px;
+  line-height: 1.8;
+}
+.aafco-content li {
+  font-size: 15px;
+  margin-bottom: 6px;
+  color: var(--aafco-ink);
+}
+
+/* Inline link buttons */
+.aafco-link-btn {
+  background: none;
+  border: none;
+  padding: 0;
+  color: var(--aafco-orange);
+  font-weight: 600;
+  font-family: inherit;
+  font-size: inherit;
+  cursor: pointer;
+  border-bottom: 1.5px solid rgba(226, 61, 61, 0.25);
+  transition: border-color 0.2s;
+}
+.aafco-link-btn:hover { border-color: var(--aafco-orange); }
+
+/* Tip card */
+.aafco-tip-card {
+  background: var(--aafco-brand-pale);
+  border-left: 4px solid var(--aafco-green);
+  border-radius: 0 10px 10px 0;
+  padding: 16px 18px;
+  margin: 20px 0;
+}
+.aafco-tip-card strong {
+  color: var(--aafco-green);
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  display: block;
+  margin-bottom: 4px;
+}
+.aafco-tip-card p {
+  margin: 0;
+  font-size: 14px;
+  color: var(--aafco-ink);
+  line-height: 1.6;
+}
+
+/* CTA Box */
+.aafco-cta-box {
+  background: var(--aafco-brand-pale);
+  border: 2px solid var(--aafco-brand-pale2);
+  border-radius: 14px;
+  padding: 28px 24px;
+  margin: 32px 0;
+  text-align: center;
+}
+.aafco-cta-box h3 {
+  color: var(--aafco-brand);
+  font-size: 18px;
+  font-weight: 800;
+  margin-bottom: 8px;
+}
+.aafco-cta-box p {
+  color: var(--aafco-mid);
+  margin-bottom: 16px;
+  font-size: 14px;
+}
+.aafco-cta-btn {
+  display: inline-block;
+  background: var(--aafco-brand);
+  color: #fff;
+  border-radius: 8px;
+  padding: 13px 28px;
+  font-weight: 700;
+  font-size: 14px;
+  text-decoration: none;
+  transition: background 0.2s, transform 0.2s;
+}
+.aafco-cta-btn:hover {
+  background: var(--aafco-brand-mid);
+  transform: translateY(-2px);
+}
+
+/* Ingredient grid */
+.aafco-ingredient-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+  margin: 16px 0 24px;
+}
+@media (min-width: 600px) {
+  .aafco-ingredient-grid { grid-template-columns: repeat(3, 1fr); }
+}
+@media (min-width: 960px) {
+  .aafco-ingredient-grid { grid-template-columns: repeat(4, 1fr); }
+}
+.aafco-ing-card {
+  background: #fff;
+  border: 1px solid var(--aafco-border);
+  border-radius: 10px;
+  padding: 14px;
+  text-align: center;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+.aafco-ing-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+}
+.aafco-ing-emoji { font-size: 32px; margin-bottom: 6px; }
+.aafco-ing-card h4 { font-size: 13px; font-weight: 700; color: var(--aafco-ink); }
+.aafco-ing-card p  { font-size: 11px; color: var(--aafco-mid); margin: 2px 0 0; }
+
+/* Related guides */
+.aafco-related {
+  background: #fff;
+  border: 1px solid var(--aafco-border);
+  border-radius: 12px;
+  padding: 24px;
+  margin: 36px 0;
+}
+.aafco-related h3 {
+  color: var(--aafco-brand);
+  font-size: 18px;
+  margin: 0 0 14px;
+}
+.aafco-related-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 10px;
+}
+@media (min-width: 600px) {
+  .aafco-related-grid { grid-template-columns: repeat(2, 1fr); }
+}
+.aafco-related-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  background: var(--aafco-brand-pale);
+  border-radius: 10px;
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
+  text-align: left;
+  transition: transform 0.2s;
+  width: 100%;
+}
+.aafco-related-card:hover { transform: translateX(4px); }
+.aafco-rc-emoji { font-size: 24px; flex-shrink: 0; }
+.aafco-rc-text  { font-size: 13.5px; font-weight: 600; color: var(--aafco-ink); }
+
+/* Tools section */
+.aafco-tools-section {
+  padding: 40px 24px;
+  background: #fff;
+  border-top: 1px solid var(--aafco-border);
+  border-bottom: 1px solid var(--aafco-border);
+}
+.aafco-tools-section h2 {
+  font-size: clamp(20px, 4.5vw, 28px);
+  font-weight: 800;
+  color: var(--aafco-brand);
+  text-align: center;
+  margin-bottom: 6px;
+}
+.aafco-ts-sub {
+  text-align: center;
+  font-size: 14px;
+  color: var(--aafco-mid);
+  margin-bottom: 20px;
+}
+.aafco-tools-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+  max-width: 900px;
+  margin: 0 auto;
+}
+@media (min-width: 600px) {
+  .aafco-tools-grid { grid-template-columns: repeat(2, 1fr); }
+}
+.aafco-tool-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: var(--aafco-brand-pale);
+  border: 1.5px solid var(--aafco-brand-pale2);
+  border-radius: 12px;
+  padding: 16px;
+  cursor: pointer;
+  font-family: inherit;
+  text-align: left;
+  transition: border-color 0.2s, transform 0.2s, box-shadow 0.2s;
+  width: 100%;
+}
+.aafco-tool-card:hover {
+  border-color: var(--aafco-brand);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.08);
+}
+.aafco-tc-emoji {
+  font-size: 28px;
+  width: 48px;
+  height: 48px;
+  background: #fff;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.aafco-tc-info { flex: 1; }
+.aafco-tc-info h4 { font-size: 14px; font-weight: 700; color: var(--aafco-ink); margin-bottom: 2px; }
+.aafco-tc-info p  { font-size: 12px; color: var(--aafco-mid); margin: 0; line-height: 1.4; }
+.aafco-tc-arrow {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--aafco-brand);
+  transition: transform 0.2s;
+}
+.aafco-tool-card:hover .aafco-tc-arrow { transform: translateX(3px); }
+
+@media (min-width: 960px) {
+  .aafco-page-hero { padding: 56px 40px 40px; }
+  .aafco-content   { padding: 0 40px 56px; }
+  .aafco-content .aafco-mx > p { font-size: 16px; }
+  .aafco-content li { font-size: 16px; }
+}

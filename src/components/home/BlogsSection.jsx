@@ -88,6 +88,10 @@ export default function BlogsSection({ blogFilter, setBlogFilter, openBlog }) {
         ? BLOG_CARDS
         : BLOG_CARDS.filter(b => b.cat === blogFilter);
 
+    const handleBlogClick = (id) => {
+        window.open(`/blog/${id}`, '_blank', 'noopener,noreferrer');
+    };
+
     return (
         <section id="blogs" style={{ background: "var(--cream-2)", paddingBottom: "56px" }}>
             <div className="wrap">
@@ -120,7 +124,7 @@ export default function BlogsSection({ blogFilter, setBlogFilter, openBlog }) {
                             key={b.id}
                             className="blog-card"
                             style={{ opacity: blogFilter === 'all' || b.cat === blogFilter ? '1' : '0.2', transform: blogFilter === 'all' || b.cat === blogFilter ? '' : 'scale(.97)', transition: 'opacity .3s, transform .3s' }}
-                            onClick={() => openBlog(b.id)}
+                            onClick={() => handleBlogClick(b.id)}
                         >
                             <div className="bc-vis" style={{ background: b.bg }}>
                                 <div className="bc-icon-wrap">{b.svg}</div>

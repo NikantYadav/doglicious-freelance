@@ -1,0 +1,121 @@
+/* ── Blog Post Page ── */
+:root {
+  --bp-brand:      #3C2E07;
+  --bp-brand-mid:  #5a4510;
+  --bp-brand-pale: #f7f3ea;
+  --bp-orange:     #E8551A;
+  --bp-ink:        #1C1C1C;
+  --bp-mid:        #6B6B6B;
+  --bp-border:     #E4DDD0;
+  --bp-bg:         #FDFBF7;
+  --bp-white:      #FFFFFF;
+}
+
+.bp-breadcrumb {
+  padding: 10px 20px;
+  font-size: 12px;
+  color: var(--bp-mid);
+  background: var(--bp-brand-pale);
+  border-bottom: 1px solid var(--bp-border);
+}
+.bp-breadcrumb a { color: var(--bp-brand); font-weight: 600; text-decoration: none; }
+.bp-breadcrumb a:hover { color: var(--bp-orange); }
+.bp-breadcrumb span { margin: 0 6px; color: var(--bp-border); }
+
+.bp-mx { max-width: 720px; margin: 0 auto; }
+
+/* Article */
+.bp-article {
+  padding: 40px 20px 48px;
+  background: var(--bp-bg);
+}
+.bp-meta-top {
+  display: flex; align-items: center; gap: 12px; margin-bottom: 16px;
+}
+.bp-tag {
+  font-size: 11px; font-weight: 700; letter-spacing: .08em;
+  text-transform: uppercase; color: var(--bp-orange);
+  background: rgba(232,85,26,.08); padding: 4px 10px; border-radius: 50px;
+}
+.bp-mins { font-size: 12px; color: var(--bp-mid); font-weight: 500; }
+.bp-title {
+  font-size: clamp(24px, 5vw, 38px);
+  font-weight: 900;
+  letter-spacing: -.025em;
+  line-height: 1.18;
+  color: var(--bp-brand);
+  margin-bottom: 10px;
+}
+.bp-kw {
+  font-size: 12px; color: var(--bp-mid); margin-bottom: 28px;
+  padding-bottom: 20px; border-bottom: 1px solid var(--bp-border);
+}
+
+/* Body — matches the inline HTML classes from homeData */
+.bp-body { color: var(--bp-ink); }
+.bp-body .art-p-b {
+  font-size: 16px; line-height: 1.8; margin-bottom: 18px; color: var(--bp-ink);
+}
+.bp-body .art-h2-b {
+  font-size: clamp(18px, 3.5vw, 24px); font-weight: 800;
+  color: var(--bp-brand); margin: 32px 0 12px; letter-spacing: -.02em;
+}
+.bp-body .art-hl-b {
+  background: var(--bp-brand-pale); border-left: 4px solid var(--bp-orange);
+  border-radius: 0 10px 10px 0; padding: 16px 18px; margin: 20px 0;
+  font-size: 15px; line-height: 1.65; color: var(--bp-ink);
+}
+.bp-body .art-hl-b strong { color: var(--bp-brand); }
+.bp-body .art-ul-b {
+  margin: 0 0 18px 24px; line-height: 1.85;
+}
+.bp-body .art-ul-b li { font-size: 15px; margin-bottom: 6px; color: var(--bp-ink); }
+.bp-body .art-ul-b li strong { color: var(--bp-brand); }
+.bp-body .art-quote-b {
+  border-left: 3px solid var(--bp-orange); padding: 12px 18px; margin: 20px 0;
+  background: rgba(232,85,26,.04); border-radius: 0 8px 8px 0;
+}
+.bp-body .art-quote-b p {
+  font-size: 16px; font-style: italic; color: var(--bp-brand); line-height: 1.6; margin: 0;
+}
+
+/* CTA */
+.bp-cta-wrap { padding: 0 20px 40px; background: var(--bp-bg); }
+.bp-cta {
+  background: var(--bp-brand); border-radius: 14px;
+  padding: 28px 24px; text-align: center;
+}
+.bp-cta h3 { font-size: 20px; font-weight: 800; color: #fff; margin-bottom: 8px; }
+.bp-cta p  { font-size: 14px; color: rgba(255,255,255,.65); margin-bottom: 18px; line-height: 1.5; }
+.bp-cta-btn {
+  display: inline-block; background: var(--bp-orange); color: #fff;
+  border-radius: 8px; padding: 13px 28px; font-weight: 700; font-size: 14px;
+  text-decoration: none; transition: background .2s, transform .2s;
+}
+.bp-cta-btn:hover { background: #c93f00; transform: translateY(-2px); }
+
+/* Back */
+.bp-back-wrap { padding: 0 20px 48px; background: var(--bp-bg); }
+.bp-back-btn {
+  background: none; border: 1.5px solid var(--bp-border); border-radius: 50px;
+  padding: 10px 20px; font-family: inherit; font-size: 13px; font-weight: 600;
+  color: var(--bp-mid); cursor: pointer; transition: all .2s;
+}
+.bp-back-btn:hover { border-color: var(--bp-brand); color: var(--bp-brand); }
+
+/* Not found */
+.bp-not-found {
+  padding: 80px 20px; text-align: center;
+}
+.bp-not-found h2 { font-size: 24px; color: var(--bp-brand); margin-bottom: 16px; }
+.bp-not-found button {
+  background: var(--bp-brand); color: #fff; border: none; border-radius: 8px;
+  padding: 12px 24px; font-family: inherit; font-size: 14px; font-weight: 700; cursor: pointer;
+}
+
+@media (min-width: 768px) {
+  .bp-article  { padding: 56px 40px 56px; }
+  .bp-cta-wrap { padding: 0 40px 48px; }
+  .bp-back-wrap{ padding: 0 40px 56px; }
+  .bp-body .art-p-b { font-size: 17px; }
+}

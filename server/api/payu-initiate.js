@@ -23,14 +23,19 @@ export default async function handler(req, res) {
     if (req.method === 'OPTIONS') return res.status(200).end();
     if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
-    const { email, firstname, phone, contactId } = req.body || {};
+    const { email, firstname, phone, contactId, price } = req.body || {};
     if (!email || !firstname) return res.status(400).json({ error: 'email and firstname required' });
 
     const key = PAYU_KEY();
     const salt = PAYU_SALT();
     if (!key || !salt) return res.status(500).json({ error: 'PayU credentials not configured' });
 
-    const amount = process.env.PAYU_AMOUNT || '99.00';
+    // Use price from request if provided and valid, otherwise fall back to env default.
+    // Parse and reformat to always have exactly 2 decimal places (PayU requirement).
+    const parsedPrice = parseFloat(price);
+    const amount = (!isNaN(parsedPrice) && parsedPrice > 0)
+        ? parsedPrice.toFixed(2)
+        : (process.env.PAYU_AMOUNT || '99.00');
     const productinfo = process.env.PAYU_PRODUCT || 'VetRx Scan - Additional Scans Pack';
     const txnid = `VRX${Date.now()}${Math.floor(Math.random() * 1000)}`;
 

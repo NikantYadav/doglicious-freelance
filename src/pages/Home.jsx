@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import '../styles/Home.css';
 
 import {
@@ -46,6 +47,7 @@ import BlogModal from '../components/modals/BlogModal';
 export default function Home() {
 
   // ── Nav / Menu ──
+  const navigate = useNavigate();
   const [navScrolled, setNavScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
@@ -207,6 +209,14 @@ export default function Home() {
   };
 
   const openTool = (idx) => {
+    if (idx === 0) { navigate('/tools/bmi-calculator');      return; }
+    if (idx === 1) { navigate('/tools/feeding-calculator');  return; }
+    if (idx === 2) { navigate('/tools/cost-calculator');     return; }
+    if (idx === 3) { navigate('/tools/age-calculator');      return; }
+    if (idx === 4) { navigate('/tools/best-vegetables');     return; }
+    if (idx === 5) { navigate('/tools/natural-healing');     return; }
+    if (idx === 6) { navigate('/tools/aafco-planner');       return; }
+    if (idx === 7) { navigate('/tools/health-quiz');         return; }
     setActiveTool(idx);
     openModal('tools');
   };

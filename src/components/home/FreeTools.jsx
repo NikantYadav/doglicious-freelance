@@ -1,6 +1,20 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 
 export default function FreeTools({ openTool }) {
+    const navigate = useNavigate();
+
+    const handleTool = (idx) => {
+        if (idx === 0) { navigate('/tools/bmi-calculator');      }
+        else if (idx === 1) { navigate('/tools/feeding-calculator');  }
+        else if (idx === 2) { navigate('/tools/cost-calculator');     }
+        else if (idx === 3) { navigate('/tools/age-calculator');      }
+        else if (idx === 4) { navigate('/tools/best-vegetables');     }
+        else if (idx === 5) { navigate('/tools/natural-healing');     }
+        else if (idx === 6) { navigate('/tools/aafco-planner');       }
+        else if (idx === 7) { navigate('/tools/health-quiz');         }
+        else { openTool(idx); }
+    };
     return (
         <>
             <section id="free-tools-section" style={{ background: "var(--cream)" }}>
@@ -17,7 +31,7 @@ export default function FreeTools({ openTool }) {
                             }
                             title="Dog BMI Calculator"
                             desc="Is your dog at a healthy weight? Check instantly by breed and age."
-                            onClick={() => openTool(0)}
+                            onClick={() => handleTool(0)}
                         />
                         <ToolCard
                             icon={
@@ -25,7 +39,7 @@ export default function FreeTools({ openTool }) {
                             }
                             title="Feeding Calculator"
                             desc="How much should your dog eat daily? Calculated for their exact weight and activity."
-                            onClick={() => openTool(1)}
+                            onClick={() => handleTool(1)}
                         />
                         <ToolCard
                             icon={
@@ -33,7 +47,7 @@ export default function FreeTools({ openTool }) {
                             }
                             title="Cost Calculator"
                             desc="Fresh food vs kibble — see the real cost comparison over a month and a year."
-                            onClick={() => openTool(2)}
+                            onClick={() => handleTool(2)}
                         />
                         <ToolCard
                             icon={
@@ -41,7 +55,7 @@ export default function FreeTools({ openTool }) {
                             }
                             title="Age Calculator"
                             desc="How old is your dog in human years? Understand their life stage and what it means for nutrition."
-                            onClick={() => openTool(3)}
+                            onClick={() => handleTool(3)}
                         />
                         <ToolCard
                             icon={
@@ -49,7 +63,7 @@ export default function FreeTools({ openTool }) {
                             }
                             title="Safe Vegetables Guide"
                             desc="Which vegetables are safe for dogs? Complete guide with portions and what to avoid."
-                            onClick={() => openTool(4)}
+                            onClick={() => handleTool(4)}
                         />
                         <ToolCard
                             icon={
@@ -57,7 +71,7 @@ export default function FreeTools({ openTool }) {
                             }
                             title="Natural Healing Guide"
                             desc="Natural remedies for common dog problems — vet reviewed, evidence-based, Indian context."
-                            onClick={() => openTool(5)}
+                            onClick={() => handleTool(5)}
                         />
                         <ToolCard
                             icon={
@@ -65,7 +79,7 @@ export default function FreeTools({ openTool }) {
                             }
                             title="AAFCO Meal Planner"
                             desc="Build a complete, balanced homemade meal plan that meets AAFCO nutritional standards."
-                            onClick={() => openTool(6)}
+                            onClick={() => handleTool(6)}
                         />
                         <ToolCard
                             icon={
@@ -73,7 +87,7 @@ export default function FreeTools({ openTool }) {
                             }
                             title="Dog Health Quiz"
                             desc="How healthy is your dog right now? 5 minutes to your personalised health score and recommendations."
-                            onClick={() => openTool(7)}
+                            onClick={() => handleTool(7)}
                         />
                     </div>
                 </div>
@@ -83,14 +97,14 @@ export default function FreeTools({ openTool }) {
                 <div className="wrap">
                     <div className="sh c rv"><span className="lbl">Free Tools</span><h2 className="title">Free nutrition tools.</h2><p className="lead mt12">Science-backed tools built for Indian dog parents. Know more, feed better.</p></div>
                     <div className="toolg sg">
-                        <ToolBox icon="⚖️" title="BMI" desc="Is your dog at a healthy weight?" onClick={() => openTool(0)} />
-                        <ToolBox icon="🍽️" title="Feeding" desc="How much should your dog eat daily?" onClick={() => openTool(1)} />
-                        <ToolBox icon="💰" title="Cost" desc="Fresh vs kibble — real cost comparison" onClick={() => openTool(2)} />
-                        <ToolBox icon="📅" title="Age" desc="How old is your dog in human years?" onClick={() => openTool(3)} />
-                        <ToolBox icon="🥦" title="Vegetables" desc="Which vegetables are safe for dogs?" onClick={() => openTool(4)} />
-                        <ToolBox icon="💊" title="Healing" desc="Natural remedies for common dog problems" onClick={() => openTool(5)} />
-                        <ToolBox icon="📋" title="AAFCO" desc="Build a complete, balanced meal plan" onClick={() => openTool(6)} />
-                        <ToolBox icon="🧠" title="Health Quiz" desc="How healthy is your dog right now?" onClick={() => openTool(7)} />
+                        <ToolBox icon="⚖️" title="BMI" desc="Is your dog at a healthy weight?" onClick={() => handleTool(0)} />
+                        <ToolBox icon="🍽️" title="Feeding" desc="How much should your dog eat daily?" onClick={() => handleTool(1)} />
+                        <ToolBox icon="💰" title="Cost" desc="Fresh vs kibble — real cost comparison" onClick={() => handleTool(2)} />
+                        <ToolBox icon="📅" title="Age" desc="How old is your dog in human years?" onClick={() => handleTool(3)} />
+                        <ToolBox icon="🥦" title="Vegetables" desc="Which vegetables are safe for dogs?" onClick={() => handleTool(4)} />
+                        <ToolBox icon="💊" title="Healing" desc="Natural remedies for common dog problems" onClick={() => handleTool(5)} />
+                        <ToolBox icon="📋" title="AAFCO" desc="Build a complete, balanced meal plan" onClick={() => handleTool(6)} />
+                        <ToolBox icon="🧠" title="Health Quiz" desc="How healthy is your dog right now?" onClick={() => handleTool(7)} />
                     </div>
                 </div>
             </section>
