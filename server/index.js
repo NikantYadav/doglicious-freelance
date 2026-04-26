@@ -19,6 +19,7 @@ import payuInitiate from './api/payu-initiate.js';
 import payuSuccess from './api/payu-success.js';
 import payuFailure from './api/payu-failure.js';
 import configHandler from './api/config.js';
+import kylasSample from './api/kylas-sample.js';
 
 const app = express();
 app.use(cors());
@@ -47,6 +48,7 @@ app.post('/api/payu-initiate', wrap(payuInitiate));
 app.post('/api/payu-success', wrap(payuSuccess));
 app.post('/api/payu-failure', wrap(payuFailure));
 app.get('/api/config', wrap(configHandler));
+app.post('/api/kylas-sample', wrap(kylasSample));
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {

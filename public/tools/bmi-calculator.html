@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Dog Ideal Weight & BMI Checker — Is My Dog Overweight? | Doglicious</title>
+<meta name="description" content="Free dog weight & BMI checker for Indian dogs. Check if your dog is underweight, ideal, overweight or obese using Body Condition Score. Get a personalised plan."/>
+<meta name="keywords" content="is my dog overweight India, dog healthy weight calculator, dog body condition score, dog BMI India, dog weight check"/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800;900&family=Lora:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet"/>
+<style>
+:root{
+  --bg:#FAFAF8;
+  --surface:#FFFFFF;
+  --ink:#111110;
+  --muted:#6B6B60;
+  --border:#E4E4DC;
+  --blue:#1a4fa0;
+  --blue-light:#EEF3FC;
+  --green:#1A7A45;
+  --green-light:#EBF7F0;
+  --amber:#C47A0A;
+  --amber-light:#FEF5E4;
+  --orange:#C4500A;
+  --orange-light:#FEF0E8;
+  --red:#A01A1A;
+  --red-light:#FCF0F0;
+  --r:16px;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'Archivo',sans-serif;background:var(--bg);color:var(--ink);min-height:100vh;}
+
+/* ── HERO ── */
+.hero{
+  background:var(--ink);
+  padding:52px 24px 44px;
+  position:relative;overflow:hidden;
+}
+.hero::after{
+  content:'BMI';
+  position:absolute;right:-20px;bottom:-20px;
+  font-size:160px;font-weight:900;color:rgba(255,255,255,.03);
+  line-height:1;pointer-events:none;letter-spacing:-8px;
+}
+.hero-eyebrow{
+  display:inline-flex;align-items:center;gap:6px;
+  border:1px solid rgba(255,255,255,.15);
+  padding:5px 12px;border-radius:4px;
+  font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;
+  color:rgba(255,255,255,.5);margin-bottom:20px;
+}
+.hero-dot{width:6px;height:6px;border-radius:50%;background:#4CAF50;animation:blink 2s infinite;}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+.hero h1{
+  font-family:'Lora',serif;
+  font-size:clamp(1.8rem,6vw,3rem);
+  color:#fff;line-height:1.2;margin-bottom:12px;
+}
+.hero h1 em{font-style:italic;color:#A8E6C0;}
+.hero-sub{font-size:13px;color:rgba(255,255,255,.5);max-width:380px;line-height:1.7;}
+
+/* ── BODY ── */
+.body{max-width:560px;margin:0 auto;padding:32px 20px 60px;}
+
+/* ── BCS VISUAL ── */
+.bcs-info{
+  background:var(--surface);border:1.5px solid var(--border);
+  border-radius:var(--r);padding:20px;margin-bottom:20px;
+}
+.bcs-info h3{font-size:12px;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:14px;}
+.bcs-scale{display:flex;gap:3px;margin-bottom:10px;}
+.bcs-seg{
+  flex:1;height:10px;border-radius:2px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:7px;font-weight:800;color:rgba(255,255,255,.9);
+}
+.bcs-labels{display:flex;justify-content:space-between;font-size:9px;color:var(--muted);font-weight:700;letter-spacing:.5px;text-transform:uppercase;}
+
+/* ── INPUT CARD ── */
+.input-card{
+  background:var(--surface);border:1.5px solid var(--border);
+  border-radius:var(--r);overflow:hidden;margin-bottom:20px;
+}
+.card-head{background:var(--ink);padding:14px 20px;}
+.card-head-label{font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:rgba(255,255,255,.4);margin-bottom:2px;}
+.card-head-title{font-size:16px;font-weight:800;color:#fff;}
+.card-body{padding:22px;}
+
+.field{margin-bottom:18px;}
+.field label{
+  display:block;font-size:10px;font-weight:800;letter-spacing:1.5px;
+  text-transform:uppercase;color:var(--muted);margin-bottom:8px;
+}
+.field input[type=number]{
+  width:100%;padding:14px 16px;
+  background:var(--bg);border:2px solid var(--border);
+  border-radius:10px;font-family:'Archivo',sans-serif;
+  font-size:22px;font-weight:800;color:var(--ink);
+  outline:none;transition:border-color .2s;
+  -webkit-appearance:none;
+}
+.field input:focus{border-color:var(--blue);}
+
+.pill-group{display:flex;flex-wrap:wrap;gap:8px;}
+.pill{
+  padding:10px 14px;border-radius:8px;
+  border:2px solid var(--border);background:var(--bg);
+  font-family:'Archivo',sans-serif;font-size:12px;font-weight:700;
+  color:var(--ink);cursor:pointer;transition:all .18s;
+  display:flex;flex-direction:column;align-items:center;gap:2px;
+  flex:1;min-width:70px;text-align:center;
+}
+.pill span{font-size:9px;font-weight:500;color:var(--muted);}
+.pill.sel{background:var(--ink);border-color:var(--ink);color:#fff;}
+.pill.sel span{color:rgba(255,255,255,.5);}
+
+/* BCS selector */
+.bcs-selector{display:grid;grid-template-columns:repeat(9,1fr);gap:4px;}
+.bcs-btn{
+  aspect-ratio:1;border-radius:6px;border:2px solid var(--border);
+  background:var(--bg);font-family:'Archivo',sans-serif;
+  font-size:13px;font-weight:800;color:var(--muted);
+  cursor:pointer;transition:all .15s;display:flex;
+  align-items:center;justify-content:center;
+}
+.bcs-btn.sel-1,.bcs-btn.sel-2,.bcs-btn.sel-3{background:#1a4fa0;border-color:#1a4fa0;color:#fff;}
+.bcs-btn.sel-4,.bcs-btn.sel-5{background:#1A7A45;border-color:#1A7A45;color:#fff;}
+.bcs-btn.sel-6,.bcs-btn.sel-7{background:#C47A0A;border-color:#C47A0A;color:#fff;}
+.bcs-btn.sel-8,.bcs-btn.sel-9{background:#A01A1A;border-color:#A01A1A;color:#fff;}
+.bcs-hint{font-size:11px;color:var(--muted);margin-top:8px;line-height:1.5;}
+
+.input-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+
+/* ── BTN ── */
+.btn-calc{
+  width:100%;padding:17px;
+  background:var(--ink);color:#fff;
+  border:none;border-radius:50px;
+  font-family:'Archivo',sans-serif;font-size:15px;font-weight:800;
+  cursor:pointer;transition:all .2s;letter-spacing:.3px;
+}
+.btn-calc:hover{background:#2a2a28;}
+.btn-calc:active{transform:scale(.98);}
+
+/* ── RESULT ── */
+.result{display:none;animation:up .4s ease;}
+.result.show{display:block;}
+@keyframes up{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+
+/* Verdict */
+.verdict-card{
+  border-radius:var(--r);padding:24px;margin-bottom:16px;
+}
+.vc-top{display:flex;align-items:center;gap:14px;margin-bottom:16px;}
+.vc-emoji{font-size:44px;}
+.vc-text .vc-label{font-size:10px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:4px;}
+.vc-text .vc-title{font-family:'Lora',serif;font-size:26px;font-weight:600;line-height:1.2;}
+.vc-text .vc-sub{font-size:12px;margin-top:4px;opacity:.7;}
+
+/* Gauge */
+.gauge-wrap{margin-bottom:12px;}
+.gauge-label{font-size:10px;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:8px;}
+.gauge-bar{height:16px;background:var(--border);border-radius:50px;overflow:hidden;position:relative;}
+.gauge-fill{height:100%;border-radius:50px;transition:width 1s cubic-bezier(.4,0,.2,1);}
+.gauge-pointer{position:absolute;top:-4px;width:4px;height:24px;background:var(--ink);border-radius:2px;transition:left 1s cubic-bezier(.4,0,.2,1);}
+.gauge-range{display:flex;justify-content:space-between;font-size:10px;color:var(--muted);margin-top:4px;font-weight:600;}
+
+/* Stats grid */
+.stats-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px;}
+.stat-box{
+  background:var(--surface);border:1.5px solid var(--border);
+  border-radius:12px;padding:14px;
+}
+.sb-label{font-size:9px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-bottom:4px;}
+.sb-val{font-size:20px;font-weight:900;color:var(--ink);}
+.sb-unit{font-size:11px;color:var(--muted);font-weight:500;}
+
+/* Goal card */
+.goal-card{
+  background:var(--surface);border:1.5px solid var(--border);
+  border-radius:var(--r);padding:18px;margin-bottom:16px;
+}
+.goal-title{font-size:10px;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:12px;}
+.goal-row{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border);}
+.goal-row:last-child{border-bottom:none;}
+.gr-label{font-size:13px;color:var(--ink);}
+.gr-val{font-size:13px;font-weight:800;color:var(--ink);}
+
+/* Tips */
+.tips-card{
+  background:var(--surface);border:1.5px solid var(--border);
+  border-radius:var(--r);padding:18px;margin-bottom:16px;
+}
+.tips-title{font-size:10px;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:12px;}
+.tip-row{display:flex;gap:12px;align-items:flex-start;margin-bottom:10px;}
+.tip-row:last-child{margin-bottom:0;}
+.tip-icon{font-size:18px;flex-shrink:0;margin-top:1px;}
+.tip-text{font-size:13px;color:var(--ink);line-height:1.5;}
+.tip-text strong{color:var(--blue);}
+
+/* CTA */
+.cta-strip{
+  background:var(--ink);border-radius:var(--r);
+  padding:20px 22px;display:flex;align-items:center;gap:14px;
+  margin-bottom:16px;
+}
+.cta-text h3{font-family:'Lora',serif;font-size:18px;color:#fff;margin-bottom:4px;}
+.cta-text p{font-size:11px;color:rgba(255,255,255,.55);line-height:1.5;}
+.cta-wa{
+  flex-shrink:0;
+  background:#25D366;color:#fff;
+  padding:12px 16px;border-radius:50px;
+  font-family:'Archivo',sans-serif;font-size:12px;font-weight:800;
+  text-decoration:none;white-space:nowrap;border:none;cursor:pointer;
+  transition:all .2s;
+}
+.cta-wa:active{transform:scale(.97);}
+.btn-reset{
+  width:100%;padding:14px;background:transparent;
+  border:1.5px solid var(--border);border-radius:50px;
+  font-family:'Archivo',sans-serif;font-size:13px;font-weight:700;
+  color:var(--muted);cursor:pointer;transition:all .2s;
+}
+.btn-reset:hover{border-color:var(--ink);color:var(--ink);}
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <div class="hero-eyebrow"><span class="hero-dot"></span> Live Checker</div>
+  <h1>Is your dog at their<br/><em>ideal weight?</em></h1>
+  <p class="hero-sub">Enter your dog's details and Body Condition Score to get an instant health verdict with a personalised nutrition plan.</p>
+</div>
+
+<div class="body">
+
+  <!-- BCS Guide -->
+  <div class="bcs-info">
+    <h3>📊 Body Condition Score (BCS) Guide</h3>
+    <div class="bcs-scale">
+      <div class="bcs-seg" style="background:#1a4fa0;flex:3;">1–3</div>
+      <div class="bcs-seg" style="background:#1A7A45;flex:2;">4–5</div>
+      <div class="bcs-seg" style="background:#C47A0A;flex:2;">6–7</div>
+      <div class="bcs-seg" style="background:#A01A1A;flex:2;">8–9</div>
+    </div>
+    <div class="bcs-labels">
+      <span>🔵 Underweight</span>
+      <span>🟢 Ideal</span>
+      <span>🟡 Overweight</span>
+      <span>🔴 Obese</span>
+    </div>
+  </div>
+
+  <!-- Input -->
+  <div class="input-card">
+    <div class="card-head">
+      <div class="card-head-label">Dog Details</div>
+      <div class="card-head-title">Check Your Dog's Weight</div>
+    </div>
+    <div class="card-body">
+      <div class="input-row">
+        <div class="field">
+          <label>Current Weight (kg)</label>
+          <input type="number" id="currentWeight" placeholder="e.g. 18" min="0.5" max="90" step="0.1"/>
+        </div>
+        <div class="field">
+          <label>Age (years)</label>
+          <input type="number" id="dogAge" placeholder="e.g. 3" min="0" max="20" step="0.5"/>
+        </div>
+      </div>
+
+      <div class="field">
+        <label>Breed Size</label>
+        <div class="pill-group" id="sizeGroup">
+          <div class="pill" data-val="small" onclick="pickPill('sizeGroup',this)">🐩 Small<span>&lt;10 kg</span></div>
+          <div class="pill" data-val="medium" onclick="pickPill('sizeGroup',this)">🐕 Medium<span>10–25 kg</span></div>
+          <div class="pill" data-val="large" onclick="pickPill('sizeGroup',this)">🦮 Large<span>25–45 kg</span></div>
+          <div class="pill" data-val="giant" onclick="pickPill('sizeGroup',this)">🐻 Giant<span>&gt;45 kg</span></div>
+        </div>
+      </div>
+
+      <div class="field">
+        <label>Sex</label>
+        <div class="pill-group" id="sexGroup">
+          <div class="pill" data-val="male" onclick="pickPill('sexGroup',this)" style="flex:initial;min-width:90px;">♂ Male</div>
+          <div class="pill" data-val="female" onclick="pickPill('sexGroup',this)" style="flex:initial;min-width:90px;">♀ Female</div>
+          <div class="pill" data-val="neutered" onclick="pickPill('sexGroup',this)" style="flex:initial;min-width:90px;">✂️ Neutered</div>
+        </div>
+      </div>
+
+      <div class="field">
+        <label>Body Condition Score (BCS) — tap the score that best describes your dog</label>
+        <div class="bcs-selector" id="bcsSelector">
+          <button class="bcs-btn" data-val="1" onclick="pickBCS(this)">1</button>
+          <button class="bcs-btn" data-val="2" onclick="pickBCS(this)">2</button>
+          <button class="bcs-btn" data-val="3" onclick="pickBCS(this)">3</button>
+          <button class="bcs-btn" data-val="4" onclick="pickBCS(this)">4</button>
+          <button class="bcs-btn" data-val="5" onclick="pickBCS(this)">5</button>
+          <button class="bcs-btn" data-val="6" onclick="pickBCS(this)">6</button>
+          <button class="bcs-btn" data-val="7" onclick="pickBCS(this)">7</button>
+          <button class="bcs-btn" data-val="8" onclick="pickBCS(this)">8</button>
+          <button class="bcs-btn" data-val="9" onclick="pickBCS(this)">9</button>
+        </div>
+        <div class="bcs-hint" id="bcsHint">Select 1 (very thin) → 9 (severely obese). 4–5 is ideal.</div>
+      </div>
+
+      <button class="btn-calc" onclick="calculate()">Check My Dog's Weight →</button>
+    </div>
+  </div>
+
+  <!-- Result -->
+  <div class="result" id="result">
+
+    <div class="verdict-card" id="verdictCard">
+      <div class="vc-top">
+        <div class="vc-emoji" id="vcEmoji">⚖️</div>
+        <div class="vc-text">
+          <div class="vc-label" id="vcLabel">Result</div>
+          <div class="vc-title" id="vcTitle">–</div>
+          <div class="vc-sub" id="vcSub">–</div>
+        </div>
+      </div>
+      <div class="gauge-wrap">
+        <div class="gauge-label">Weight vs ideal range</div>
+        <div class="gauge-bar">
+          <div class="gauge-fill" id="gaugeFill" style="width:0%"></div>
+          <div class="gauge-pointer" id="gaugePointer" style="left:50%"></div>
+        </div>
+        <div class="gauge-range"><span>Underweight</span><span>Ideal</span><span>Obese</span></div>
+      </div>
+    </div>
+
+    <div class="stats-grid">
+      <div class="stat-box">
+        <div class="sb-label">Current Weight</div>
+        <div class="sb-val" id="statCurrent">–</div>
+        <div class="sb-unit">kg</div>
+      </div>
+      <div class="stat-box">
+        <div class="sb-label">Ideal Weight</div>
+        <div class="sb-val" id="statIdeal">–</div>
+        <div class="sb-unit">kg range</div>
+      </div>
+      <div class="stat-box">
+        <div class="sb-label">Variance</div>
+        <div class="sb-val" id="statVariance">–</div>
+        <div class="sb-unit">from ideal</div>
+      </div>
+      <div class="stat-box">
+        <div class="sb-label">Goal Timeline</div>
+        <div class="sb-val" id="statTimeline">–</div>
+        <div class="sb-unit">weeks (safe pace)</div>
+      </div>
+    </div>
+
+    <div class="goal-card">
+      <div class="goal-title">🎯 Weight goal plan</div>
+      <div class="goal-row"><div class="gr-label">Target weight</div><div class="gr-val" id="goalTarget">–</div></div>
+      <div class="goal-row"><div class="gr-label">Safe loss/gain rate</div><div class="gr-val" id="goalRate">–</div></div>
+      <div class="goal-row"><div class="gr-label">Weekly change needed</div><div class="gr-val" id="goalWeekly">–</div></div>
+      <div class="goal-row"><div class="gr-label">Estimated timeline</div><div class="gr-val" id="goalTimeline">–</div></div>
+    </div>
+
+    <div class="tips-card">
+      <div class="tips-title">🍽️ Nutrition recommendations</div>
+      <div id="tipsList"></div>
+    </div>
+
+    <div class="cta-strip">
+      <div class="cta-text">
+        <h3>Get a weight-specific meal plan</h3>
+        <p>Doglicious creates fresh meals calibrated to your dog's ideal weight. Try a sample for ₹99.</p>
+      </div>
+      <button class="cta-wa" onclick="bookSample()">📲 ₹99 Sample</button>
+    </div>
+
+    <button class="btn-reset" onclick="reset()">↩ Check another dog</button>
+  </div>
+
+</div>
+
+<script>
+const S={weight:0,age:0,size:'',sex:'',bcs:0};
+
+const IDEAL_RANGES={
+  small:{min:3,max:10},
+  medium:{min:10,max:25},
+  large:{min:25,max:45},
+  giant:{min:45,max:90}
+};
+
+const BCS_HINTS={
+  1:'Ribs, spine & hip bones very prominent. No body fat. Visible muscle loss.',
+  2:'Ribs easily felt, minimal fat. Pronounced waist. Some muscle loss.',
+  3:'Ribs easily felt. Obvious waist. Slight abdominal tuck.',
+  4:'Ribs easily felt without pressing. Visible waist behind ribs. Slight tuck.',
+  5:'✅ Ideal! Ribs felt with slight fat covering. Visible waist, tuck present.',
+  6:'Ribs felt with slight excess fat. Waist discernible but not obvious.',
+  7:'Ribs difficult to feel. Waist absent or barely visible. Abdominal rounding.',
+  8:'Ribs not felt under heavy fat. Heavy waist and abdomen. Fat deposits on neck/limbs.',
+  9:'Massive fat deposits. No waist, distended abdomen. Difficulty moving.'
+};
+
+const VERDICT_DATA={
+  underweight:{emoji:'🔵',label:'Underweight',color:'#1a4fa0',bg:'#EEF3FC',tips:[
+    {icon:'🥩',text:'<strong>Increase caloric density</strong> — add healthy fats like coconut oil or sardines in water to boost calories without volume.'},
+    {icon:'🍗',text:'<strong>High-protein fresh food</strong> supports lean muscle gain. Aim for 28%+ protein in diet.'},
+    {icon:'🍽️',text:'<strong>Feed 3 times per day</strong> — smaller, more frequent meals are better absorbed than one large meal.'},
+    {icon:'🩺',text:'<strong>Rule out illness</strong> — unexplained weight loss should be checked by a vet (worms, thyroid issues, or dental pain).'}
+  ]},
+  ideal:{emoji:'🟢',label:'Ideal Weight',color:'#1A7A45',bg:'#EBF7F0',tips:[
+    {icon:'⚖️',text:'<strong>Maintain this weight</strong> — you\'re doing great! Monitor BCS monthly and adjust portions seasonally.'},
+    {icon:'🥗',text:'<strong>Fresh food supports maintenance</strong> — less filler means exact calorie control without guesswork.'},
+    {icon:'🏃',text:'<strong>Regular exercise</strong> keeps muscles toned. 30–60 min daily walk is ideal for most breeds.'},
+    {icon:'📊',text:'<strong>Check BCS every 4 weeks</strong> — weight can creep up slowly. Prevention is easier than correction.'}
+  ]},
+  overweight:{emoji:'🟡',label:'Overweight',color:'#C47A0A',bg:'#FEF5E4',tips:[
+    {icon:'📉',text:'<strong>Reduce portions by 10–15%</strong> gradually. Sudden restriction causes muscle loss, not fat loss.'},
+    {icon:'🥕',text:'<strong>Replace 20% of food with low-cal veg</strong> — boiled carrots, cucumber, and green beans add volume without calories.'},
+    {icon:'🚶',text:'<strong>Increase activity slowly</strong> — add 10 min to daily walk every week. Avoid high-impact exercise initially.'},
+    {icon:'🍗',text:'<strong>Switch to weight management fresh food</strong> — higher protein, lower fat maintains muscle while burning fat.'}
+  ]},
+  obese:{emoji:'🔴',label:'Obese',color:'#A01A1A',bg:'#FCF0F0',tips:[
+    {icon:'🩺',text:'<strong>Vet consultation recommended</strong> — obesity affects joints, heart, and lifespan. Get a formal weight loss plan.'},
+    {icon:'📉',text:'<strong>Structured calorie reduction</strong> — reduce daily intake to 60–70% of maintenance under vet supervision.'},
+    {icon:'🏊',text:'<strong>Low-impact exercise only</strong> — hydrotherapy or gentle walks. Avoid stairs and jumping until weight drops.'},
+    {icon:'🥩',text:'<strong>High-protein, low-fat fresh food</strong> is clinically proven to support healthy weight loss in dogs.'}
+  ]}
+};
+
+function pickPill(groupId,el){
+  document.getElementById(groupId).querySelectorAll('.pill').forEach(p=>p.classList.remove('sel'));
+  el.classList.add('sel');
+  S[groupId==='sizeGroup'?'size':'sex']=el.dataset.val;
+}
+function pickBCS(el){
+  document.querySelectorAll('.bcs-btn').forEach(b=>b.className='bcs-btn');
+  const v=parseInt(el.dataset.val);
+  el.classList.add('sel-'+v);
+  S.bcs=v;
+  document.getElementById('bcsHint').textContent=BCS_HINTS[v]||'';
+}
+
+function getCategory(bcs){
+  if(bcs<=3) return 'underweight';
+  if(bcs<=5) return 'ideal';
+  if(bcs<=7) return 'overweight';
+  return 'obese';
+}
+
+function calculate(){
+  S.weight=parseFloat(document.getElementById('currentWeight').value)||0;
+  S.age=parseFloat(document.getElementById('dogAge').value)||0;
+  if(!S.weight){alert('Please enter current weight.');return;}
+  if(!S.size){alert('Please select breed size.');return;}
+  if(!S.bcs){alert('Please select a Body Condition Score.');return;}
+
+  const range=IDEAL_RANGES[S.size];
+  const idealMid=(range.min+range.max)/2;
+  const idealTarget=Math.round(idealMid*10)/10;
+  const diff=S.weight-idealTarget;
+  const absDiff=Math.abs(diff);
+  const pctDiff=Math.round((diff/idealTarget)*100);
+  const category=getCategory(S.bcs);
+  const vd=VERDICT_DATA[category];
+
+  // Safe rate: 1-2% body weight per week
+  const safeWeekly=Math.round(idealTarget*0.015*10)/10;
+  const weeks=safeWeekly>0?Math.ceil(absDiff/safeWeekly):0;
+
+  // Gauge
+  const gaugePos=Math.min(Math.max((S.weight/range.max)*100,5),95);
+  document.getElementById('gaugeFill').style.width=gaugePos+'%';
+  document.getElementById('gaugeFill').style.background=vd.color;
+  document.getElementById('gaugePointer').style.left=gaugePos+'%';
+
+  // Verdict card
+  document.getElementById('vcEmoji').textContent=vd.emoji;
+  document.getElementById('vcLabel').textContent=category.toUpperCase();
+  document.getElementById('vcTitle').textContent=vd.label+(diff>0.5?' — '+pctDiff+'% over ideal':diff<-0.5?' — '+Math.abs(pctDiff)+'% under ideal':'');
+  document.getElementById('vcSub').textContent=`BCS ${S.bcs}/9 · Current: ${S.weight}kg · Ideal range: ${range.min}–${range.max}kg`;
+  const vc=document.getElementById('verdictCard');
+  vc.style.background=vd.bg;vc.style.border='1.5px solid '+vd.color;
+
+  // Stats
+  document.getElementById('statCurrent').textContent=S.weight;
+  document.getElementById('statIdeal').textContent=range.min+'–'+range.max;
+  document.getElementById('statVariance').textContent=(diff>0?'+':'')+Math.round(diff*10)/10+' kg';
+  document.getElementById('statTimeline').textContent=weeks>0?weeks:'—';
+
+  // Goals
+  const action=category==='underweight'?'gain':'lose';
+  document.getElementById('goalTarget').textContent=idealTarget+' kg';
+  document.getElementById('goalRate').textContent='1–2% body weight/week';
+  document.getElementById('goalWeekly').textContent=(category==='ideal'?'Maintain':action+' ~'+safeWeekly+' kg/week');
+  document.getElementById('goalTimeline').textContent=weeks>0?weeks+' weeks':'Already at goal!';
+
+  // Tips
+  document.getElementById('tipsList').innerHTML=vd.tips.map(t=>`<div class="tip-row"><div class="tip-icon">${t.icon}</div><div class="tip-text">${t.text}</div></div>`).join('');
+
+  document.getElementById('result').classList.add('show');
+  document.getElementById('result').scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+function bookSample(){
+  const msg=encodeURIComponent(`🐾 Hi Doglicious!\n\nI checked my dog's weight using your BMI tool.\n\nCurrent weight: ${S.weight}kg | BCS: ${S.bcs}/9 | Size: ${S.size}\n\nI'd like to book the ₹99 fresh food sample and get a weight-specific meal plan!`);
+  window.open('https://wa.me/919889887980?text='+msg,'_blank');
+}
+function reset(){
+  document.getElementById('result').classList.remove('show');
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+</script>
+</body>
+</html>
