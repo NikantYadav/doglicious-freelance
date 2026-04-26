@@ -1,0 +1,42 @@
+# Dependencies
+node_modules
+server/node_modules
+
+# Build outputs
+dist
+.vite
+
+# Environment files (will be copied explicitly)
+.env
+.env.*
+!.env.frontend
+
+# Git
+.git
+.gitignore
+
+# IDE
+.vscode
+.idea
+*.swp
+*.swo
+
+# Logs
+logs
+*.log
+npm-debug.log*
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Misc
+*.pem
+*.docx
+*.html
+!index.html
+
+# Vercel
+.vercel
+vercel.json
+server/vercel.json

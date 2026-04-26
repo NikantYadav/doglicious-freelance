@@ -44,3 +44,4 @@ workbox-*.js
 *.docx
 
 *.json
+*.pem
