@@ -52,8 +52,8 @@ app.get('/api/config', wrap(configHandler));
 export default app;
 
 const PORT = process.env.PORT || 5000;
-// Only listen locally, Vercel handles the serverless execution
-if (process.env.NODE_ENV !== 'production' && !process.env.VERCEL) {
+// Listen unless running inside Vercel's serverless environment
+if (!process.env.VERCEL) {
     app.listen(PORT, () => {
         console.log(`\n======================================`);
         console.log(`🚀 API Server running on port ${PORT}`);
