@@ -42,3 +42,5 @@ sw.js.map
 workbox-*.js
 
 *.docx
+
+*.json

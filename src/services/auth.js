@@ -2,7 +2,7 @@
 // Manages OTP auth flow and localStorage session.
 
 const API = import.meta.env.VITE_API_URL ?? '';
-const SESSION_KEY = 'vetrx_session';
+const SESSION_KEY = 'vetrx_kylas_session';
 const SESSION_TTL = 7 * 24 * 60 * 60 * 1000; // 7 days
 
 export function getSession() {

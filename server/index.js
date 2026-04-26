@@ -11,8 +11,8 @@ import cors from 'cors';
 // Import our API handler files
 import sendOtp from './api/send-otp.js';
 import verifyOtp from './api/verify-otp.js';
-import hsContact from './api/hs-contact.js';
-import hsReport from './api/hs-report.js';
+import kylasContact from './api/kylas-contact.js';
+import kylasReport from './api/kylas-report.js';
 import aiHandler from './api/ai.js';
 import healthHandler from './api/health.js';
 import payuInitiate from './api/payu-initiate.js';
@@ -39,8 +39,8 @@ const wrap = (handler) => async (req, res) => {
 
 app.post('/api/send-otp', wrap(sendOtp));
 app.post('/api/verify-otp', wrap(verifyOtp));
-app.post('/api/hs-contact', wrap(hsContact));
-app.post('/api/hs-report', wrap(hsReport));
+app.post('/api/kylas-contact', wrap(kylasContact));
+app.post('/api/kylas-report', wrap(kylasReport));
 app.post('/api/ai', wrap(aiHandler));
 app.get('/api/health', wrap(healthHandler));
 app.post('/api/payu-initiate', wrap(payuInitiate));
@@ -58,7 +58,7 @@ if (process.env.NODE_ENV !== 'production' && !process.env.VERCEL) {
         console.log(`\n======================================`);
         console.log(`🚀 API Server running on port ${PORT}`);
         console.log(`📂 Env Path: ${path.join(__dirname, '.env.backend')}`);
-        console.log(`🔑 HubSpot Key loaded: ${process.env.HUBSPOT_API_KEY ? 'YES' : 'NO'}`);
+        console.log(`🔑 Kylas Key loaded: ${process.env.KYLAS_API_KEY ? 'YES' : 'NO'}`);
         console.log(`🤖 Gemini Key loaded: ${process.env.GEMINI_API_KEY ? 'YES' : 'NO'}`);
         console.log(`🧠 Claude Key loaded: ${(process.env.CLUADE_API_KEY || process.env.CLAUDE_API_KEY) ? 'YES' : 'NO'}`);
         console.log(`======================================\n`);

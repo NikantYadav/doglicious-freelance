@@ -1,11 +1,11 @@
-// src/services/hubspot.js
-// Frontend HubSpot service — calls backend Vercel API functions.
+// src/services/kylas.js
+// Frontend Kylas CRM service — calls backend Vercel API functions.
 
 const API = import.meta.env.VITE_API_URL ?? '';
 
 export async function pushReport({ contactId, dogProfile, report, selectedPart, selectedSymptoms }) {
     try {
-        const res = await fetch(`${API}/api/hs-report`, {
+        const res = await fetch(`${API}/api/kylas-report`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ contactId, dogProfile, report, selectedPart, selectedSymptoms }),
@@ -14,7 +14,7 @@ export async function pushReport({ contactId, dogProfile, report, selectedPart, 
         return data; // { ok, scanCount }
     } catch (err) {
         // Fail silently — don't break user flow
-        console.error('[hubspot] pushReport failed:', err);
+        console.error('[kylas] pushReport failed:', err);
         return null;
     }
 }

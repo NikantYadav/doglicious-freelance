@@ -1,7 +1,7 @@
 import { createHmac } from 'crypto';
 
-const HS_BASE = 'https://api.hubapi.com';
-const hsKey = () => process.env.HUBSPOT_API_KEY;
+const KYLAS_BASE = 'https://api.kylas.io';
+const kylasKey = () => process.env.KYLAS_API_KEY;
 const SECRET = process.env.OTP_SECRET || 'vetrx-otp-secret-change-in-prod';
 
 // ── Token verification ───────────────────────────────────────────────
@@ -22,57 +22,69 @@ function verifyToken(token) {
     return data;  // { email, otp, exp }
 }
 
-// ── HubSpot helpers ──────────────────────────────────────────────────
+// ── Kylas helpers ──────────────────────────────────────────────────
 
-async function hsPost(path, body) {
-    const authHeader = `Bearer ${hsKey()}`;
-    console.log(`[hsPost] path: ${path}, authHeader: ${authHeader.slice(0, 20)}...`);
-
-    const res = await fetch(`${HS_BASE}${path}`, {
+async function kylasPost(path, body) {
+    console.log(`[kylasPost] path: ${path}`);
+    const res = await fetch(`${KYLAS_BASE}${path}`, {
         method: 'POST',
-        headers: { Authorization: authHeader, 'Content-Type': 'application/json' },
+        headers: {
+            'api-key': kylasKey(),
+            'Content-Type': 'application/json',
+        },
         body: JSON.stringify(body),
     });
     const data = await res.json();
-    if (!res.ok && res.status !== 404) {
-        throw new Error(`HubSpot ${res.status}: ${JSON.stringify(data?.message || data)}`);
+    if (!res.ok) {
+        throw new Error(`Kylas ${res.status}: ${JSON.stringify(data)}`);
     }
     return data;
 }
 
 async function getOrCreateContact(email) {
-    // Search by email
-    const searchRes = await hsPost('/crm/v3/objects/contacts/search', {
-        filterGroups: [{ filters: [{ propertyName: 'email', operator: 'EQ', value: email }] }],
-        properties: ['email', 'scan_count', 'paid_scans'],
+    const searchRes = await kylasPost('/v1/search/lead?size=10', {
+        fields: ['emails', 'customFieldValues', 'id'],
+        jsonRule: {
+            rules: [
+                {
+                    id: 'multi_field',
+                    field: 'multi_field',
+                    type: 'multi_field',
+                    input: 'multi_field',
+                    operator: 'multi_field',
+                    value: email
+                }
+            ],
+            condition: 'AND',
+            valid: true
+        }
     });
 
-    if (searchRes.results && searchRes.results.length > 0) {
-        const c = searchRes.results[0];
+    if (searchRes.content && searchRes.content.length > 0) {
+        const c = searchRes.content.find(lead => lead.emails && lead.emails.some(e => e.value === email)) || searchRes.content[0];
+        const cf = c.customFieldValues || {};
         return {
             id: c.id,
-            scanCount: parseInt(c.properties.scan_count || '0', 10),
-            paidScans: parseInt(c.properties.paid_scans || '0', 10),
+            scanCount: parseInt(cf.cfScanCount || cf.scan_count || '0', 10),
+            paidScans: parseInt(cf.cfPaidScans || cf.paid_scans || '0', 10),
         };
     }
 
-    // Create — this is synchronous in HubSpot, ID is returned immediately
-    const createRes = await hsPost('/crm/v3/objects/contacts', {
-        properties: { email, scan_count: '0' },
-    });
-
-    if (!createRes.id) {
-        // Contact might already exist (race condition) — search once more
-        const retry = await hsPost('/crm/v3/objects/contacts/search', {
-            filterGroups: [{ filters: [{ propertyName: 'email', operator: 'EQ', value: email }] }],
-            properties: ['email', 'scan_count'],
-        });
-        if (retry.results && retry.results.length > 0) {
-            const c = retry.results[0];
-            return { id: c.id, scanCount: parseInt(c.properties.scan_count || '0', 10) };
+    const createRes = await kylasPost('/v1/leads/', {
+        firstName: 'Unknown',
+        lastName: email.split('@')[0],
+        emails: [
+            {
+                type: 'OFFICE',
+                value: email,
+                primary: true
+            }
+        ],
+        customFieldValues: {
+            cfScanCount: 0,
+            cfPaidScans: 0
         }
-        throw new Error('Failed to create HubSpot contact: ' + JSON.stringify(createRes));
-    }
+    });
 
     return { id: createRes.id, scanCount: 0, paidScans: 0 };
 }
@@ -100,7 +112,7 @@ export default async function handler(req, res) {
         return res.status(200).json({ valid: false, error: 'Incorrect code. Please try again.' });
     }
 
-    // 3. Get or create HubSpot contact
+    // 3. Get or create Kylas lead
     try {
         const { id: contactId, scanCount, paidScans } = await getOrCreateContact(payload.email);
         return res.status(200).json({
@@ -114,8 +126,8 @@ export default async function handler(req, res) {
             }
         });
     } catch (err) {
-        console.error('[verify-otp HubSpot]', err.message);
-        // Return the HS error so it's visible during debugging
-        return res.status(200).json({ valid: true, contactId: null, scanCount: 0, paidScans: 0, _hsError: err.message });
+        console.error('[verify-otp Kylas]', err.message);
+        // Return the error so it's visible during debugging
+        return res.status(200).json({ valid: true, contactId: null, scanCount: 0, paidScans: 0, _kylasError: err.message });
     }
 }

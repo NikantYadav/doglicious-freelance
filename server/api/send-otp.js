@@ -69,7 +69,7 @@ export default async function handler(req, res) {
 
         await sendOtpEmail(email, otp);
 
-        // Return signed token to client — no HubSpot write needed here
+        // Return signed token to client — no Kylas write needed here
         return res.status(200).json({ ok: true, token });
     } catch (err) {
         console.error('[send-otp]', err);

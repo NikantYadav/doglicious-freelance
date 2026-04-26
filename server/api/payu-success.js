@@ -1,4 +1,3 @@
-
 // api/payu-success.js
 // PayU POSTs to this URL on successful payment.
 // We verify the reverse hash, then grant the user NUM_SCAN extra scans.
@@ -6,8 +5,8 @@
 import crypto from 'crypto';
 
 const PAYU_SALT = () => process.env.PAYU_SALT;
-const HS_BASE = 'https://api.hubapi.com';
-const hsKey = () => process.env.HUBSPOT_API_KEY;
+const KYLAS_BASE = 'https://api.kylas.io';
+const kylasKey = () => process.env.KYLAS_API_KEY;
 
 // Reverse hash: SHA512( salt|status||||||udf5|udf4|udf3|udf2|udf1|email|firstname|productinfo|amount|txnid|key )
 // Also handles: SHA512( additional_charges|salt|status||||||udf5|udf4|udf3|udf2|udf1|email|firstname|productinfo|amount|txnid|key )
@@ -33,19 +32,28 @@ function verifyReverseHash(params, salt) {
     return false;
 }
 
-async function hsPatch(path, body) {
-    const res = await fetch(`${HS_BASE}${path}`, {
-        method: 'PATCH',
-        headers: { Authorization: `Bearer ${hsKey()}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify(body),
+async function kylasGet(path) {
+    const res = await fetch(`${KYLAS_BASE}${path}`, {
+        method: 'GET',
+        headers: { 'api-key': kylasKey(), 'Content-Type': 'application/json' },
     });
+    if (!res.ok) {
+        const err = await res.text();
+        throw new Error(`Kylas GET error: ${res.status} ${err}`);
+    }
     return res.json();
 }
 
-async function hsGet(path) {
-    const res = await fetch(`${HS_BASE}${path}`, {
-        headers: { Authorization: `Bearer ${hsKey()}`, 'Content-Type': 'application/json' },
+async function kylasPut(path, body) {
+    const res = await fetch(`${KYLAS_BASE}${path}`, {
+        method: 'PUT',
+        headers: { 'api-key': kylasKey(), 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
     });
+    if (!res.ok) {
+        const err = await res.text();
+        throw new Error(`Kylas PUT error: ${res.status} ${err}`);
+    }
     return res.json();
 }
 
@@ -74,23 +82,40 @@ export default async function handler(req, res) {
         return redirectToFrontend(res, 'payment_failed', params.status);
     }
 
-    // ----- 3. Update HubSpot contact -----
+    // ----- 3. Update Kylas lead -----
     const contactId = params.udf1; // We stored it in udf1 during initiation
     if (contactId) {
         try {
-            // Get current paid_scans value
-            const current = await hsGet(`/crm/v3/objects/contacts/${contactId}?properties=paid_scans,scan_count`);
-            const prevPaid = parseInt(current.properties?.paid_scans || '0', 10);
+            const lead = await kylasGet(`/v1/leads/${contactId}`);
+            const cf = lead.customFieldValues || {};
+
+            const prevPaid = parseInt(cf.cfPaidScans || cf.paid_scans || '0', 10);
             const newPaid = prevPaid + numScans;
 
-            await hsPatch(`/crm/v3/objects/contacts/${contactId}`, {
-                properties: {
-                    paid_scans: String(newPaid),
-                    payu_txnid: params.txnid,
-                    payu_status: 'success',
-                },
+            if (!lead.customFieldValues) lead.customFieldValues = {};
+
+            Object.assign(lead.customFieldValues, {
+                cfPaidScans: newPaid,
+                cfPayuTxnid: params.txnid,
+                cfPayuStatus: 'success',
             });
-            console.log(`[payu-success] Granted ${numScans} scans to contact ${contactId}. Total paid: ${newPaid}`);
+
+            delete lead.createdAt;
+            delete lead.updatedAt;
+            delete lead.createdBy;
+            delete lead.updatedBy;
+            delete lead.recordActions;
+            delete lead.metaData;
+            delete lead.latestActivityCreatedAt;
+            delete lead.createdViaId;
+            delete lead.createdViaName;
+            delete lead.createdViaType;
+            delete lead.updatedViaId;
+            delete lead.updatedViaName;
+            delete lead.updatedViaType;
+
+            await kylasPut(`/v1/leads/${contactId}`, lead);
+            console.log(`[payu-success] Granted ${numScans} scans to lead ${contactId}. Total paid: ${newPaid}`);
 
             return redirectToFrontend(res, 'payment_success', null, {
                 paidScans: newPaid,
@@ -98,7 +123,7 @@ export default async function handler(req, res) {
                 contactId,
             });
         } catch (err) {
-            console.error('[payu-success] HubSpot update failed:', err);
+            console.error('[payu-success] Kylas update failed:', err);
             // Still redirect as success — payment was real, just CRM update failed
             return redirectToFrontend(res, 'payment_success', 'crm_update_failed', { txnid: params.txnid });
         }

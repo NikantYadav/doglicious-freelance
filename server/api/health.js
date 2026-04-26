@@ -4,24 +4,24 @@ export default async function handler(req, res) {
     const status = {
         timestamp: new Date().toISOString(),
         services: {
-            hubspot: { status: 'checking', details: '' },
+            kylas: { status: 'checking', details: '' },
             gemini: { status: 'checking', details: '' },
             gmail: { status: 'checking', details: '' }
         }
     };
 
-    // 1. Check HubSpot
+    // 1. Check Kylas
     try {
-        const hsRes = await fetch('https://api.hubapi.com/crm/v3/objects/contacts?limit=1', {
-            headers: { 'Authorization': `Bearer ${process.env.HUBSPOT_API_KEY}` }
+        const kyRes = await fetch('https://api.kylas.io/v1/leads?size=1', {
+            headers: { 'api-key': process.env.KYLAS_API_KEY }
         });
-        if (hsRes.ok) {
-            status.services.hubspot = { status: 'ok', details: 'Connected and authenticated' };
+        if (kyRes.ok) {
+            status.services.kylas = { status: 'ok', details: 'Connected and authenticated' };
         } else {
-            status.services.hubspot = { status: 'error', details: `Status ${hsRes.status}` };
+            status.services.kylas = { status: 'error', details: `Status ${kyRes.status}` };
         }
     } catch (e) {
-        status.services.hubspot = { status: 'error', details: e.message };
+        status.services.kylas = { status: 'error', details: e.message };
     }
 
     // 2. Check Gemini

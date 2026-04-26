@@ -34,7 +34,7 @@ export default async function handler(req, res) {
     const productinfo = process.env.PAYU_PRODUCT || 'VetRx Scan - Additional Scans Pack';
     const txnid = `VRX${Date.now()}${Math.floor(Math.random() * 1000)}`;
 
-    // udf1 stores the HubSpot contactId so we can look it up on success callback
+    // udf1 stores the Kylas contactId so we can look it up on success callback
     const udf1 = contactId || '';
 
     const hash = generateHash({ key, txnid, amount, productinfo, firstname, email, udf1, salt });

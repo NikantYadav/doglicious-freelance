@@ -13,7 +13,7 @@ import AuthGate from '../components/VetRxScan/AuthGate';
 import PaywallScreen from '../components/VetRxScan/PaywallScreen';
 
 import { getSession, saveSession, updateSessionScanCount, updateSessionPaidScans, getConfig } from '../services/auth';
-import { pushReport } from '../services/hubspot';
+import { pushReport } from '../services/kylas';
 
 const API = import.meta.env.VITE_API_URL ?? '';
 
@@ -193,7 +193,7 @@ const VetRxScan = () => {
       setLoading({ active: false, msg: '', sub: '', progress: 0 });
       goTo('report');
 
-      // ── Push to HubSpot after report is ready ──
+      // ── Push to Kylas CRM after report is ready ──
       if (authUser?.contactId) {
         const hsResult = await pushReport({
           contactId: authUser.contactId,
