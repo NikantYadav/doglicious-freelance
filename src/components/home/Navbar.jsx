@@ -1,4 +1,5 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 
 export default function Navbar({
     navScrolled,
@@ -12,12 +13,11 @@ export default function Navbar({
         <>
             <nav id="nav" className={navScrolled ? "s" : ""}>
                 <div className="nav-in">
-                    <a href="#" className="nav-logo"><img src={logoImg} alt="Doglicious.in" /></a>
+                    <Link to="/" className="nav-logo"><img src={logoImg} alt="Doglicious.in" /></Link>
                     <ul className="nav-links">
                         <li><a href="#vet">🔍 Vet Rx Scan</a></li>
+                        <li><Link to="/products">Products</Link></li>
                         <li><a href="#why">Why Us</a></li>
-                        <li><a href="#fresh">What is Fresh?</a></li>
-                        <li><a href="#recipes">Recipes</a></li>
                         <li><a href="#case-studies">Results</a></li>
                         <li><a href="#blogs">Blogs</a></li>
                         <li className="dd">
@@ -44,9 +44,8 @@ export default function Navbar({
             </nav>
             <div className={`mob-m ${mobileMenuOpen ? "o" : ""}`}>
                 <a href="#vet" onClick={() => { setMobileMenuOpen(false); openModal('vet'); }}>🔍 Vet Rx Scan</a>
+                <Link to="/products" onClick={() => { setMobileMenuOpen(false) }}>Products</Link>
                 <a href="#why" onClick={() => { setMobileMenuOpen(false) }}>Why Doglicious</a>
-                <a href="#fresh" onClick={() => { setMobileMenuOpen(false) }}>What is Fresh?</a>
-                <a href="#recipes" onClick={() => { setMobileMenuOpen(false) }}>Recipes</a>
                 <a href="#tools" onClick={() => { setMobileMenuOpen(false) }}>Free Tools</a>
                 <a href="#video-stories" onClick={() => { setMobileMenuOpen(false) }}>Videos</a>
                 <a href="#case-studies" onClick={() => { setMobileMenuOpen(false) }}>Results</a>

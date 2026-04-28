@@ -1,4 +1,5 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import { logoImg } from '../../data/homeData';
 
 export default function Footer({ openModal, openTool }) {
@@ -12,7 +13,7 @@ export default function Footer({ openModal, openTool }) {
                         <p className="ft">Superfood for dogs. Personalised by AI. Vet approved. Cooked fresh daily. Delivered across Delhi NCR.</p>
                         <div className="fct">
                             <span>📱 <a href="tel:9889887980">9889887980</a></span>
-                            <span>💬 <a href="https://wa.me/919889887980" target="_blank">WhatsApp Us</a></span>
+                            <span>💬 <a href="https://wa.me/919889887980" target="_blank" rel="noreferrer">WhatsApp Us</a></span>
                             <span>📧 <a href="mailto:woof@doglicious.in">woof@doglicious.in</a></span>
                         </div>
                     </div>
@@ -52,7 +53,12 @@ export default function Footer({ openModal, openTool }) {
                 <div className="fb">
                     <div>
                         <div className="fbt">© 2025 Doglicious.in · Petlicious Superfoods India Pvt. Ltd. · All rights reserved.</div>
-                        <div className="fbl mt8"><a href="#">Privacy</a><a href="#">Terms</a><a href="#">Refunds</a></div>
+                        <div className="fbl mt8">
+                            <Link to="/privacy-policy">Privacy</Link>
+                            <Link to="/terms-of-service">Terms</Link>
+                            <Link to="/shipping-policy">Shipping</Link>
+                            <Link to="/refund-policy">Refunds</Link>
+                        </div>
                     </div>
                     <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: "8px" }}>
                         <div className="pls"><span className="pl">UPI</span><span className="pl">VISA</span><span className="pl">MC</span><span className="pl">GPay</span><span className="pl">COD</span></div>

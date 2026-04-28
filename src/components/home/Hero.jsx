@@ -61,7 +61,7 @@ export default function Hero({ openModal }) {
                 </div>
             </div>
             <div className="hero-img">
-                <img src="https://images.unsplash.com/photo-1587300003388-59208cc962cb?w=900&q=80&fit=crop&auto=format" alt="Happy dog with fresh food" />
+                <img src="/Happy Dog.webp" alt="Happy dog with fresh food" />
                 <div className="hero-card">
                     <div className="hc-live"></div>
                     <div><div className="hc-t">Freshly cooked today</div><div className="hc-s">Delivered same day</div></div>

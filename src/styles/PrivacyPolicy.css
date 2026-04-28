@@ -1,0 +1,291 @@
+/* Privacy Policy Page Styles */
+
+.page-header {
+  background: var(--warm);
+  border-bottom: 0.5px solid var(--b1);
+  padding: 48px 0 36px;
+}
+
+.ph-inner {
+  max-width: 840px;
+  margin: 0 auto;
+  padding: 0 40px;
+}
+
+.ph-tag {
+  display: inline-block;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--brown);
+  margin-bottom: 10px;
+}
+
+.ph-title {
+  font-size: 36px;
+  font-weight: 700;
+  color: var(--t1);
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+  margin-bottom: 10px;
+}
+
+.ph-meta {
+  font-size: 13px;
+  color: var(--t2);
+  line-height: 1.6;
+}
+
+.ph-meta a {
+  color: var(--brown);
+  text-decoration: none;
+}
+
+/* Main Layout */
+.page-body {
+  max-width: 840px;
+  margin: 0 auto;
+  padding: 48px 40px 80px;
+}
+
+/* Table of Contents */
+.toc-box {
+  background: var(--cream-2);
+  border: 0.5px solid var(--b1);
+  border-radius: var(--r-md);
+  padding: 20px 24px;
+  margin-bottom: 36px;
+  position: relative;
+  height: auto;
+  display: block;
+  z-index: 1;
+}
+
+.toc-heading {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--t3);
+  margin-bottom: 12px;
+}
+
+.toc-links {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin: 0;
+  padding: 0;
+}
+
+.toc-links li {
+  margin: 0;
+}
+
+.toc-links li a {
+  font-size: 13px;
+  color: var(--t2);
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 0;
+  transition: color 0.15s;
+}
+
+.toc-links li a:hover {
+  color: var(--brown);
+}
+
+.toc-links li a::before {
+  content: '→';
+  font-size: 11px;
+  color: var(--brown);
+  flex-shrink: 0;
+}
+
+/* Content Section */
+.section {
+  padding: 36px 0;
+  border-top: 0.5px solid var(--b1);
+}
+
+.section:first-of-type {
+  border-top: none;
+  padding-top: 0;
+}
+
+.sec-num {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--brown);
+  display: block;
+  margin-bottom: 6px;
+}
+
+.sec-heading {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--t1);
+  margin-bottom: 14px;
+  letter-spacing: -0.02em;
+}
+
+.sec-text {
+  font-size: 14px;
+  color: var(--t2);
+  line-height: 1.85;
+}
+
+.sec-text p {
+  margin-bottom: 12px;
+}
+
+.sec-text p:last-child {
+  margin-bottom: 0;
+}
+
+.sec-text strong {
+  color: var(--t1);
+  font-weight: 600;
+}
+
+.sec-text a {
+  color: var(--brown);
+  text-decoration: none;
+}
+
+.sec-text a:hover {
+  text-decoration: underline;
+}
+
+.sec-text ul,
+.sec-text ol {
+  padding-left: 18px;
+  margin: 8px 0 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.sec-text li {
+  font-size: 14px;
+  color: var(--t2);
+  line-height: 1.75;
+}
+
+/* Callout */
+.callout {
+  background: var(--warm);
+  border-left: 3px solid var(--brown);
+  border-radius: 0 8px 8px 0;
+  padding: 16px 20px;
+  margin: 16px 0;
+}
+
+.callout p {
+  font-size: 14px;
+  color: var(--t2);
+  line-height: 1.8;
+  margin: 0;
+}
+
+.callout strong {
+  color: var(--t1);
+}
+
+/* Contact Box */
+.contact-box {
+  background: var(--cream-2);
+  border: 0.5px solid var(--b1);
+  border-radius: var(--r);
+  padding: 24px;
+  margin-top: 36px;
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+}
+
+.contact-icon {
+  font-size: 28px;
+  flex-shrink: 0;
+  line-height: 1;
+  margin-top: 2px;
+}
+
+.contact-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--t1);
+  margin-bottom: 6px;
+}
+
+.contact-body {
+  font-size: 13px;
+  color: var(--t2);
+  line-height: 1.75;
+}
+
+.contact-body a {
+  color: var(--brown);
+  text-decoration: none;
+}
+
+.contact-body strong {
+  color: var(--t1);
+  font-weight: 600;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .ph-inner {
+    padding: 0 20px;
+  }
+
+  .ph-title {
+    font-size: 26px;
+  }
+
+  .ph-meta {
+    font-size: 12px;
+  }
+
+  .page-header {
+    padding: 32px 0 24px;
+  }
+
+  .page-body {
+    padding: 28px 20px 60px;
+  }
+
+  .contact-box {
+    flex-direction: column;
+    gap: 10px;
+  }
+}
+
+@media (max-width: 480px) {
+  .ph-inner {
+    padding: 0 16px;
+  }
+
+  .page-body {
+    padding: 20px 16px 52px;
+  }
+
+  .toc-box {
+    padding: 14px 16px;
+  }
+
+  .callout {
+    padding: 13px 16px;
+  }
+
+  .ph-title {
+    font-size: 22px;
+  }
+}

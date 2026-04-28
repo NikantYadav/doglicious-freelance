@@ -1,53 +1,38 @@
 import { useState, useEffect, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
-import '../styles/Home.css';
-
-import {
-  logoImg,
-  foodImg,
-  RECIPES,
-  GRAM_OPTS,
-  GRAM_PRICES,
-} from '../data/homeData';
+import '../styles/Products.css';
 
 // Home Components
 import Navbar from '../components/home/Navbar';
 import AnnBar from '../components/home/AnnBar';
-import GuaranteesBar from '../components/home/GuaranteesBar';
-import Hero from '../components/home/Hero';
-import TrustSection from '../components/home/TrustSection';
-import VetRxHero from '../components/home/VetRxHero';
-import HowItWorksSection from '../components/home/HowItWorksSection';
-import VideoStories from '../components/home/VideoStories';
-import CaseStudies from '../components/home/CaseStudies';
-import FreeTools from '../components/home/FreeTools';
-import LeadMagnet from '../components/home/LeadMagnet';
-import BlogsSection from '../components/home/BlogsSection';
+import WhySection from '../components/home/WhySection';
+import WhatIsFreshSection from '../components/home/WhatIsFreshSection';
+import IngredientsSection from '../components/home/IngredientsSection';
+import RecipesSection from '../components/home/RecipesSection';
+import TestimonialsCarousel from '../components/home/TestimonialsCarousel';
+import FAQSection from '../components/home/FAQSection';
 import CTASection from '../components/home/CTASection';
 import Footer from '../components/home/Footer';
 
-import { pushSampleToKylas, initiatePayU } from '../services/sampleBooking';
+import { logoImg } from '../data/homeData';
+
 import VetRxModal from '../components/modals/VetRxModal';
 import SampleModal from '../components/modals/SampleModal';
-import PaymentModal from '../components/modals/PaymentModal';
 import ConfirmModal from '../components/modals/ConfirmModal';
 import ToolsModal from '../components/modals/ToolsModal';
-import QuizModal from '../components/modals/QuizModal';
-import BlogModal from '../components/modals/BlogModal';
 
-// ─────────────────────────────────────────────────────────────
-// Home Component
-// ─────────────────────────────────────────────────────────────
-export default function Home() {
+import { pushSampleToKylas, initiatePayU } from '../services/sampleBooking';
+import { RECIPES, GRAM_OPTS, GRAM_PRICES } from '../data/homeData';
+import { useNavigate } from 'react-router-dom';
+
+export default function Products() {
+  const navigate = useNavigate();
 
   // ── Nav / Menu ──
-  const navigate = useNavigate();
   const [navScrolled, setNavScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   // ── Modals ──
   const [activeModal, setActiveModal] = useState(null);
-  const [activeBlog, setActiveBlog] = useState(null);
   const openModal = (id) => {
     setActiveModal(id);
     document.body.style.overflow = 'hidden';
@@ -75,13 +60,21 @@ export default function Home() {
   // ── Tools ──
   const [activeTool, setActiveTool] = useState(0);
 
-  // ── Quiz ──
-  const [quizStep, setQuizStep] = useState(0);
-  const [quizName, setQuizName] = useState('');
-  const [quizAnswers, setQuizAnswers] = useState({});
+  // ── FAQ ──
+  const [openFaq, setOpenFaq] = useState(null);
+  const toggleFaq = (id) => setOpenFaq(prev => prev === id ? null : id);
 
-  // ── Blog filter ──
-  const [blogFilter, setBlogFilter] = useState('all');
+  // ── Carousel ──
+  const [carouselIdx, setCarouselIdx] = useState(0);
+  const carTrackRef = useRef(null);
+
+  const CAR_DATA = [
+    { n: "Ritu Sharma",   d: "Bruno · 4yr Labrador, Gurgaon",          q: "Bruno was on kibble 3 years. Within 2 weeks — shinier coat, more energy, and he gets excited at meal time now. The AI plan was spot-on for his breed.", v: "▶ Video" },
+    { n: "Aditya Kapoor", d: "Max · 2yr Beagle, South Delhi",           q: "Max had terrible skin issues. Doglicious customised his plan to avoid chicken — he's allergic. The change in 3 weeks was incredible.", v: "▶ Video" },
+    { n: "Priya Malhotra", d: "Zeus · 6yr German Shepherd, Noida",      q: "The ₹99 sample changed my mind instantly. Zeus ate it within seconds — he's never done that with any food ever!", v: "▶ Video" },
+    { n: "Neha Gupta",    d: "Mia · 1yr Shih Tzu, DLF Cyber City",     q: "The NABL reports give me complete peace of mind about what my baby is eating. Mia is thriving!", v: "▶ Video" },
+    { n: "Sandeep Verma", d: "Daisy · 5yr Golden Retriever, Dwarka",    q: "Daisy was overweight. Doglicious made a weight management plan — she's lost 1.2kg in 6 weeks while loving her food!", v: "▶ Video" },
+  ];
 
   // ─────────────────────────────────────────────
   // Effects
@@ -110,16 +103,15 @@ export default function Home() {
       { threshold: 0.08, rootMargin: '0px 0px -20px 0px' }
     );
     els.forEach((el) => obs.observe(el));
-    setTimeout(() => {
-      document.querySelectorAll('.hero .rv').forEach((el, i) => {
-        setTimeout(() => {
-          el.style.opacity = '1';
-          el.style.transform = 'none';
-        }, i * 90);
-      });
-    }, 60);
     return () => obs.disconnect();
   }, []);
+
+  // Carousel position sync
+  useEffect(() => {
+    if (!carTrackRef.current) return;
+    const w = carTrackRef.current.children[0]?.offsetWidth || 0;
+    carTrackRef.current.style.transform = `translateX(-${carouselIdx * (w + 14)}px)`;
+  }, [carouselIdx]);
 
   // ─────────────────────────────────────────────
   // Handlers
@@ -192,36 +184,12 @@ export default function Home() {
     openModal('tools');
   };
 
-  const openBlog = (n) => {
-    setActiveBlog(n);
-    openModal('blog');
-  };
-
-  const playVid = (n) => {
-    const cover = document.getElementById(`vcover${n}`);
-    const vid = document.getElementById(`vid${n}`);
-    if (cover && vid) {
-      cover.style.display = 'none';
-      vid.style.display = 'block';
-      vid.play().catch(() => { });
-    }
-  };
-
-  const submitLead = (e) => {
-    e.preventDefault();
-    const name = e.target.ln.value;
-    const mob = e.target.lm.value;
-    const email = e.target.le.value;
-    const msg = encodeURIComponent(
-      `Hi Doglicious! 🐾\n\nFree guide request:\nName: ${name}\nMobile: ${mob}\nEmail: ${email}\n\nPlease send the guide!`
-    );
-    window.open(`https://wa.me/919889887980?text=${msg}`, '_blank');
-    e.target.innerHTML =
-      '<div style="text-align:center;padding:20px;">' +
-      '<div style="font-size:32px;margin-bottom:8px;">✅</div>' +
-      '<div style="font-size:15px;font-weight:600;color:var(--green);">Guide sent!</div>' +
-      '<div style="font-size:12px;color:var(--t3);margin-top:4px;">Check WhatsApp in 2 minutes 🐾</div>' +
-      '</div>';
+  const carMove = (d) => {
+    setCarouselIdx(prev => {
+      const vis = window.innerWidth >= 960 ? 3 : window.innerWidth >= 640 ? 2 : 1;
+      const max = CAR_DATA.length - vis;
+      return Math.max(0, Math.min(prev + d, max));
+    });
   };
 
   // ─────────────────────────────────────────────
@@ -244,20 +212,33 @@ export default function Home() {
         openTool={openTool}
         logoImg={logoImg}
       />
-      <Hero openModal={openModal} />
-      <GuaranteesBar />
-      <VetRxHero openModal={openModal} />
-      <HowItWorksSection openModal={openModal} />
-      <TrustSection />
-      <VideoStories playVid={playVid} />
-      <CaseStudies />
-      <FreeTools openTool={openTool} />
-      <LeadMagnet foodImg={foodImg} submitLead={submitLead} />
-      <BlogsSection
-        blogFilter={blogFilter}
-        setBlogFilter={setBlogFilter}
-        openBlog={openBlog}
+      
+      {/* Products Page Hero */}
+      <section className="products-hero">
+        <div className="wrap">
+          <div className="products-hero-content rv">
+            <span className="lbl">Our Products</span>
+            <h1 className="products-hero-title">Fresh food for your dog.<br />Made daily. Delivered daily.</h1>
+            <p className="products-hero-lead">Real ingredients. Real nutrition. Real results.</p>
+            <div className="products-hero-cta">
+              <button className="btn btn-primary" onClick={() => openModal('sample')}>Try sample — ₹99</button>
+              <button className="btn btn-secondary" onClick={() => openModal('vet')}>🔍 VetRx Scan</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <WhySection />
+      <WhatIsFreshSection openModal={openModal} />
+      <IngredientsSection />
+      <RecipesSection openModal={openModal} />
+      <TestimonialsCarousel
+        carouselIdx={carouselIdx}
+        CAR_DATA={CAR_DATA}
+        carTrackRef={carTrackRef}
+        carMove={carMove}
       />
+      <FAQSection openFaq={openFaq} toggleFaq={toggleFaq} />
       <CTASection openModal={openModal} />
       <Footer openModal={openModal} openTool={openTool} />
 
@@ -305,20 +286,8 @@ export default function Home() {
         activeTool={activeTool}
         setActiveTool={setActiveTool}
       />
-      <QuizModal
-        isOpen={activeModal === 'quiz'}
-        onClose={closeModal}
-        quizStep={quizStep}
-        setQuizStep={setQuizStep}
-        quizName={quizName}
-        setQuizName={setQuizName}
-        quizAnswers={quizAnswers}
-        setQuizAnswers={setQuizAnswers}
-        openModal={openModal}
-      />
-      <BlogModal isOpen={activeModal === 'blog'} onClose={closeModal} activeBlogId={activeBlog} />
 
-      {/* WhatsApp Float — matches HTML exactly */}
+      {/* WhatsApp Float */}
       <div className="wa">
         <a href="https://wa.me/919889887980?text=Hi!%20I%20want%20to%20try%20Doglicious." target="_blank" rel="noreferrer">
           <div className="wa-d"></div>
@@ -326,7 +295,7 @@ export default function Home() {
         </a>
       </div>
 
-      {/* Mobile Sticky CTA — matches HTML exactly */}
+      {/* Mobile Sticky CTA */}
       <div className="sm-cta">
         <div className="sm-t">
           <strong>Doglicious.in</strong>
