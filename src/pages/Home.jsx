@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, Suspense, lazy } from 'react';
 import { useNavigate } from 'react-router-dom';
 import '../styles/Home.css';
 
@@ -10,30 +10,34 @@ import {
   GRAM_PRICES,
 } from '../data/homeData';
 
-// Home Components
+// Home Components (Above the fold)
 import Navbar from '../components/home/Navbar';
 import AnnBar from '../components/home/AnnBar';
 import GuaranteesBar from '../components/home/GuaranteesBar';
 import Hero from '../components/home/Hero';
-import TrustSection from '../components/home/TrustSection';
-import VetRxHero from '../components/home/VetRxHero';
-import HowItWorksSection from '../components/home/HowItWorksSection';
-import VideoStories from '../components/home/VideoStories';
-import CaseStudies from '../components/home/CaseStudies';
-import FreeTools from '../components/home/FreeTools';
-import LeadMagnet from '../components/home/LeadMagnet';
-import BlogsSection from '../components/home/BlogsSection';
-import CTASection from '../components/home/CTASection';
-import Footer from '../components/home/Footer';
+
+// Lazy Home Components (Below the fold)
+const TrustSection = lazy(() => import('../components/home/TrustSection'));
+const VetRxHero = lazy(() => import('../components/home/VetRxHero'));
+const HowItWorksSection = lazy(() => import('../components/home/HowItWorksSection'));
+const VideoStories = lazy(() => import('../components/home/VideoStories'));
+const CaseStudies = lazy(() => import('../components/home/CaseStudies'));
+const FreeTools = lazy(() => import('../components/home/FreeTools'));
+const LeadMagnet = lazy(() => import('../components/home/LeadMagnet'));
+const BlogsSection = lazy(() => import('../components/home/BlogsSection'));
+const CTASection = lazy(() => import('../components/home/CTASection'));
+const Footer = lazy(() => import('../components/home/Footer'));
 
 import { pushSampleToKylas, initiatePayU } from '../services/sampleBooking';
-import VetRxModal from '../components/modals/VetRxModal';
-import SampleModal from '../components/modals/SampleModal';
-import PaymentModal from '../components/modals/PaymentModal';
-import ConfirmModal from '../components/modals/ConfirmModal';
-import ToolsModal from '../components/modals/ToolsModal';
-import QuizModal from '../components/modals/QuizModal';
-import BlogModal from '../components/modals/BlogModal';
+
+// Lazy Modals
+const VetRxModal = lazy(() => import('../components/modals/VetRxModal'));
+const SampleModal = lazy(() => import('../components/modals/SampleModal'));
+const PaymentModal = lazy(() => import('../components/modals/PaymentModal'));
+const ConfirmModal = lazy(() => import('../components/modals/ConfirmModal'));
+const ToolsModal = lazy(() => import('../components/modals/ToolsModal'));
+const QuizModal = lazy(() => import('../components/modals/QuizModal'));
+const BlogModal = lazy(() => import('../components/modals/BlogModal'));
 
 // ─────────────────────────────────────────────────────────────
 // Home Component
@@ -180,14 +184,14 @@ export default function Home() {
   };
 
   const openTool = (idx) => {
-    if (idx === 0) { navigate('/tools/bmi-calculator');      return; }
-    if (idx === 1) { navigate('/tools/feeding-calculator');  return; }
-    if (idx === 2) { navigate('/tools/cost-calculator');     return; }
-    if (idx === 3) { navigate('/tools/age-calculator');      return; }
-    if (idx === 4) { navigate('/tools/best-vegetables');     return; }
-    if (idx === 5) { navigate('/tools/natural-healing');     return; }
-    if (idx === 6) { navigate('/tools/aafco-planner');       return; }
-    if (idx === 7) { navigate('/tools/health-quiz');         return; }
+    if (idx === 0) { navigate('/tools/bmi-calculator'); return; }
+    if (idx === 1) { navigate('/tools/feeding-calculator'); return; }
+    if (idx === 2) { navigate('/tools/cost-calculator'); return; }
+    if (idx === 3) { navigate('/tools/age-calculator'); return; }
+    if (idx === 4) { navigate('/tools/best-vegetables'); return; }
+    if (idx === 5) { navigate('/tools/natural-healing'); return; }
+    if (idx === 6) { navigate('/tools/aafco-planner'); return; }
+    if (idx === 7) { navigate('/tools/health-quiz'); return; }
     setActiveTool(idx);
     openModal('tools');
   };
@@ -246,77 +250,79 @@ export default function Home() {
       />
       <Hero openModal={openModal} />
       <GuaranteesBar />
-      <VetRxHero openModal={openModal} />
-      <HowItWorksSection openModal={openModal} />
-      <TrustSection />
-      <VideoStories playVid={playVid} />
-      <CaseStudies />
-      <FreeTools openTool={openTool} />
-      <LeadMagnet foodImg={foodImg} submitLead={submitLead} />
-      <BlogsSection
-        blogFilter={blogFilter}
-        setBlogFilter={setBlogFilter}
-        openBlog={openBlog}
-      />
-      <CTASection openModal={openModal} />
-      <Footer openModal={openModal} openTool={openTool} />
+      <Suspense fallback={<div style={{ minHeight: '300px' }}></div>}>
+        <VetRxHero openModal={openModal} />
+        <HowItWorksSection openModal={openModal} />
+        <TrustSection />
+        <VideoStories playVid={playVid} />
+        <CaseStudies />
+        <FreeTools openTool={openTool} />
+        <LeadMagnet foodImg={foodImg} submitLead={submitLead} />
+        <BlogsSection
+          blogFilter={blogFilter}
+          setBlogFilter={setBlogFilter}
+          openBlog={openBlog}
+        />
+        <CTASection openModal={openModal} />
+        <Footer openModal={openModal} openTool={openTool} />
 
-      {/* Modals */}
-      <VetRxModal isOpen={activeModal === 'vet'} onClose={closeModal} />
-      <SampleModal
-        isOpen={activeModal === 'sample'}
-        onClose={closeModal}
-        sampleStep={sampleStep}
-        setSampleStep={setSampleStep}
-        selectedRecipe={selectedRecipe}
-        setSelectedRecipe={setSelectedRecipe}
-        selectedGramIdx={selectedGramIdx}
-        setSelectedGramIdx={setSelectedGramIdx}
-        dogName={dogName}
-        setDogName={setDogName}
-        mobile={mobile}
-        mobileValid={mobileValid}
-        handleMobileInput={handleMobileInput}
-        deliveryAddress={deliveryAddress}
-        setDeliveryAddress={setDeliveryAddress}
-        deliveryCity={deliveryCity}
-        setDeliveryCity={setDeliveryCity}
-        deliveryPin={deliveryPin}
-        handlePincodeInput={handlePincodeInput}
-        mapSrc={mapSrc}
-        openMapVerify={openMapVerify}
-        proceedToPayment={proceedToPayment}
-        currentPrice={currentPrice}
-        currentGrams={currentGrams}
-      />
-      <ConfirmModal
-        isOpen={activeModal === 'confirm'}
-        onClose={closeModal}
-        dogName={orderDetails.dogName}
-        mobile={orderDetails.mobile}
-        recipe={orderDetails.recipe}
-        grams={orderDetails.grams}
-        price={orderDetails.price}
-        address={orderDetails.address}
-      />
-      <ToolsModal
-        isOpen={activeModal === 'tools'}
-        onClose={closeModal}
-        activeTool={activeTool}
-        setActiveTool={setActiveTool}
-      />
-      <QuizModal
-        isOpen={activeModal === 'quiz'}
-        onClose={closeModal}
-        quizStep={quizStep}
-        setQuizStep={setQuizStep}
-        quizName={quizName}
-        setQuizName={setQuizName}
-        quizAnswers={quizAnswers}
-        setQuizAnswers={setQuizAnswers}
-        openModal={openModal}
-      />
-      <BlogModal isOpen={activeModal === 'blog'} onClose={closeModal} activeBlogId={activeBlog} />
+        {/* Modals */}
+        <VetRxModal isOpen={activeModal === 'vet'} onClose={closeModal} />
+        <SampleModal
+          isOpen={activeModal === 'sample'}
+          onClose={closeModal}
+          sampleStep={sampleStep}
+          setSampleStep={setSampleStep}
+          selectedRecipe={selectedRecipe}
+          setSelectedRecipe={setSelectedRecipe}
+          selectedGramIdx={selectedGramIdx}
+          setSelectedGramIdx={setSelectedGramIdx}
+          dogName={dogName}
+          setDogName={setDogName}
+          mobile={mobile}
+          mobileValid={mobileValid}
+          handleMobileInput={handleMobileInput}
+          deliveryAddress={deliveryAddress}
+          setDeliveryAddress={setDeliveryAddress}
+          deliveryCity={deliveryCity}
+          setDeliveryCity={setDeliveryCity}
+          deliveryPin={deliveryPin}
+          handlePincodeInput={handlePincodeInput}
+          mapSrc={mapSrc}
+          openMapVerify={openMapVerify}
+          proceedToPayment={proceedToPayment}
+          currentPrice={currentPrice}
+          currentGrams={currentGrams}
+        />
+        <ConfirmModal
+          isOpen={activeModal === 'confirm'}
+          onClose={closeModal}
+          dogName={orderDetails.dogName}
+          mobile={orderDetails.mobile}
+          recipe={orderDetails.recipe}
+          grams={orderDetails.grams}
+          price={orderDetails.price}
+          address={orderDetails.address}
+        />
+        <ToolsModal
+          isOpen={activeModal === 'tools'}
+          onClose={closeModal}
+          activeTool={activeTool}
+          setActiveTool={setActiveTool}
+        />
+        <QuizModal
+          isOpen={activeModal === 'quiz'}
+          onClose={closeModal}
+          quizStep={quizStep}
+          setQuizStep={setQuizStep}
+          quizName={quizName}
+          setQuizName={setQuizName}
+          quizAnswers={quizAnswers}
+          setQuizAnswers={setQuizAnswers}
+          openModal={openModal}
+        />
+        <BlogModal isOpen={activeModal === 'blog'} onClose={closeModal} activeBlogId={activeBlog} />
+      </Suspense>
 
       {/* WhatsApp Float — matches HTML exactly */}
       <div className="wa">

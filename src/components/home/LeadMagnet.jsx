@@ -18,7 +18,7 @@ export default function LeadMagnet({ foodImg, submitLead }) {
                                 <div className="lb">Transition guide from kibble to fresh</div>
                             </div>
                             <div className="lead-img-col">
-                                <img src={foodImg} alt="Fresh dog food ingredients" style={{ width: "100%", maxWidth: "260px", height: "auto", objectFit: "contain", display: "block", borderRadius: "12px" }} />
+                                <img src={foodImg} alt="Fresh dog food ingredients" loading="lazy" style={{ width: "100%", maxWidth: "260px", height: "auto", objectFit: "contain", display: "block", borderRadius: "12px" }} />
                             </div>
                         </div>
                     </div>

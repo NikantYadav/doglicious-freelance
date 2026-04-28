@@ -18,6 +18,9 @@ COPY index.html ./
 # Copy frontend environment file
 COPY .env.frontend ./
 
+# Copy scripts for postbuild (e.g. generate-sitemap.js)
+COPY scripts ./scripts
+
 # Build the app
 RUN npm run build
 
