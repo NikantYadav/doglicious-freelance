@@ -94,12 +94,12 @@ curl http://127.0.0.1:8080/api/health  # should return {"status":"ok"}
 
 ```bash
 # Copy the provided config and replace the placeholder domain
-sudo cp nginx-host.conf /etc/nginx/sites-available/vetrxscan
-sudo nano /etc/nginx/sites-available/vetrxscan
-# → replace every occurrence of "yourdomain.com" with your real domain
+sudo cp nginx-host.conf /etc/nginx/sites-available/doglicious
+sudo nano /etc/nginx/sites-available/doglicious
+# → replace every occurrence of "doglicious.in" with your real domain (if different)
 
 # Enable the site
-sudo ln -s /etc/nginx/sites-available/vetrxscan /etc/nginx/sites-enabled/vetrxscan
+sudo ln -s /etc/nginx/sites-available/doglicious /etc/nginx/sites-enabled/doglicious
 
 # Remove the default site if it's still enabled
 sudo rm -f /etc/nginx/sites-enabled/default
@@ -112,7 +112,7 @@ sudo systemctl reload nginx
 ### 8. Obtain SSL certificate with Certbot
 
 ```bash
-sudo certbot --nginx -d yourdomain.com -d www.yourdomain.com
+sudo certbot --nginx -d doglicious.in -d www.doglicious.in
 ```
 
 Certbot will:
