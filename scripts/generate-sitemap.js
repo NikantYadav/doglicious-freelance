@@ -5,7 +5,7 @@ import { Readable } from 'stream';
 
 // Configuration
 const DOMAIN = 'https://doglicious.in';
-const OUTPUT_PATH = resolve('./public/sitemap.xml');
+const OUTPUT_PATH = resolve('./dist/sitemap.xml');
 
 // Define all routes with their metadata
 const routes = [
@@ -75,9 +75,9 @@ const routes = [
 async function generateSitemap() {
   try {
     console.log('🚀 Generating sitemap...');
-    
+
     // Create a stream to write to
-    const stream = new SitemapStream({ 
+    const stream = new SitemapStream({
       hostname: DOMAIN,
       xmlns: {
         news: false,
@@ -111,19 +111,19 @@ function formatXml(xml) {
   let formatted = '';
   let indent = '';
   const tab = '  ';
-  
+
   xml.split(/>\s*</).forEach(node => {
     if (node.match(/^\/\w/)) {
       indent = indent.substring(tab.length);
     }
-    
+
     formatted += indent + '<' + node + '>\n';
-    
+
     if (node.match(/^<?\w[^>]*[^\/]$/) && !node.startsWith('?')) {
       indent += tab;
     }
   });
-  
+
   return formatted.substring(1, formatted.length - 2);
 }
 
