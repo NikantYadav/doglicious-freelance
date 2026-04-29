@@ -1,0 +1,37 @@
+/* Free Tools Page Styles */
+
+.free-tools-hero {
+  min-height: 40vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.free-tools-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 14px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .free-tools-hero {
+    padding-top: 100px !important;
+    padding-bottom: 40px !important;
+  }
+
+  .free-tools-hero .title {
+    font-size: 32px !important;
+  }
+
+  .free-tools-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+}
+
+@media (max-width: 480px) {
+  .free-tools-hero .title {
+    font-size: 28px !important;
+  }
+}

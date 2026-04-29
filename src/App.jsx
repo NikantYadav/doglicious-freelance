@@ -3,6 +3,8 @@ import { Routes, Route } from 'react-router-dom'
 import { usePageTracking } from './hooks/usePageTracking'
 import Home from './pages/Home'
 import Products from './pages/Products'
+import FreeTools from './pages/FreeTools'
+import Blogs from './pages/Blogs'
 import PrivacyPolicy from './pages/PrivacyPolicy'
 import RefundPolicy from './pages/RefundPolicy'
 import ShippingPolicy from './pages/ShippingPolicy'
@@ -26,6 +28,8 @@ export default function App() {
     <Routes>
       <Route path="/" element={<Home />} />
       <Route path="/products" element={<Products />} />
+      <Route path="/tools" element={<FreeTools />} />
+      <Route path="/blogs" element={<Blogs />} />
       <Route path="/privacy-policy" element={<PrivacyPolicy />} />
       <Route path="/refund-policy" element={<RefundPolicy />} />
       <Route path="/shipping-policy" element={<ShippingPolicy />} />

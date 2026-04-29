@@ -1,4 +1,8 @@
-import React from 'react';
+import { useState, useEffect } from 'react';
+import '../styles/Blogs.css';
+import { logoImg } from '../data/homeData';
+import Navbar from '../components/home/Navbar';
+import Footer from '../components/home/Footer';
 
 const BLOG_CARDS = [
     {
@@ -83,65 +87,100 @@ const BLOG_CARDS = [
     },
 ];
 
-export default function BlogsSection({ blogFilter, setBlogFilter, openBlog }) {
-    const filtered = blogFilter === 'all'
-        ? BLOG_CARDS
-        : BLOG_CARDS.filter(b => b.cat === blogFilter);
+export default function Blogs() {
+    const [navScrolled, setNavScrolled] = useState(false);
+    const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+    const [blogFilter, setBlogFilter] = useState('all');
+
+    useEffect(() => {
+        const onScroll = () => setNavScrolled(window.scrollY > 20);
+        window.addEventListener('scroll', onScroll, { passive: true });
+        return () => window.removeEventListener('scroll', onScroll);
+    }, []);
 
     const handleBlogClick = (id) => {
         window.open(`/blog/${id}`, '_blank', 'noopener,noreferrer');
     };
 
+    const openModal = () => {}; // Placeholder for navbar compatibility
+    const openTool = () => {}; // Placeholder for navbar compatibility
+
     return (
-        <section id="blogs" style={{ background: "var(--cream-2)", paddingBottom: "56px" }}>
-            <div className="wrap">
-                <div className="sh rv">
-                    <span className="lbl">Blog</span>
-                    <h2 className="title">Dog nutrition,<br />health &amp; fresh food guides.</h2>
-                    <p className="lead mt12">10 science-backed articles by India's first AI dog nutrition company — written for Indian dog parents.</p>
+        <>
+            <Navbar
+                navScrolled={navScrolled}
+                mobileMenuOpen={mobileMenuOpen}
+                setMobileMenuOpen={setMobileMenuOpen}
+                openModal={openModal}
+                openTool={openTool}
+                logoImg={logoImg}
+            />
+
+            <section className="blogs-hero" style={{ background: "var(--cream-2)", paddingTop: "120px", paddingBottom: "60px" }}>
+                <div className="wrap">
+                    <div className="sh">
+                        <span className="lbl">Blog</span>
+                        <h1 className="title" style={{ fontSize: "48px", marginTop: "12px" }}>
+                            Dog nutrition,<br />health &amp; fresh food guides.
+                        </h1>
+                        <p className="lead mt12" style={{ maxWidth: "680px", margin: "16px auto 0" }}>
+                            10 science-backed articles by India's first AI dog nutrition company — written for Indian dog parents.
+                        </p>
+                    </div>
                 </div>
-                <div className="blog-filter rv" id="blogFilter">
-                    {[
-                        { key: 'all', label: 'All Articles' },
-                        { key: 'nutrition', label: 'Nutrition' },
-                        { key: 'health', label: 'Health & Skin' },
-                        { key: 'lifecycle', label: 'Lifecycle' },
-                        { key: 'ingredients', label: 'Ingredients' },
-                        { key: 'stories', label: 'Real Stories' },
-                    ].map(({ key, label }) => (
-                        <button
-                            key={key}
-                            className={`bf-btn${blogFilter === key ? ' on' : ''}`}
-                            onClick={() => setBlogFilter(key)}
-                        >
-                            {label}
-                        </button>
-                    ))}
-                </div>
-                <div className="blog-grid sg" id="blogGrid">
-                    {BLOG_CARDS.map(b => (
-                        <div
-                            key={b.id}
-                            className="blog-card"
-                            style={{ opacity: blogFilter === 'all' || b.cat === blogFilter ? '1' : '0.2', transform: blogFilter === 'all' || b.cat === blogFilter ? '' : 'scale(.97)', transition: 'opacity .3s, transform .3s' }}
-                            onClick={() => handleBlogClick(b.id)}
-                        >
-                            <div className="bc-vis" style={{ background: b.bg }}>
-                                <div className="bc-icon-wrap">{b.svg}</div>
-                                <div className="bc-cat">{b.catLabel}</div>
-                            </div>
-                            <div className="bc-body">
-                                <div className="bc-tag">{b.tag}</div>
-                                <div className="bc-title">{b.title}</div>
-                                <div className="bc-footer">
-                                    <span className="bc-mins">{b.mins} min read</span>
-                                    <span className="bc-arr">→</span>
+            </section>
+
+            <section style={{ background: "var(--cream-2)", paddingBottom: "80px" }}>
+                <div className="wrap">
+                    <div className="blog-filter" id="blogFilter">
+                        {[
+                            { key: 'all', label: 'All Articles' },
+                            { key: 'nutrition', label: 'Nutrition' },
+                            { key: 'health', label: 'Health & Skin' },
+                            { key: 'lifecycle', label: 'Lifecycle' },
+                            { key: 'ingredients', label: 'Ingredients' },
+                            { key: 'stories', label: 'Real Stories' },
+                        ].map(({ key, label }) => (
+                            <button
+                                key={key}
+                                className={`bf-btn${blogFilter === key ? ' on' : ''}`}
+                                onClick={() => setBlogFilter(key)}
+                            >
+                                {label}
+                            </button>
+                        ))}
+                    </div>
+                    <div className="blog-grid" id="blogGrid">
+                        {BLOG_CARDS.map(b => (
+                            <div
+                                key={b.id}
+                                className="blog-card"
+                                style={{
+                                    opacity: blogFilter === 'all' || b.cat === blogFilter ? '1' : '0.2',
+                                    transform: blogFilter === 'all' || b.cat === blogFilter ? '' : 'scale(.97)',
+                                    transition: 'opacity .3s, transform .3s'
+                                }}
+                                onClick={() => handleBlogClick(b.id)}
+                            >
+                                <div className="bc-vis" style={{ background: b.bg }}>
+                                    <div className="bc-icon-wrap">{b.svg}</div>
+                                    <div className="bc-cat">{b.catLabel}</div>
+                                </div>
+                                <div className="bc-body">
+                                    <div className="bc-tag">{b.tag}</div>
+                                    <div className="bc-title">{b.title}</div>
+                                    <div className="bc-footer">
+                                        <span className="bc-mins">{b.mins} min read</span>
+                                        <span className="bc-arr">→</span>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                    ))}
+                        ))}
+                    </div>
                 </div>
-            </div>
-        </section>
+            </section>
+
+            <Footer openModal={openModal} openTool={openTool} />
+        </>
     );
 }

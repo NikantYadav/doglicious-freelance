@@ -1,0 +1,30 @@
+/* Blogs Page Styles */
+
+.blogs-hero {
+  min-height: 40vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.blogs-hero .sh {
+  text-align: center;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .blogs-hero {
+    padding-top: 100px !important;
+    padding-bottom: 40px !important;
+  }
+
+  .blogs-hero .title {
+    font-size: 32px !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .blogs-hero .title {
+    font-size: 28px !important;
+  }
+}

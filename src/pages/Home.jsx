@@ -20,9 +20,7 @@ import VetRxHero from '../components/home/VetRxHero';
 import HowItWorksSection from '../components/home/HowItWorksSection';
 import VideoStories from '../components/home/VideoStories';
 import CaseStudies from '../components/home/CaseStudies';
-import FreeTools from '../components/home/FreeTools';
 import LeadMagnet from '../components/home/LeadMagnet';
-import BlogsSection from '../components/home/BlogsSection';
 import CTASection from '../components/home/CTASection';
 import Footer from '../components/home/Footer';
 
@@ -33,7 +31,6 @@ import PaymentModal from '../components/modals/PaymentModal';
 import ConfirmModal from '../components/modals/ConfirmModal';
 import ToolsModal from '../components/modals/ToolsModal';
 import QuizModal from '../components/modals/QuizModal';
-import BlogModal from '../components/modals/BlogModal';
 
 // ─────────────────────────────────────────────────────────────
 // Home Component
@@ -47,7 +44,6 @@ export default function Home() {
 
   // ── Modals ──
   const [activeModal, setActiveModal] = useState(null);
-  const [activeBlog, setActiveBlog] = useState(null);
   const openModal = (id) => {
     setActiveModal(id);
     document.body.style.overflow = 'hidden';
@@ -79,9 +75,6 @@ export default function Home() {
   const [quizStep, setQuizStep] = useState(0);
   const [quizName, setQuizName] = useState('');
   const [quizAnswers, setQuizAnswers] = useState({});
-
-  // ── Blog filter ──
-  const [blogFilter, setBlogFilter] = useState('all');
 
   // ─────────────────────────────────────────────
   // Effects
@@ -192,11 +185,6 @@ export default function Home() {
     openModal('tools');
   };
 
-  const openBlog = (n) => {
-    setActiveBlog(n);
-    openModal('blog');
-  };
-
   const playVid = (n) => {
     const cover = document.getElementById(`vcover${n}`);
     const vid = document.getElementById(`vid${n}`);
@@ -251,13 +239,7 @@ export default function Home() {
       <TrustSection />
       <VideoStories playVid={playVid} />
       <CaseStudies />
-      <FreeTools openTool={openTool} />
       <LeadMagnet foodImg={foodImg} submitLead={submitLead} />
-      <BlogsSection
-        blogFilter={blogFilter}
-        setBlogFilter={setBlogFilter}
-        openBlog={openBlog}
-      />
       <CTASection openModal={openModal} />
       <Footer openModal={openModal} openTool={openTool} />
 
@@ -316,7 +298,6 @@ export default function Home() {
         setQuizAnswers={setQuizAnswers}
         openModal={openModal}
       />
-      <BlogModal isOpen={activeModal === 'blog'} onClose={closeModal} activeBlogId={activeBlog} />
 
       {/* WhatsApp Float — matches HTML exactly */}
       <div className="wa">

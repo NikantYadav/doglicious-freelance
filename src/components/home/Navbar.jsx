@@ -19,20 +19,8 @@ export default function Navbar({
                         <li><Link to="/products">Products</Link></li>
                         <li><a href="#why">Why Us</a></li>
                         <li><a href="#case-studies">Results</a></li>
-                        <li><a href="#blogs">Blogs</a></li>
-                        <li className="dd">
-                            <a href="#tools">Free Tools <span className="ftag">8</span></a>
-                            <div className="ddm">
-                                <a href="#" onClick={(e) => { e.preventDefault(); openTool(0); }}>⚖️ BMI Calculator</a>
-                                <a href="#" onClick={(e) => { e.preventDefault(); openTool(1); }}>🍽️ Feeding Calculator</a>
-                                <a href="#" onClick={(e) => { e.preventDefault(); openTool(2); }}>💰 Cost Calculator</a>
-                                <a href="#" onClick={(e) => { e.preventDefault(); openTool(3); }}>📅 Age Calculator</a>
-                                <a href="#" onClick={(e) => { e.preventDefault(); openTool(4); }}>🥦 Best Vegetables</a>
-                                <a href="#" onClick={(e) => { e.preventDefault(); openTool(5); }}>💊 Natural Healing</a>
-                                <a href="#" onClick={(e) => { e.preventDefault(); openTool(6); }}>📋 AAFCO Planner</a>
-                                <a href="#" onClick={(e) => { e.preventDefault(); openTool(7); }}>🧠 Health Quiz</a>
-                            </div>
-                        </li>
+                        <li><Link to="/blogs">Blogs</Link></li>
+                        <li><Link to="/tools">Free Tools <span className="ftag">8</span></Link></li>
                         <li><a href="#contact">Contact</a></li>
                     </ul>
                     <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
@@ -46,10 +34,10 @@ export default function Navbar({
                 <a href="#vet" onClick={() => { setMobileMenuOpen(false); openModal('vet'); }}>🔍 Vet Rx Scan</a>
                 <Link to="/products" onClick={() => { setMobileMenuOpen(false) }}>Products</Link>
                 <a href="#why" onClick={() => { setMobileMenuOpen(false) }}>Why Doglicious</a>
-                <a href="#tools" onClick={() => { setMobileMenuOpen(false) }}>Free Tools</a>
+                <Link to="/tools" onClick={() => { setMobileMenuOpen(false) }}>Free Tools</Link>
                 <a href="#video-stories" onClick={() => { setMobileMenuOpen(false) }}>Videos</a>
                 <a href="#case-studies" onClick={() => { setMobileMenuOpen(false) }}>Results</a>
-                <a href="#blogs" onClick={() => { setMobileMenuOpen(false) }}>Blogs</a>
+                <Link to="/blogs" onClick={() => { setMobileMenuOpen(false) }}>Blogs</Link>
                 <a href="#contact" onClick={() => { setMobileMenuOpen(false) }}>Contact</a>
                 <a href="#" onClick={(e) => { e.preventDefault(); setMobileMenuOpen(false); openModal('sample'); }}>Book Sample for ₹99 →</a>
             </div>
