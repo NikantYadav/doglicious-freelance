@@ -13,7 +13,7 @@ export default function Navbar({
         <>
             <nav id="nav" className={navScrolled ? "s" : ""}>
                 <div className="nav-in">
-                    <Link to="/" className="nav-logo"><img src={logoImg} alt="Doglicious.in" /></Link>
+                    <Link to="/" className="nav-logo"><img src={logoImg} alt="Doglicious.in" width="192" height="192" /></Link>
                     <ul className="nav-links">
                         <li><a href="#vet">🔍 Vet Rx Scan</a></li>
                         <li><Link to="/products">Products</Link></li>

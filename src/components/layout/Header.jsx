@@ -12,7 +12,7 @@ export default function Header({
         <>
             <nav id="nav" className={navScrolled ? "s" : ""}>
                 <div className="nav-in">
-                    <a href="#" className="nav-logo"><img src={logoImg} alt="Doglicious.in" /></a>
+                    <a href="#" className="nav-logo"><img src={logoImg} alt="Doglicious.in" width="192" height="192" /></a>
                     <ul className="nav-links">
                         <li><a href="#vet">🔍 Vet Rx Scan</a></li>
                         <li><a href="#why">Why Us</a></li>

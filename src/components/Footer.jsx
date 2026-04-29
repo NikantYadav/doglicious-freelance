@@ -7,7 +7,7 @@ export default function Footer({ openModal, openTool }) {
             <div className="wrap">
                 <div className="fgrid">
                     <div>
-                        <div className="flogo"><img src={logoImg} alt="Doglicious.in" /></div>
+                        <div className="flogo"><img src={logoImg} alt="Doglicious.in" width="192" height="192" /></div>
                         <div className="faib">🤖 AI-Powered Nutrition. Backed by Science. Made with Love.</div>
                         <p className="ft">Superfood for dogs. Personalised by AI. Vet approved. Cooked fresh daily. Delivered across Delhi NCR.</p>
                         <div className="fct">

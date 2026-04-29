@@ -5,7 +5,7 @@ export default function Header({ navScrolled, mobileMenuOpen, setMobileMenuOpen,
     return (
         <nav className={`nav ${navScrolled ? 'scrolled' : ''}`}>
             <div className="wrap flex-between">
-                <div className="logo"><img src={logoImg} alt="Doglicious.in" /></div>
+                <div className="logo"><img src={logoImg} alt="Doglicious.in" width="192" height="192" /></div>
                 <div className="nav-links flex-center">
                     <a href="#why">Why Fresh?</a>
                     <a href="#recipes">Recipes</a>
@@ -22,7 +22,7 @@ export default function Header({ navScrolled, mobileMenuOpen, setMobileMenuOpen,
             <div className={`mm ${mobileMenuOpen ? 'o' : ''}`}>
                 <div className="wrap">
                     <div className="flex-between py20">
-                        <div className="logo"><img src={logoImg} alt="Doglicious.in" /></div>
+                        <div className="logo"><img src={logoImg} alt="Doglicious.in" width="192" height="192" /></div>
                         <button className="mcl" onClick={() => setMobileMenuOpen(false)}><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 6L6 18M6 6l12 12" /></svg></button>
                     </div>
                     <div className="mml">

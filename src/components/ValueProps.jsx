@@ -32,7 +32,7 @@ export default function ValueProps() {
                     <div style={{ display: "grid", gridTemplateColumns: "1.1fr .9fr", gap: "80px", alignItems: "center" }} className="sg">
                         <div className="rv">
                             <div style={{ position: "relative" }}>
-                                <img src={foodImg} alt="Fresh Ingredients" style={{ width: "100%", height: "540px", objectFit: "cover", borderRadius: "1000px 1000px 0 0", boxShadow: "0 40px 100px rgba(0,0,0,.15)" }} />
+                                <img src={foodImg} alt="Fresh Ingredients" width="1080" height="1080" style={{ width: "100%", height: "540px", objectFit: "cover", borderRadius: "1000px 1000px 0 0", boxShadow: "0 40px 100px rgba(0,0,0,.15)" }} />
                                 <div style={{ position: "absolute", top: "40px", right: "-40px", background: "var(--brown)", color: "white", padding: "24px", borderRadius: "24px", width: "180px", boxShadow: "0 20px 40px rgba(0,0,0,.2)" }}>
                                     <div style={{ fontSize: "24px", fontWeight: "800", marginBottom: "4px" }}>80%</div>
                                     <div style={{ fontSize: "11px", fontWeight: "700", opacity: ".8", textTransform: "uppercase", letterSpacing: ".05em" }}>Human Grade Animal Protein</div>

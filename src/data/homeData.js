@@ -1,4 +1,4 @@
-export const logoImg = '/pwa-512x512.png';
+export const logoImg = '/pwa-192x192.png';
 export const foodImg = '/food.jpg';
 
 export const TOOL_TITLES = [
