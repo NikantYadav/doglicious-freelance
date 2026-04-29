@@ -2,28 +2,49 @@
 <html lang="en">
 
 <head>
-  <!-- Google Tag Manager -->
-  <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src='https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);})(window,document,'script','dataLayer','GTM-TJF4CXNM');</script>
-  <!-- End Google Tag Manager -->
-
-  <!-- Google tag (gtag.js) -->
-  <script async src="https://www.googletagmanager.com/gtag/js?id=G-P00SY4W1CL"></script>
+  <!-- Lazy Load Analytics to fix Mobile JS execution delays -->
   <script>
-    window.dataLayer = window.dataLayer || [];
-    function gtag(){dataLayer.push(arguments);}
-    gtag('js', new Date());
-    gtag('config', 'G-P00SY4W1CL');
+    function loadAnalytics() {
+      if (window.analyticsLoaded) return;
+      window.analyticsLoaded = true;
+
+      // GTM
+      (function (w, d, s, l, i) { w[l] = w[l] || []; w[l].push({ 'gtm.start': new Date().getTime(), event: 'gtm.js' }); var f = d.getElementsByTagName(s)[0], j = d.createElement(s), dl = l != 'dataLayer' ? '&l=' + l : ''; j.async = true; j.src = 'https://www.googletagmanager.com/gtm.js?id=' + i + dl; f.parentNode.insertBefore(j, f); })(window, document, 'script', 'dataLayer', 'GTM-TJF4CXNM');
+
+      // gtag.js
+      var gs = document.createElement('script');
+      gs.async = true;
+      gs.src = 'https://www.googletagmanager.com/gtag/js?id=G-P00SY4W1CL';
+      document.head.appendChild(gs);
+      window.dataLayer = window.dataLayer || [];
+      function gtag() { dataLayer.push(arguments); }
+      window.gtag = gtag;
+      gtag('js', new Date());
+      gtag('config', 'G-P00SY4W1CL');
+    }
+    setTimeout(loadAnalytics, 4000);
+    ['scroll', 'mousemove', 'touchstart', 'click'].forEach(function (e) {
+      window.addEventListener(e, loadAnalytics, { once: true, passive: true });
+    });
   </script>
 
   <!-- Preload LCP Image for Mobile and Desktop -->
-  <link rel="preload" href="/happy-dog-720.webp" as="image" type="image/webp" media="(max-width: 768px)">
-  <link rel="preload" href="/happy-dog.webp" as="image" type="image/webp" media="(min-width: 769px)">
+  <link rel="preload" href="/happy-dog-720.webp" as="image" type="image/webp" media="(max-width: 768px)"
+    fetchpriority="high">
+  <link rel="preload" href="/happy-dog.webp" as="image" type="image/webp" media="(min-width: 769px)"
+    fetchpriority="high">
 
   <!-- Google Fonts Optimization (Deferred) -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400&display=swap" rel="preload" as="style" onload="this.onload=null;this.rel='stylesheet'">
-  <noscript><link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400&display=swap" rel="stylesheet"></noscript>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400&display=swap"
+    rel="preload" as="style" onload="this.onload=null;this.rel='stylesheet'">
+  <noscript>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400&display=swap"
+      rel="stylesheet">
+  </noscript>
 
   <meta charset="UTF-8" />
   <link rel="icon" type="image/x-icon" href="/favicon.ico" />
@@ -34,14 +55,16 @@
   <meta name="mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-  <meta name="description" content="India's first AI dog nutrition company. Fresh, human-grade, AAFCO-aligned meals. Free delivery Gurgaon &amp; Delhi NCR." />
+  <meta name="description"
+    content="India's first AI dog nutrition company. Fresh, human-grade, AAFCO-aligned meals. Free delivery Gurgaon &amp; Delhi NCR." />
   <meta name="google-site-verification" content="W8HwSBRulrr01N8YcpGWjhzM3nGmgySBYSIK9nBSEdU" />
   <title>Doglicious.in — Superfood for Dogs</title>
 </head>
 
 <body>
   <!-- Google Tag Manager (noscript) -->
-  <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-TJF4CXNM" height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+  <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-TJF4CXNM" height="0" width="0"
+      style="display:none;visibility:hidden"></iframe></noscript>
   <!-- End Google Tag Manager (noscript) -->
   <div id="root"></div>
   <script type="module" src="/src/main.jsx"></script>
