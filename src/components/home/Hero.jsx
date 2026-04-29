@@ -61,7 +61,7 @@ export default function Hero({ openModal }) {
                 </div>
             </div>
             <div className="hero-img">
-                <img src="/Happy Dog.webp" alt="Happy dog with fresh food" width="900" height="600" fetchpriority="high" />
+                <img src="/happy-dog.webp" srcSet="/happy-dog-720.webp 720w, /happy-dog.webp 900w" sizes="(max-width: 768px) 720px, 900px" alt="Happy dog with fresh food" width="900" height="600" fetchpriority="high" />
                 <div className="hero-card">
                     <div className="hc-live"></div>
                     <div><div className="hc-t">Freshly cooked today</div><div className="hc-s">Delivered same day</div></div>
