@@ -35,6 +35,7 @@ export async function initiatePayU({ dogName, phone, price, recipe, grams }) {
             price: String(price),              // pass the actual displayed price to the backend
             // udf1 used to carry order info back on success callback
             udf1: `${recipe}|${grams}g|₹${price}`,
+            returnPath: window.location.pathname,
         }),
     });
 

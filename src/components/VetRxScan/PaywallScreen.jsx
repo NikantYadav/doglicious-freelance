@@ -24,6 +24,7 @@ const PaywallScreen = ({ email, contactId, phone, firstname, onLogout, numScans,
                     firstname: firstname || email.split('@')[0],
                     phone: phone || '',
                     contactId: contactId || '',
+                    returnPath: window.location.pathname,
                 }),
             });
 

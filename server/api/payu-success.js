@@ -73,13 +73,13 @@ export default async function handler(req, res) {
             email: params.email,
             key: params.key,
         });
-        return redirectToFrontend(res, 'payment_failed', 'Hash mismatch');
+        return redirectToFrontend(res, 'payment_failed', 'Hash mismatch', {}, params.udf2);
     }
 
     // ----- 2. Check payment status -----
     if (params.status !== 'success') {
         console.warn('[payu-success] Non-success status:', params.status);
-        return redirectToFrontend(res, 'payment_failed', params.status);
+        return redirectToFrontend(res, 'payment_failed', params.status, {}, params.udf2);
     }
 
     // ----- 3. Update Kylas lead -----
@@ -121,20 +121,24 @@ export default async function handler(req, res) {
                 paidScans: newPaid,
                 txnid: params.txnid,
                 contactId,
-            });
+            }, params.udf2);
         } catch (err) {
             console.error('[payu-success] Kylas update failed:', err);
             // Still redirect as success — payment was real, just CRM update failed
-            return redirectToFrontend(res, 'payment_success', 'crm_update_failed', { txnid: params.txnid });
+            return redirectToFrontend(res, 'payment_success', 'crm_update_failed', { txnid: params.txnid }, params.udf2);
         }
     }
 
-    return redirectToFrontend(res, 'payment_success', null, { txnid: params.txnid });
+    return redirectToFrontend(res, 'payment_success', null, { txnid: params.txnid }, params.udf2);
 }
 
-function redirectToFrontend(res, status, error, data = {}) {
-    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
+function redirectToFrontend(res, status, error, data = {}, returnPath = '/') {
+    const base = process.env.FRONTEND_URL || 'http://localhost:5173';
+    // Strip any existing path from FRONTEND_URL (it may be set to a specific page),
+    // then append the returnPath that was stored in udf2 at payment initiation.
+    const origin = base.replace(/\/[^?#]*$/, ''); // keep only origin
+    const safePath = (returnPath || '/').replace(/[^a-zA-Z0-9/_-]/g, '') || '/';
     const params = new URLSearchParams({ payu_status: status, ...data });
     if (error) params.set('error', error);
-    res.redirect(302, `${frontendUrl}?${params.toString()}`);
+    res.redirect(302, `${origin}${safePath}?${params.toString()}`);
 }

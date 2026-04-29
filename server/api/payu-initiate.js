@@ -41,8 +41,10 @@ export default async function handler(req, res) {
 
     // udf1 stores the Kylas contactId so we can look it up on success callback
     const udf1 = contactId || '';
+    // udf2 stores the frontend return path so PayU redirects back to the originating page
+    const udf2 = (req.body.returnPath || '').replace(/[^a-zA-Z0-9/_-]/g, '').slice(0, 200) || '/';
 
-    const hash = generateHash({ key, txnid, amount, productinfo, firstname, email, udf1, salt });
+    const hash = generateHash({ key, txnid, amount, productinfo, firstname, email, udf1, udf2, salt });
 
     const baseUrl = req.headers.origin || (isProd() ? process.env.PROD_URL : process.env.DEV_URL) || 'http://localhost:5173';
     const surl = `${process.env.SERVER_URL || baseUrl.replace(':5173', ':5000')}/api/payu-success`;
@@ -55,6 +57,7 @@ export default async function handler(req, res) {
             firstname, email,
             phone: phone || '',
             udf1,
+            udf2,
             surl, furl,
             hash,
         },
