@@ -39,11 +39,21 @@ export default defineConfig(() => {
     build: {
       // Content-hash every output file so nginx can cache them forever
       // and users automatically get new files on deploy
+      cssCodeSplit: true, // Route-level CSS chunks — only loads CSS for current page
       rollupOptions: {
         output: {
           entryFileNames: 'assets/[name]-[hash].js',
           chunkFileNames: 'assets/[name]-[hash].js',
           assetFileNames: 'assets/[name]-[hash][extname]',
+          // Separate vendor (React/router) from app code for better caching
+          manualChunks(id) {
+            if (id.includes('node_modules/react') || id.includes('node_modules/react-dom')) {
+              return 'vendor-react';
+            }
+            if (id.includes('node_modules/react-router')) {
+              return 'vendor-router';
+            }
+          }
         }
       }
     },

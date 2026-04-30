@@ -69,11 +69,11 @@ export default function Products() {
   const carTrackRef = useRef(null);
 
   const CAR_DATA = [
-    { n: "Ritu Sharma",   d: "Bruno · 4yr Labrador, Gurgaon",          q: "Bruno was on kibble 3 years. Within 2 weeks — shinier coat, more energy, and he gets excited at meal time now. The AI plan was spot-on for his breed.", v: "▶ Video" },
-    { n: "Aditya Kapoor", d: "Max · 2yr Beagle, South Delhi",           q: "Max had terrible skin issues. Doglicious customised his plan to avoid chicken — he's allergic. The change in 3 weeks was incredible.", v: "▶ Video" },
-    { n: "Priya Malhotra", d: "Zeus · 6yr German Shepherd, Noida",      q: "The ₹99 sample changed my mind instantly. Zeus ate it within seconds — he's never done that with any food ever!", v: "▶ Video" },
-    { n: "Neha Gupta",    d: "Mia · 1yr Shih Tzu, DLF Cyber City",     q: "The NABL reports give me complete peace of mind about what my baby is eating. Mia is thriving!", v: "▶ Video" },
-    { n: "Sandeep Verma", d: "Daisy · 5yr Golden Retriever, Dwarka",    q: "Daisy was overweight. Doglicious made a weight management plan — she's lost 1.2kg in 6 weeks while loving her food!", v: "▶ Video" },
+    { n: "Ritu Sharma", d: "Bruno · 4yr Labrador, Gurgaon", q: "Bruno was on kibble 3 years. Within 2 weeks — shinier coat, more energy, and he gets excited at meal time now. The AI plan was spot-on for his breed.", v: "▶ Video" },
+    { n: "Aditya Kapoor", d: "Max · 2yr Beagle, South Delhi", q: "Max had terrible skin issues. Doglicious customised his plan to avoid chicken — he's allergic. The change in 3 weeks was incredible.", v: "▶ Video" },
+    { n: "Priya Malhotra", d: "Zeus · 6yr German Shepherd, Noida", q: "The ₹99 sample changed my mind instantly. Zeus ate it within seconds — he's never done that with any food ever!", v: "▶ Video" },
+    { n: "Neha Gupta", d: "Mia · 1yr Shih Tzu, DLF Cyber City", q: "The NABL reports give me complete peace of mind about what my baby is eating. Mia is thriving!", v: "▶ Video" },
+    { n: "Sandeep Verma", d: "Daisy · 5yr Golden Retriever, Dwarka", q: "Daisy was overweight. Doglicious made a weight management plan — she's lost 1.2kg in 6 weeks while loving her food!", v: "▶ Video" },
   ];
 
   // ─────────────────────────────────────────────
@@ -106,10 +106,26 @@ export default function Products() {
     return () => obs.disconnect();
   }, []);
 
-  // Carousel position sync
+  // Carousel position sync — avoid forced reflow via ResizeObserver
+  const carItemWidthRef = useRef(0);
   useEffect(() => {
     if (!carTrackRef.current) return;
-    const w = carTrackRef.current.children[0]?.offsetWidth || 0;
+    const firstChild = carTrackRef.current.children[0];
+    if (!firstChild) return;
+
+    // Use ResizeObserver so we only read layout after paint (no forced reflow)
+    const ro = new ResizeObserver((entries) => {
+      for (const entry of entries) {
+        carItemWidthRef.current = entry.contentRect.width;
+      }
+    });
+    ro.observe(firstChild);
+    return () => ro.disconnect();
+  }, []);
+
+  useEffect(() => {
+    if (!carTrackRef.current) return;
+    const w = carItemWidthRef.current || carTrackRef.current.children[0]?.getBoundingClientRect().width || 0;
     carTrackRef.current.style.transform = `translateX(-${carouselIdx * (w + 14)}px)`;
   }, [carouselIdx]);
 
@@ -172,14 +188,14 @@ export default function Products() {
   };
 
   const openTool = (idx) => {
-    if (idx === 0) { navigate('/tools/bmi-calculator');      return; }
-    if (idx === 1) { navigate('/tools/feeding-calculator');  return; }
-    if (idx === 2) { navigate('/tools/cost-calculator');     return; }
-    if (idx === 3) { navigate('/tools/age-calculator');      return; }
-    if (idx === 4) { navigate('/tools/best-vegetables');     return; }
-    if (idx === 5) { navigate('/tools/natural-healing');     return; }
-    if (idx === 6) { navigate('/tools/aafco-planner');       return; }
-    if (idx === 7) { navigate('/tools/health-quiz');         return; }
+    if (idx === 0) { navigate('/tools/bmi-calculator'); return; }
+    if (idx === 1) { navigate('/tools/feeding-calculator'); return; }
+    if (idx === 2) { navigate('/tools/cost-calculator'); return; }
+    if (idx === 3) { navigate('/tools/age-calculator'); return; }
+    if (idx === 4) { navigate('/tools/best-vegetables'); return; }
+    if (idx === 5) { navigate('/tools/natural-healing'); return; }
+    if (idx === 6) { navigate('/tools/aafco-planner'); return; }
+    if (idx === 7) { navigate('/tools/health-quiz'); return; }
     setActiveTool(idx);
     openModal('tools');
   };
@@ -212,7 +228,7 @@ export default function Products() {
         openTool={openTool}
         logoImg={logoImg}
       />
-      
+
       {/* Products Page Hero */}
       <section className="products-hero">
         <div className="wrap">

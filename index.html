@@ -34,12 +34,15 @@
   <link rel="preload" href="/happy-dog.webp" as="image" type="image/webp" media="(min-width: 769px)"
     fetchpriority="high">
 
-  <!-- Google Fonts Optimization -->
+  <!-- Google Fonts Optimization — async load via media=print trick -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link
-    href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400&display=swap"
-    rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap"
+    rel="stylesheet" media="print" onload="this.media='all'">
+  <noscript>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap"
+      rel="stylesheet">
+  </noscript>
 
   <meta charset="UTF-8" />
   <link rel="icon" type="image/x-icon" href="/favicon.ico" />
@@ -54,6 +57,53 @@
     content="India's first AI dog nutrition company. Fresh, human-grade, AAFCO-aligned meals. Free delivery Gurgaon &amp; Delhi NCR." />
   <meta name="google-site-verification" content="W8HwSBRulrr01N8YcpGWjhzM3nGmgySBYSIK9nBSEdU" />
   <title>Doglicious.in — Superfood for Dogs</title>
+
+  <!-- Critical CSS: inline minimal styles to prevent FOUC and render-blocking -->
+  <style>
+    /* Box model reset */
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0
+    }
+
+    html {
+      scroll-behavior: smooth;
+      -webkit-text-size-adjust: 100%
+    }
+
+    /* System font stack as fallback until Poppins loads */
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #ffffff;
+      color: #1a1410;
+      line-height: 1.55;
+      overflow-x: hidden;
+      -webkit-font-smoothing: antialiased
+    }
+
+    /* Prevent body padding shift before CSS loads */
+    #root {
+      min-height: 100vh
+    }
+
+    /* Hide content until React hydrates to prevent layout flash */
+    #root:empty {
+      background: #ffffff
+    }
+
+    /* Prevent invisible-text FOUC during font load */
+    .ann,
+    .nav-in,
+    h1,
+    h2,
+    p,
+    .btn {
+      font-display: optional
+    }
+  </style>
 </head>
 
 <body>
