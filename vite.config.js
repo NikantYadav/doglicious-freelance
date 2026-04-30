@@ -3,6 +3,39 @@ import react from '@vitejs/plugin-react'
 import { VitePWA } from 'vite-plugin-pwa'
 import dotenv from 'dotenv'
 
+/**
+ * Inline the main entry CSS into the HTML at build time.
+ * This eliminates the render-blocking <link rel="stylesheet"> for the home page CSS,
+ * replacing it with an inline <style> block that the browser can parse instantly.
+ * Route-level CSS chunks (from cssCodeSplit) remain as lazy-loaded files.
+ */
+function inlineEntryCSSPlugin() {
+  return {
+    name: 'vite-plugin-inline-entry-css',
+    apply: 'build',
+    enforce: 'post',
+    transformIndexHtml: {
+      order: 'post',
+      handler(html, { bundle }) {
+        if (!bundle) return html;
+        for (const [fileName, chunk] of Object.entries(bundle)) {
+          // Only inline the main entry CSS (assets/index-*.css), not route chunks
+          if (chunk.type === 'asset' && /^assets\/index-[^/]+\.css$/.test(fileName)) {
+            const css = chunk.source;
+            const linkTag = `<link rel="stylesheet" crossorigin href="/${fileName}">`;
+            if (html.includes(linkTag)) {
+              html = html.replace(linkTag, `<style>${css}</style>`);
+              // Remove the CSS file from bundle so nginx doesn't serve a dead file
+              delete bundle[fileName];
+            }
+          }
+        }
+        return html;
+      }
+    }
+  };
+}
+
 export default defineConfig(() => {
   // Explicitly load .env.frontend so Vite can see it
   dotenv.config({ path: '.env.frontend' });
@@ -10,6 +43,7 @@ export default defineConfig(() => {
   return {
     plugins: [
       react(),
+      inlineEntryCSSPlugin(),
       VitePWA({
         registerType: 'autoUpdate',
         workbox: {
