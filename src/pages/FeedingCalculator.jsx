@@ -3,67 +3,74 @@ import { useNavigate } from 'react-router-dom';
 import Navbar from '../components/home/Navbar';
 import Footer from '../components/home/Footer';
 import { logoImg } from '../data/homeData';
+import { useSEO } from '../hooks/useSEO';
 import '../styles/FeedingCalculator.css';
 
 // ── Data ──────────────────────────────────────────────────────
 const BREEDS = [
-  { n: 'Indian Pariah',      e: '🐕',  m: 1.00 },
-  { n: 'Labrador',           e: '🦮',  m: 1.05 },
-  { n: 'Golden Retriever',   e: '🐕',  m: 1.05 },
-  { n: 'German Shepherd',    e: '🐺',  m: 1.08 },
-  { n: 'Beagle',             e: '🐶',  m: 0.98 },
-  { n: 'Pug',                e: '🐾',  m: 0.88 },
-  { n: 'Shih Tzu',           e: '🐩',  m: 0.85 },
-  { n: 'Rajapalayam',        e: '👑',  m: 1.10 },
-  { n: 'Mudhol Hound',       e: '💨',  m: 1.12 },
-  { n: 'Chippiparai',        e: '⚡',  m: 1.10 },
-  { n: 'Kombai',             e: '🦁',  m: 1.08 },
-  { n: 'Kanni',              e: '🏃',  m: 1.05 },
-  { n: 'Bakharwal',          e: '🏔️', m: 1.12 },
-  { n: 'Rampur Greyhound',   e: '🌪️', m: 1.10 },
-  { n: 'Himalayan Sheepdog', e: '❄️',  m: 1.08 },
-  { n: 'Dachshund',          e: '🌭',  m: 0.90 },
-  { n: 'Rottweiler',         e: '💪',  m: 1.10 },
-  { n: 'Indie (Mixed)',      e: '🐕',  m: 1.00 },
+  { n: 'Indian Pariah', e: '🐕', m: 1.00 },
+  { n: 'Labrador', e: '🦮', m: 1.05 },
+  { n: 'Golden Retriever', e: '🐕', m: 1.05 },
+  { n: 'German Shepherd', e: '🐺', m: 1.08 },
+  { n: 'Beagle', e: '🐶', m: 0.98 },
+  { n: 'Pug', e: '🐾', m: 0.88 },
+  { n: 'Shih Tzu', e: '🐩', m: 0.85 },
+  { n: 'Rajapalayam', e: '👑', m: 1.10 },
+  { n: 'Mudhol Hound', e: '💨', m: 1.12 },
+  { n: 'Chippiparai', e: '⚡', m: 1.10 },
+  { n: 'Kombai', e: '🦁', m: 1.08 },
+  { n: 'Kanni', e: '🏃', m: 1.05 },
+  { n: 'Bakharwal', e: '🏔️', m: 1.12 },
+  { n: 'Rampur Greyhound', e: '🌪️', m: 1.10 },
+  { n: 'Himalayan Sheepdog', e: '❄️', m: 1.08 },
+  { n: 'Dachshund', e: '🌭', m: 0.90 },
+  { n: 'Rottweiler', e: '💪', m: 1.10 },
+  { n: 'Indie (Mixed)', e: '🐕', m: 1.00 },
 ];
 
 const HOME_OPTS = [
-  { val: 'studio', icon: '🏢', label: 'Studio / 1BHK', detail: '< 500 sq ft',   bonus: 0    },
-  { val: '2bhk',   icon: '🏠', label: '2BHK',          detail: '500–900 sq ft', bonus: 0.02 },
-  { val: '3bhk',   icon: '🏡', label: '3BHK+',         detail: '900–1500 sq ft',bonus: 0.04 },
-  { val: 'house',  icon: '🏘️',label: 'Ind. House',     detail: '1500+ / Yard',  bonus: 0.06 },
+  { val: 'studio', icon: '🏢', label: 'Studio / 1BHK', detail: '< 500 sq ft', bonus: 0 },
+  { val: '2bhk', icon: '🏠', label: '2BHK', detail: '500–900 sq ft', bonus: 0.02 },
+  { val: '3bhk', icon: '🏡', label: '3BHK+', detail: '900–1500 sq ft', bonus: 0.04 },
+  { val: 'house', icon: '🏘️', label: 'Ind. House', detail: '1500+ / Yard', bonus: 0.06 },
 ];
 
-const AGE_MULT   = { puppy: 2.0, adult: 1.4, senior: 1.0, nursing: 2.5 };
+const AGE_MULT = { puppy: 2.0, adult: 1.4, senior: 1.0, nursing: 2.5 };
 const ACT_LABELS = ['Sedentary', 'Low', 'Moderate', 'Active', 'Very Active'];
 const HOME_LABELS = { studio: 'Studio/1BHK', '2bhk': '2BHK', '3bhk': '3BHK+', house: 'Ind. House' };
 
 // ── Component ─────────────────────────────────────────────────
 export default function FeedingCalculator() {
+  useSEO({
+    title: 'Dog Feeding Calculator | Free Tool',
+    description: "Calculate exact daily feeding portions for your dog.",
+    path: '/tools/feeding-calculator'
+  });
+
   const navigate = useNavigate();
-  const [navScrolled,    setNavScrolled]    = useState(false);
+  const [navScrolled, setNavScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   // wizard state
-  const [step,       setStep]       = useState(1);
-  const [weight,     setWeight]     = useState('');
-  const [age,        setAge]        = useState('');
-  const [food,       setFood]       = useState('kibble');
-  const [breed,      setBreed]      = useState(null);   // index into BREEDS
+  const [step, setStep] = useState(1);
+  const [weight, setWeight] = useState('');
+  const [age, setAge] = useState('');
+  const [food, setFood] = useState('kibble');
+  const [breed, setBreed] = useState(null);   // index into BREEDS
   const [breedQuery, setBreedQuery] = useState('');
-  const [home,       setHome]       = useState('');
-  const [walkKm,     setWalkKm]     = useState('');
-  const [walkFreq,   setWalkFreq]   = useState(0);
+  const [home, setHome] = useState('');
+  const [walkKm, setWalkKm] = useState('');
+  const [walkFreq, setWalkFreq] = useState(0);
 
   // result
-  const [result,  setResult]  = useState(null);
-  const [aiTip,   setAiTip]   = useState(null);   // null=loading, string=done
-  const [ctaName,  setCtaName]  = useState('');
+  const [result, setResult] = useState(null);
+  const [aiTip, setAiTip] = useState(null);   // null=loading, string=done
+  const [ctaName, setCtaName] = useState('');
   const [ctaPhone, setCtaPhone] = useState('');
   const [ctaEmail, setCtaEmail] = useState('');
 
-  const resultRef  = useRef(null);
-  const weightRef  = useRef(null);
+  const resultRef = useRef(null);
+  const weightRef = useRef(null);
 
   useEffect(() => {
     const onScroll = () => setNavScrolled(window.scrollY > 20);
@@ -86,7 +93,7 @@ export default function FeedingCalculator() {
         const w = parseFloat(weight) || 0;
         if (!w) { shake(weightRef); return; }
       }
-      if (step === 2 && !age)   { alert('Please select an age group.'); return; }
+      if (step === 2 && !age) { alert('Please select an age group.'); return; }
       if (step === 3 && breed === null) { alert('Please select a breed.'); return; }
     }
     setStep(n);
@@ -102,35 +109,35 @@ export default function FeedingCalculator() {
 
   // ── Calculation ──
   const calculate = () => {
-    if (!home)      { alert('Please select your home type.'); return; }
-    if (!walkFreq)  { alert('Please select walk frequency.'); return; }
+    if (!home) { alert('Please select your home type.'); return; }
+    if (!walkFreq) { alert('Please select walk frequency.'); return; }
 
-    const w          = parseFloat(weight) || 0;
-    const breedData  = BREEDS[breed];
-    const rer        = 70 * Math.pow(w, 0.75);
-    const ageMult    = AGE_MULT[age] || 1.4;
-    const totalWalk  = (parseFloat(walkKm) || 0) * walkFreq;
+    const w = parseFloat(weight) || 0;
+    const breedData = BREEDS[breed];
+    const rer = 70 * Math.pow(w, 0.75);
+    const ageMult = AGE_MULT[age] || 1.4;
+    const totalWalk = (parseFloat(walkKm) || 0) * walkFreq;
 
     let actMult = 1.0;
-    if      (totalWalk >= 10) actMult = 1.30;
-    else if (totalWalk >= 6)  actMult = 1.20;
-    else if (totalWalk >= 3)  actMult = 1.10;
-    else if (totalWalk >= 1)  actMult = 1.05;
+    if (totalWalk >= 10) actMult = 1.30;
+    else if (totalWalk >= 6) actMult = 1.20;
+    else if (totalWalk >= 3) actMult = 1.10;
+    else if (totalWalk >= 1) actMult = 1.05;
 
     const homeBonus = HOME_OPTS.find(h => h.val === home)?.bonus || 0;
     actMult += homeBonus;
 
-    const dailyCal  = Math.round(rer * ageMult * breedData.m * actMult);
-    const calPerG   = food === 'kibble' ? 3.5 : 1.2;
-    const dailyG    = Math.round(dailyCal / calPerG);
-    const meals     = age === 'puppy' ? 3 : 2;
-    const perMeal   = Math.round(dailyG / meals);
+    const dailyCal = Math.round(rer * ageMult * breedData.m * actMult);
+    const calPerG = food === 'kibble' ? 3.5 : 1.2;
+    const dailyG = Math.round(dailyCal / calPerG);
+    const meals = age === 'puppy' ? 3 : 2;
+    const perMeal = Math.round(dailyG / meals);
 
     let actLevel = 0;
-    if      (totalWalk >= 10) actLevel = 4;
-    else if (totalWalk >= 6)  actLevel = 3;
-    else if (totalWalk >= 3)  actLevel = 2;
-    else if (totalWalk >= 1)  actLevel = 1;
+    if (totalWalk >= 10) actLevel = 4;
+    else if (totalWalk >= 6) actLevel = 3;
+    else if (totalWalk >= 3) actLevel = 2;
+    else if (totalWalk >= 1) actLevel = 1;
 
     setResult({ w, age, food, breedName: breedData.n, dailyCal, dailyG, meals, perMeal, totalWalk, actLevel, home });
     setAiTip(null);
@@ -204,7 +211,7 @@ export default function FeedingCalculator() {
         navScrolled={navScrolled}
         mobileMenuOpen={mobileMenuOpen}
         setMobileMenuOpen={setMobileMenuOpen}
-        openModal={() => {}}
+        openModal={() => { }}
         openTool={openTool}
         logoImg={logoImg}
       />
@@ -238,7 +245,7 @@ export default function FeedingCalculator() {
 
           {/* Stepper */}
           <div className="fc-stepper">
-            {[1,2,3,4].map((i) => (
+            {[1, 2, 3, 4].map((i) => (
               <React.Fragment key={i}>
                 <div className={`fc-step-dot ${dotState(i)}`}>
                   {i < step ? '✓' : i}
@@ -287,9 +294,9 @@ export default function FeedingCalculator() {
                 <div className="fc-step-question">How old &amp; what food?</div>
                 <div className="fc-pills">
                   {[
-                    { val: 'puppy',   icon: '🐶', label: 'Puppy',   sub: '0 – 12 months' },
-                    { val: 'adult',   icon: '🐕', label: 'Adult',   sub: '1 – 7 years' },
-                    { val: 'senior',  icon: '🧓', label: 'Senior',  sub: '7+ years' },
+                    { val: 'puppy', icon: '🐶', label: 'Puppy', sub: '0 – 12 months' },
+                    { val: 'adult', icon: '🐕', label: 'Adult', sub: '1 – 7 years' },
+                    { val: 'senior', icon: '🧓', label: 'Senior', sub: '7+ years' },
                     { val: 'nursing', icon: '🤱', label: 'Nursing', sub: 'Pregnant / Lactating' },
                   ].map(({ val, icon, label, sub }) => (
                     <div
@@ -307,7 +314,7 @@ export default function FeedingCalculator() {
                   <div className="fc-food-toggle-label">CURRENT FOOD TYPE</div>
                   <div className="fc-food-toggle">
                     <button className={`fc-food-btn${food === 'kibble' ? ' sel' : ''}`} onClick={() => setFood('kibble')}>🥣 Dry Kibble</button>
-                    <button className={`fc-food-btn${food === 'fresh'  ? ' sel' : ''}`} onClick={() => setFood('fresh')}>🥗 Fresh / Home</button>
+                    <button className={`fc-food-btn${food === 'fresh' ? ' sel' : ''}`} onClick={() => setFood('fresh')}>🥗 Fresh / Home</button>
                   </div>
                 </div>
                 <button className="fc-btn-next fc-btn-primary" onClick={() => goStep(3)}>Next — Breed →</button>
@@ -456,12 +463,12 @@ export default function FeedingCalculator() {
               <div className="fc-cta-title">Book a Fresh Food Sample</div>
               <div className="fc-cta-sub">Try Doglicious fresh meals for your dog.<br />Talk to our pet nutrition expert.</div>
               <div className="fc-cta-form">
-                <input className="fc-cta-input" type="text"  placeholder="Your name"         value={ctaName}  onChange={e => setCtaName(e.target.value)} />
-                <input className="fc-cta-input" type="tel"   placeholder="WhatsApp number"   value={ctaPhone} onChange={e => setCtaPhone(e.target.value)} />
-                <input className="fc-cta-input" type="email" placeholder="Email (optional)"  value={ctaEmail} onChange={e => setCtaEmail(e.target.value)} />
+                <input className="fc-cta-input" type="text" placeholder="Your name" value={ctaName} onChange={e => setCtaName(e.target.value)} />
+                <input className="fc-cta-input" type="tel" placeholder="WhatsApp number" value={ctaPhone} onChange={e => setCtaPhone(e.target.value)} />
+                <input className="fc-cta-input" type="email" placeholder="Email (optional)" value={ctaEmail} onChange={e => setCtaEmail(e.target.value)} />
               </div>
               <div className="fc-cta-btns">
-                <button className="fc-cta-btn fc-cta-wa"   onClick={doWhatsApp}>💬 WhatsApp</button>
+                <button className="fc-cta-btn fc-cta-wa" onClick={doWhatsApp}>💬 WhatsApp</button>
                 <button className="fc-cta-btn fc-cta-book" onClick={doEmail}>📧 Book Now</button>
               </div>
             </div>
@@ -471,7 +478,7 @@ export default function FeedingCalculator() {
         </section>
       )}
 
-      <Footer openModal={() => {}} openTool={openTool} />
+      <Footer openModal={() => { }} openTool={openTool} />
     </>
   );
 }

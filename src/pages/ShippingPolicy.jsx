@@ -4,9 +4,16 @@ import '../styles/ShippingPolicy.css';
 import Navbar from '../components/home/Navbar';
 import Footer from '../components/home/Footer';
 import { logoImg } from '../data/homeData';
+import { useSEO } from '../hooks/useSEO';
 import { useState, useEffect } from 'react';
 
 export default function ShippingPolicy() {
+  useSEO({
+    title: 'Shipping Policy | Doglicious.in',
+    description: 'Shipping information and delivery areas',
+    path: '/shipping-policy'
+  });
+
   const [navScrolled, setNavScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
@@ -16,8 +23,8 @@ export default function ShippingPolicy() {
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
 
-  const openModal = () => {};
-  const openTool = () => {};
+  const openModal = () => { };
+  const openTool = () => { };
 
   return (
     <>

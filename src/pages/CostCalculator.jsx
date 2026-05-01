@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import Navbar from '../components/home/Navbar';
 import Footer from '../components/home/Footer';
 import { logoImg } from '../data/homeData';
+import { useSEO } from '../hooks/useSEO';
 import '../styles/CostCalculator.css';
 
 const BRANDS = ['Pedigree', 'Royal Canin', 'Drools', 'Farmina', 'Acana', 'Other'];
@@ -10,18 +11,24 @@ const BRANDS = ['Pedigree', 'Royal Canin', 'Drools', 'Farmina', 'Acana', 'Other'
 const fmt = (n) => '₹' + Math.round(n).toLocaleString('en-IN');
 
 export default function CostCalculator() {
+  useSEO({
+    title: 'Dog Food Cost Calculator | Free Tool',
+    description: "Compare the real cost of fresh food vs kibble.",
+    path: '/tools/cost-calculator'
+  });
+
   const navigate = useNavigate();
   const [navScrolled, setNavScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   // inputs
-  const [dogWeight,   setDogWeight]   = useState('');
-  const [ageGroup,    setAgeGroup]    = useState('');
-  const [brand,       setBrand]       = useState('');
-  const [bagSize,     setBagSize]     = useState('');
-  const [bagPrice,    setBagPrice]    = useState('');
-  const [dailyGrams,  setDailyGrams]  = useState('');
-  const [freshPrice,  setFreshPrice]  = useState('499');
+  const [dogWeight, setDogWeight] = useState('');
+  const [ageGroup, setAgeGroup] = useState('');
+  const [brand, setBrand] = useState('');
+  const [bagSize, setBagSize] = useState('');
+  const [bagPrice, setBagPrice] = useState('');
+  const [dailyGrams, setDailyGrams] = useState('');
+  const [freshPrice, setFreshPrice] = useState('499');
 
   // result
   const [result, setResult] = useState(null);
@@ -42,26 +49,26 @@ export default function CostCalculator() {
   }, [result]);
 
   const calculate = () => {
-    const weight        = parseFloat(dogWeight)  || 0;
-    const bagSizeKg     = parseFloat(bagSize)    || 0;
-    const bagPriceNum   = parseFloat(bagPrice)   || 0;
-    const dailyG        = parseFloat(dailyGrams) || 0;
-    const freshPerKg    = parseFloat(freshPrice) || 499;
+    const weight = parseFloat(dogWeight) || 0;
+    const bagSizeKg = parseFloat(bagSize) || 0;
+    const bagPriceNum = parseFloat(bagPrice) || 0;
+    const dailyG = parseFloat(dailyGrams) || 0;
+    const freshPerKg = parseFloat(freshPrice) || 499;
 
-    if (!weight)                          { alert("Please enter your dog's weight."); return; }
+    if (!weight) { alert("Please enter your dog's weight."); return; }
     if (!bagSizeKg || !bagPriceNum || !dailyG) { alert('Please fill in all kibble details.'); return; }
 
     const kibblePricePerG = bagPriceNum / (bagSizeKg * 1000);
-    const kibbleDaily     = kibblePricePerG * dailyG;
+    const kibbleDaily = kibblePricePerG * dailyG;
 
     const freshDailyG = weight * 25;
-    const freshDaily  = (freshPerKg / 1000) * freshDailyG;
+    const freshDaily = (freshPerKg / 1000) * freshDailyG;
 
     const kibbleMonthly = kibbleDaily * 30;
-    const freshMonthly  = freshDaily  * 30;
-    const kibbleYearly  = kibbleDaily * 365;
-    const freshYearly   = freshDaily  * 365;
-    const diff          = kibbleYearly - freshYearly;
+    const freshMonthly = freshDaily * 30;
+    const kibbleYearly = kibbleDaily * 365;
+    const freshYearly = freshDaily * 365;
+    const diff = kibbleYearly - freshYearly;
 
     let verdict;
     if (diff > 0) {
@@ -99,7 +106,7 @@ export default function CostCalculator() {
         navScrolled={navScrolled}
         mobileMenuOpen={mobileMenuOpen}
         setMobileMenuOpen={setMobileMenuOpen}
-        openModal={() => {}}
+        openModal={() => { }}
         openTool={openTool}
         logoImg={logoImg}
       />
@@ -239,9 +246,9 @@ export default function CostCalculator() {
                 <div>Fresh</div>
               </div>
               {[
-                { label: 'Daily',   kibble: result.kibbleDaily,   fresh: result.freshDaily },
+                { label: 'Daily', kibble: result.kibbleDaily, fresh: result.freshDaily },
                 { label: 'Monthly', kibble: result.kibbleMonthly, fresh: result.freshMonthly },
-                { label: 'Yearly',  kibble: result.kibbleYearly,  fresh: result.freshYearly },
+                { label: 'Yearly', kibble: result.kibbleYearly, fresh: result.freshYearly },
               ].map(({ label, kibble, fresh }) => (
                 <div className="cc-cmp-row" key={label}>
                   <div className="cc-label-cell">{label}</div>
@@ -260,11 +267,11 @@ export default function CostCalculator() {
             <div className="cc-roi-card">
               <div className="cc-roi-title">🩺 The hidden cost of kibble (annual estimates)</div>
               {[
-                { label: 'Dental cleaning / scaling',    sub: 'Kibble builds tartar 3× faster',          badge: '₹3,000–8,000',    pos: false },
-                { label: 'Allergy vet visits',           sub: 'Grain & preservative reactions common',   badge: '₹2,000–6,000',    pos: false },
-                { label: 'Digestive medications',        sub: 'IBD, loose stools, gas',                  badge: '₹1,500–4,000',    pos: false },
-                { label: 'Skin & coat supplements',      sub: 'Omega-3 deficiency from ultra-processing', badge: '₹1,200–3,000',   pos: false },
-                { label: 'Fresh food hidden benefits',   sub: 'Fewer vet visits, better digestion, longer life', badge: 'Save ₹7K–21K/yr', pos: true },
+                { label: 'Dental cleaning / scaling', sub: 'Kibble builds tartar 3× faster', badge: '₹3,000–8,000', pos: false },
+                { label: 'Allergy vet visits', sub: 'Grain & preservative reactions common', badge: '₹2,000–6,000', pos: false },
+                { label: 'Digestive medications', sub: 'IBD, loose stools, gas', badge: '₹1,500–4,000', pos: false },
+                { label: 'Skin & coat supplements', sub: 'Omega-3 deficiency from ultra-processing', badge: '₹1,200–3,000', pos: false },
+                { label: 'Fresh food hidden benefits', sub: 'Fewer vet visits, better digestion, longer life', badge: 'Save ₹7K–21K/yr', pos: true },
               ].map(({ label, sub, badge, pos }) => (
                 <div className="cc-roi-row" key={label}>
                   <div className="cc-roi-left">
@@ -290,7 +297,7 @@ export default function CostCalculator() {
         )}
       </div>
 
-      <Footer openModal={() => {}} openTool={openTool} />
+      <Footer openModal={() => { }} openTool={openTool} />
     </>
   );
 }

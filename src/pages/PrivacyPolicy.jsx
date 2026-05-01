@@ -5,10 +5,17 @@ import Navbar from '../components/home/Navbar';
 import Footer from '../components/home/Footer';
 import { logoImg } from '../data/homeData';
 import { useState, useEffect } from 'react';
+import { useSEO } from '../hooks/useSEO';
 
 export default function PrivacyPolicy() {
   const [navScrolled, setNavScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  useSEO({
+    title: 'Privacy Policy | Doglicious',
+    description: 'Privacy Policy for Doglicious.in',
+    canonical: 'https://doglicious.in/privacy-policy'
+  });
 
   useEffect(() => {
     const onScroll = () => setNavScrolled(window.scrollY > 20);
@@ -16,8 +23,8 @@ export default function PrivacyPolicy() {
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
 
-  const openModal = () => {};
-  const openTool = () => {};
+  const openModal = () => { };
+  const openTool = () => { };
 
   return (
     <>

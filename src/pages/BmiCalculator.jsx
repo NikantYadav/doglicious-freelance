@@ -3,14 +3,15 @@ import { useNavigate } from 'react-router-dom';
 import Navbar from '../components/home/Navbar';
 import Footer from '../components/home/Footer';
 import { logoImg } from '../data/homeData';
+import { useSEO } from '../hooks/useSEO';
 import '../styles/BmiCalculator.css';
 
 // ── Data ──────────────────────────────────────────────────────
 const IDEAL_RANGES = {
-  small:  { min: 3,  max: 10 },
+  small: { min: 3, max: 10 },
   medium: { min: 10, max: 25 },
-  large:  { min: 25, max: 45 },
-  giant:  { min: 45, max: 90 },
+  large: { min: 25, max: 45 },
+  giant: { min: 45, max: 90 },
 };
 
 const BCS_HINTS = {
@@ -81,16 +82,22 @@ function bcsClass(val) {
 
 // ── Component ─────────────────────────────────────────────────
 export default function BmiCalculator() {
+  useSEO({
+    title: 'Dog BMI Calculator | Free Tool',
+    description: "Calculate your dog's BMI and ideal weight.",
+    path: '/tools/bmi-calculator'
+  });
+
   const navigate = useNavigate();
   const [navScrolled, setNavScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   // inputs
   const [currentWeight, setCurrentWeight] = useState('');
-  const [dogAge,        setDogAge]        = useState('');
-  const [size,          setSize]          = useState('');
-  const [sex,           setSex]           = useState('');
-  const [bcs,           setBcs]           = useState(0);
+  const [dogAge, setDogAge] = useState('');
+  const [size, setSize] = useState('');
+  const [sex, setSex] = useState('');
+  const [bcs, setBcs] = useState(0);
 
   // result
   const [result, setResult] = useState(null);
@@ -112,21 +119,21 @@ export default function BmiCalculator() {
 
   const calculate = () => {
     const weight = parseFloat(currentWeight) || 0;
-    if (!weight)  { alert('Please enter current weight.'); return; }
-    if (!size)    { alert('Please select breed size.');    return; }
-    if (!bcs)     { alert('Please select a Body Condition Score.'); return; }
+    if (!weight) { alert('Please enter current weight.'); return; }
+    if (!size) { alert('Please select breed size.'); return; }
+    if (!bcs) { alert('Please select a Body Condition Score.'); return; }
 
-    const range      = IDEAL_RANGES[size];
-    const idealMid   = (range.min + range.max) / 2;
+    const range = IDEAL_RANGES[size];
+    const idealMid = (range.min + range.max) / 2;
     const idealTarget = Math.round(idealMid * 10) / 10;
-    const diff       = weight - idealTarget;
-    const pctDiff    = Math.round((diff / idealTarget) * 100);
-    const absDiff    = Math.abs(diff);
-    const category   = getCategory(bcs);
-    const vd         = VERDICT_DATA[category];
+    const diff = weight - idealTarget;
+    const pctDiff = Math.round((diff / idealTarget) * 100);
+    const absDiff = Math.abs(diff);
+    const category = getCategory(bcs);
+    const vd = VERDICT_DATA[category];
 
     const safeWeekly = Math.round(idealTarget * 0.015 * 10) / 10;
-    const weeks      = safeWeekly > 0 ? Math.ceil(absDiff / safeWeekly) : 0;
+    const weeks = safeWeekly > 0 ? Math.ceil(absDiff / safeWeekly) : 0;
 
     const gaugePos = Math.min(Math.max((weight / range.max) * 100, 5), 95);
 
@@ -163,7 +170,7 @@ export default function BmiCalculator() {
         navScrolled={navScrolled}
         mobileMenuOpen={mobileMenuOpen}
         setMobileMenuOpen={setMobileMenuOpen}
-        openModal={() => {}}
+        openModal={() => { }}
         openTool={openTool}
         logoImg={logoImg}
       />
@@ -234,10 +241,10 @@ export default function BmiCalculator() {
               <label>Breed Size</label>
               <div className="bmi-pill-group">
                 {[
-                  { val: 'small',  emoji: '🐩', label: 'Small',  sub: '<10 kg' },
+                  { val: 'small', emoji: '🐩', label: 'Small', sub: '<10 kg' },
                   { val: 'medium', emoji: '🐕', label: 'Medium', sub: '10–25 kg' },
-                  { val: 'large',  emoji: '🦮', label: 'Large',  sub: '25–45 kg' },
-                  { val: 'giant',  emoji: '🐻', label: 'Giant',  sub: '>45 kg' },
+                  { val: 'large', emoji: '🦮', label: 'Large', sub: '25–45 kg' },
+                  { val: 'giant', emoji: '🐻', label: 'Giant', sub: '>45 kg' },
                 ].map(({ val, emoji, label, sub }) => (
                   <button
                     key={val}
@@ -255,8 +262,8 @@ export default function BmiCalculator() {
               <label>Sex</label>
               <div className="bmi-pill-group">
                 {[
-                  { val: 'male',     label: '♂ Male' },
-                  { val: 'female',   label: '♀ Female' },
+                  { val: 'male', label: '♂ Male' },
+                  { val: 'female', label: '♀ Female' },
                   { val: 'neutered', label: '✂️ Neutered' },
                 ].map(({ val, label }) => (
                   <button
@@ -274,7 +281,7 @@ export default function BmiCalculator() {
             <div className="bmi-field">
               <label>Body Condition Score (BCS) — tap the score that best describes your dog</label>
               <div className="bmi-bcs-selector">
-                {[1,2,3,4,5,6,7,8,9].map(v => (
+                {[1, 2, 3, 4, 5, 6, 7, 8, 9].map(v => (
                   <button
                     key={v}
                     className={`bmi-bcs-btn${bcs === v ? ` sel ${bcsClass(v)}` : ''}`}
@@ -310,7 +317,7 @@ export default function BmiCalculator() {
                   <div className="bmi-vc-label">{result.category.toUpperCase()}</div>
                   <div className="bmi-vc-title">
                     {result.vd.label}
-                    {result.diff > 0.5  ? ` — ${result.pctDiff}% over ideal`  : ''}
+                    {result.diff > 0.5 ? ` — ${result.pctDiff}% over ideal` : ''}
                     {result.diff < -0.5 ? ` — ${Math.abs(result.pctDiff)}% under ideal` : ''}
                   </div>
                   <div className="bmi-vc-sub">
@@ -338,10 +345,10 @@ export default function BmiCalculator() {
             {/* Stats grid */}
             <div className="bmi-stats-grid">
               {[
-                { label: 'Current Weight', val: result.weight,                          unit: 'kg' },
-                { label: 'Ideal Weight',   val: `${result.range.min}–${result.range.max}`, unit: 'kg range' },
-                { label: 'Variance',       val: `${result.diff > 0 ? '+' : ''}${Math.round(result.diff * 10) / 10} kg`, unit: 'from ideal' },
-                { label: 'Goal Timeline',  val: result.weeks > 0 ? result.weeks : '—',  unit: 'weeks (safe pace)' },
+                { label: 'Current Weight', val: result.weight, unit: 'kg' },
+                { label: 'Ideal Weight', val: `${result.range.min}–${result.range.max}`, unit: 'kg range' },
+                { label: 'Variance', val: `${result.diff > 0 ? '+' : ''}${Math.round(result.diff * 10) / 10} kg`, unit: 'from ideal' },
+                { label: 'Goal Timeline', val: result.weeks > 0 ? result.weeks : '—', unit: 'weeks (safe pace)' },
               ].map(({ label, val, unit }) => (
                 <div className="bmi-stat-box" key={label}>
                   <div className="bmi-sb-label">{label}</div>
@@ -355,10 +362,10 @@ export default function BmiCalculator() {
             <div className="bmi-goal-card">
               <div className="bmi-goal-title">🎯 Weight goal plan</div>
               {[
-                { label: 'Target weight',         val: `${result.idealTarget} kg` },
-                { label: 'Safe loss/gain rate',   val: '1–2% body weight/week' },
-                { label: 'Weekly change needed',  val: result.category === 'ideal' ? 'Maintain' : `${result.category === 'underweight' ? 'gain' : 'lose'} ~${result.safeWeekly} kg/week` },
-                { label: 'Estimated timeline',    val: result.weeks > 0 ? `${result.weeks} weeks` : 'Already at goal!' },
+                { label: 'Target weight', val: `${result.idealTarget} kg` },
+                { label: 'Safe loss/gain rate', val: '1–2% body weight/week' },
+                { label: 'Weekly change needed', val: result.category === 'ideal' ? 'Maintain' : `${result.category === 'underweight' ? 'gain' : 'lose'} ~${result.safeWeekly} kg/week` },
+                { label: 'Estimated timeline', val: result.weeks > 0 ? `${result.weeks} weeks` : 'Already at goal!' },
               ].map(({ label, val }) => (
                 <div className="bmi-goal-row" key={label}>
                   <div className="bmi-gr-label">{label}</div>
@@ -395,7 +402,7 @@ export default function BmiCalculator() {
         )}
       </div>
 
-      <Footer openModal={() => {}} openTool={openTool} />
+      <Footer openModal={() => { }} openTool={openTool} />
     </>
   );
 }

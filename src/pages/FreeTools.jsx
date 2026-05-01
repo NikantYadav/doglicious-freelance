@@ -4,8 +4,15 @@ import '../styles/FreeTools.css';
 import { logoImg } from '../data/homeData';
 import Navbar from '../components/home/Navbar';
 import Footer from '../components/home/Footer';
+import { useSEO } from '../hooks/useSEO';
 
 export default function FreeTools() {
+  useSEO({
+    title: 'Free Tools for Dog Parents | BMI, Feeding Calculators & More',
+    description: 'Science-backed free tools built for Indian dog parents. Check BMI, calculate feeding portions, manage costs, and more.',
+    path: '/tools'
+  });
+
   const navigate = useNavigate();
   const [navScrolled, setNavScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -27,7 +34,7 @@ export default function FreeTools() {
     else if (idx === 7) { navigate('/tools/health-quiz'); }
   };
 
-  const openModal = () => {}; // Placeholder for navbar compatibility
+  const openModal = () => { }; // Placeholder for navbar compatibility
 
   return (
     <>

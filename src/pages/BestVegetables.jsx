@@ -3,20 +3,27 @@ import { useNavigate } from 'react-router-dom';
 import Navbar from '../components/home/Navbar';
 import Footer from '../components/home/Footer';
 import { logoImg } from '../data/homeData';
+import { useSEO } from '../hooks/useSEO';
 import '../styles/BestVegetables.css';
 
 const VEGETABLES = [
-  { emoji: '🥕', name: 'Carrots',       desc: 'Beta-carotene, fiber, low calorie' },
-  { emoji: '🍠', name: 'Sweet Potato',  desc: 'Vitamin A, fiber, antioxidants' },
-  { emoji: '🥦', name: 'Broccoli',      desc: 'Vitamin C & K, anti-inflammatory' },
-  { emoji: '🫛', name: 'Green Beans',   desc: 'Low cal, high fiber, iron' },
-  { emoji: '🎃', name: 'Pumpkin',       desc: 'Digestive aid, prebiotic fiber' },
-  { emoji: '🥒', name: 'Cucumber',      desc: 'Hydrating, low calorie' },
-  { emoji: '🥬', name: 'Spinach',       desc: 'Iron, antioxidants (in moderation)' },
-  { emoji: '🫑', name: 'Bell Peppers',  desc: 'Vitamin C, beta-carotene' },
+  { emoji: '🥕', name: 'Carrots', desc: 'Beta-carotene, fiber, low calorie' },
+  { emoji: '🍠', name: 'Sweet Potato', desc: 'Vitamin A, fiber, antioxidants' },
+  { emoji: '🥦', name: 'Broccoli', desc: 'Vitamin C & K, anti-inflammatory' },
+  { emoji: '🫛', name: 'Green Beans', desc: 'Low cal, high fiber, iron' },
+  { emoji: '🎃', name: 'Pumpkin', desc: 'Digestive aid, prebiotic fiber' },
+  { emoji: '🥒', name: 'Cucumber', desc: 'Hydrating, low calorie' },
+  { emoji: '🥬', name: 'Spinach', desc: 'Iron, antioxidants (in moderation)' },
+  { emoji: '🫑', name: 'Bell Peppers', desc: 'Vitamin C, beta-carotene' },
 ];
 
 export default function BestVegetables() {
+  useSEO({
+    title: 'Safe Vegetables for Dogs Guide | Free Tool',
+    description: 'Which safe vegetables can you feed your dog? Check our guide.',
+    path: '/tools/best-vegetables'
+  });
+
   const navigate = useNavigate();
   const [navScrolled, setNavScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -37,7 +44,7 @@ export default function BestVegetables() {
         navScrolled={navScrolled}
         mobileMenuOpen={mobileMenuOpen}
         setMobileMenuOpen={setMobileMenuOpen}
-        openModal={() => {}}
+        openModal={() => { }}
         openTool={openTool}
         logoImg={logoImg}
       />
@@ -145,9 +152,9 @@ export default function BestVegetables() {
             <div className="bv-related-grid">
               {[
                 { emoji: '🍳', label: 'Cook AAFCO-Balanced Dog Food', tool: 6 },
-                { emoji: '🌿', label: 'Heal Your Dog Naturally',       tool: 5 },
-                { emoji: '⚖️', label: 'Fresh Food vs Kibble',          tool: null },
-                { emoji: '🐶', label: 'Puppy Feeding Guide',           tool: null },
+                { emoji: '🌿', label: 'Heal Your Dog Naturally', tool: 5 },
+                { emoji: '⚖️', label: 'Fresh Food vs Kibble', tool: null },
+                { emoji: '🐶', label: 'Puppy Feeding Guide', tool: null },
               ].map(({ emoji, label, tool }) => (
                 <button
                   key={label}
@@ -170,10 +177,10 @@ export default function BestVegetables() {
         <p className="bv-ts-sub">Free tools to help your dog live a healthier, happier life</p>
         <div className="bv-tools-grid">
           {[
-            { emoji: '🍳', title: 'AAFCO Meal Planner',             desc: 'Complete recipes meeting US nutrition standards',  tool: 6 },
-            { emoji: '🍽️', title: 'How Much Should I Feed My Dog?', desc: 'Personalised portions by breed, age & weight',     tool: 1 },
-            { emoji: '🐾', title: "Check Your Dog's Health Score",  desc: "Quick quiz to assess your dog's wellness",         tool: 7 },
-            { emoji: '🌿', title: 'Heal Your Dog Naturally',        desc: 'Holistic remedies & nutrition-based healing',      tool: 5 },
+            { emoji: '🍳', title: 'AAFCO Meal Planner', desc: 'Complete recipes meeting US nutrition standards', tool: 6 },
+            { emoji: '🍽️', title: 'How Much Should I Feed My Dog?', desc: 'Personalised portions by breed, age & weight', tool: 1 },
+            { emoji: '🐾', title: "Check Your Dog's Health Score", desc: "Quick quiz to assess your dog's wellness", tool: 7 },
+            { emoji: '🌿', title: 'Heal Your Dog Naturally', desc: 'Holistic remedies & nutrition-based healing', tool: 5 },
           ].map(({ emoji, title, desc, tool }) => (
             <button
               key={title}
@@ -191,7 +198,7 @@ export default function BestVegetables() {
         </div>
       </section>
 
-      <Footer openModal={() => {}} openTool={openTool} />
+      <Footer openModal={() => { }} openTool={openTool} />
     </>
   );
 }

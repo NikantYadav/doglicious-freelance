@@ -3,9 +3,16 @@ import { useNavigate } from 'react-router-dom';
 import Navbar from '../components/home/Navbar';
 import Footer from '../components/home/Footer';
 import { logoImg } from '../data/homeData';
+import { useSEO } from '../hooks/useSEO';
 import '../styles/NaturalHealing.css';
 
 export default function NaturalHealing() {
+  useSEO({
+    title: 'Natural Healing for Dogs | Free Tool',
+    description: "Evidence-based natural remedies for common dog health issues.",
+    path: '/tools/natural-healing'
+  });
+
   const navigate = useNavigate();
   const [navScrolled, setNavScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -26,7 +33,7 @@ export default function NaturalHealing() {
         navScrolled={navScrolled}
         mobileMenuOpen={mobileMenuOpen}
         setMobileMenuOpen={setMobileMenuOpen}
-        openModal={() => {}}
+        openModal={() => { }}
         openTool={openTool}
         logoImg={logoImg}
       />
@@ -172,9 +179,9 @@ export default function NaturalHealing() {
             <h3>📚 Related Guides</h3>
             <div className="nh-related-grid">
               {[
-                { emoji: '🐾', label: "Check Your Dog's Health Score",  tool: 7 },
-                { emoji: '🥦', label: 'Best Vegetables for Dogs',        tool: 4 },
-                { emoji: '🍳', label: 'Cook AAFCO Dog Food at Home',     tool: 6 },
+                { emoji: '🐾', label: "Check Your Dog's Health Score", tool: 7 },
+                { emoji: '🥦', label: 'Best Vegetables for Dogs', tool: 4 },
+                { emoji: '🍳', label: 'Cook AAFCO Dog Food at Home', tool: 6 },
                 { emoji: '⚖️', label: 'Fresh Food vs Kibble Comparison', tool: null },
               ].map(({ emoji, label, tool }) => (
                 <button
@@ -198,10 +205,10 @@ export default function NaturalHealing() {
         <p className="nh-ts-sub">Free tools to help your dog live a healthier, happier life</p>
         <div className="nh-tools-grid">
           {[
-            { emoji: '🍳', title: 'AAFCO Meal Planner',             desc: 'Complete recipes meeting US nutrition standards',  tool: 6 },
-            { emoji: '🍽️', title: 'How Much Should I Feed My Dog?', desc: 'Personalised portions by breed, age & weight',     tool: 1 },
-            { emoji: '🐾', title: "Check Your Dog's Health Score",  desc: "Quick quiz to assess your dog's wellness",         tool: 7 },
-            { emoji: '🌿', title: 'Heal Your Dog Naturally',        desc: 'Holistic remedies & nutrition-based healing',      tool: 5 },
+            { emoji: '🍳', title: 'AAFCO Meal Planner', desc: 'Complete recipes meeting US nutrition standards', tool: 6 },
+            { emoji: '🍽️', title: 'How Much Should I Feed My Dog?', desc: 'Personalised portions by breed, age & weight', tool: 1 },
+            { emoji: '🐾', title: "Check Your Dog's Health Score", desc: "Quick quiz to assess your dog's wellness", tool: 7 },
+            { emoji: '🌿', title: 'Heal Your Dog Naturally', desc: 'Holistic remedies & nutrition-based healing', tool: 5 },
           ].map(({ emoji, title, desc, tool }) => (
             <button
               key={title}
@@ -219,7 +226,7 @@ export default function NaturalHealing() {
         </div>
       </section>
 
-      <Footer openModal={() => {}} openTool={openTool} />
+      <Footer openModal={() => { }} openTool={openTool} />
     </>
   );
 }

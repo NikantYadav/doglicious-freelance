@@ -4,9 +4,16 @@ import '../styles/RefundPolicy.css';
 import Navbar from '../components/home/Navbar';
 import Footer from '../components/home/Footer';
 import { logoImg } from '../data/homeData';
+import { useSEO } from '../hooks/useSEO';
 import { useState, useEffect } from 'react';
 
 export default function RefundPolicy() {
+  useSEO({
+    title: 'Refund Policy | Doglicious.in',
+    description: 'Refund and cancellation policy',
+    path: '/refund-policy'
+  });
+
   const [navScrolled, setNavScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
@@ -16,8 +23,8 @@ export default function RefundPolicy() {
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
 
-  const openModal = () => {};
-  const openTool = () => {};
+  const openModal = () => { };
+  const openTool = () => { };
 
   return (
     <>

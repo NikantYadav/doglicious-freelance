@@ -23,8 +23,15 @@ import ToolsModal from '../components/modals/ToolsModal';
 import { pushSampleToKylas, initiatePayU } from '../services/sampleBooking';
 import { RECIPES, GRAM_OPTS, GRAM_PRICES } from '../data/homeData';
 import { useNavigate } from 'react-router-dom';
+import { useSEO } from '../hooks/useSEO';
 
 export default function Products() {
+  useSEO({
+    title: 'Our Products | Doglicious.in',
+    description: 'Explore our fresh, human-grade dog food products and AI-powered personalized recipes tailored for your dog.',
+    path: '/products'
+  });
+
   const navigate = useNavigate();
 
   // ── Nav / Menu ──

@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import Navbar from '../components/home/Navbar';
 import Footer from '../components/home/Footer';
 import { logoImg } from '../data/homeData';
+import { useSEO } from '../hooks/useSEO';
 import '../styles/AgeCalculator.css';
 
 // ── Data ──────────────────────────────────────────────────────
@@ -55,10 +56,10 @@ const STAGE_DATA = {
 };
 
 const SIZE_LABELS = {
-  small:  'Small (<10 kg)',
+  small: 'Small (<10 kg)',
   medium: 'Medium (10–25 kg)',
-  large:  'Large (25–45 kg)',
-  giant:  'Giant (>45 kg)',
+  large: 'Large (25–45 kg)',
+  giant: 'Giant (>45 kg)',
 };
 
 function calcHumanAge(years, months, size) {
@@ -66,45 +67,51 @@ function calcHumanAge(years, months, size) {
   const mults = { small: 1, medium: 1.05, large: 1.1, giant: 1.15 };
   const m = mults[size] || 1;
   let human = 0;
-  if (totalYears <= 1)      human = 15 * totalYears * m;
+  if (totalYears <= 1) human = 15 * totalYears * m;
   else if (totalYears <= 2) human = (15 + (totalYears - 1) * 9) * m;
-  else                      human = (15 + 9 + (totalYears - 2) * 5) * m;
+  else human = (15 + 9 + (totalYears - 2) * 5) * m;
   return Math.round(human);
 }
 
 function getStage(years, size) {
   const thresholds = {
-    small:  { puppy: 0.75, adolescent: 1.5, adult: 7,  senior: 11, geriatric: 14 },
-    medium: { puppy: 1,    adolescent: 2,   adult: 7,  senior: 10, geriatric: 13 },
-    large:  { puppy: 1,    adolescent: 2,   adult: 6,  senior: 9,  geriatric: 12 },
-    giant:  { puppy: 1.5,  adolescent: 2,   adult: 5,  senior: 8,  geriatric: 11 },
+    small: { puppy: 0.75, adolescent: 1.5, adult: 7, senior: 11, geriatric: 14 },
+    medium: { puppy: 1, adolescent: 2, adult: 7, senior: 10, geriatric: 13 },
+    large: { puppy: 1, adolescent: 2, adult: 6, senior: 9, geriatric: 12 },
+    giant: { puppy: 1.5, adolescent: 2, adult: 5, senior: 8, geriatric: 11 },
   };
   const t = thresholds[size] || thresholds.medium;
-  if (years < t.puppy)      return 'puppy';
+  if (years < t.puppy) return 'puppy';
   if (years < t.adolescent) return 'adolescent';
-  if (years < t.adult)      return 'adult';
-  if (years < t.senior)     return 'senior';
+  if (years < t.adult) return 'adult';
+  if (years < t.senior) return 'senior';
   return 'geriatric';
 }
 
 // ── Component ─────────────────────────────────────────────────
 export default function AgeCalculator() {
+  useSEO({
+    title: 'Dog Age to Human Years Calculator | Free Tool',
+    description: "Find out your dog's true age in human years.",
+    path: '/tools/age-calculator'
+  });
+
   const navigate = useNavigate();
   const [navScrolled, setNavScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   // form state
-  const [dogName,   setDogName]   = useState('');
-  const [size,      setSize]      = useState('');
-  const [ageYears,  setAgeYears]  = useState('');
+  const [dogName, setDogName] = useState('');
+  const [size, setSize] = useState('');
+  const [ageYears, setAgeYears] = useState('');
   const [ageMonths, setAgeMonths] = useState('');
 
   // result state
-  const [result,    setResult]    = useState(null); // null = not calculated
+  const [result, setResult] = useState(null); // null = not calculated
   const [displayed, setDisplayed] = useState(0);    // animated counter
 
   const resultRef = useRef(null);
-  const ringRef   = useRef(null);
+  const ringRef = useRef(null);
 
   useEffect(() => {
     const onScroll = () => setNavScrolled(window.scrollY > 20);
@@ -141,8 +148,8 @@ export default function AgeCalculator() {
     if (y === 0 && mo === 0) { alert("Please enter your dog's age."); return; }
 
     const humanAge = calcHumanAge(y, mo, size);
-    const stage    = getStage(y + mo / 12, size);
-    const sd       = STAGE_DATA[stage];
+    const stage = getStage(y + mo / 12, size);
+    const sd = STAGE_DATA[stage];
 
     setResult({
       name: dogName.trim() || 'Your dog',
@@ -186,7 +193,7 @@ export default function AgeCalculator() {
         navScrolled={navScrolled}
         mobileMenuOpen={mobileMenuOpen}
         setMobileMenuOpen={setMobileMenuOpen}
-        openModal={() => {}}
+        openModal={() => { }}
         openTool={openTool}
         logoImg={logoImg}
       />
@@ -239,10 +246,10 @@ export default function AgeCalculator() {
                 <label>⚖️ Breed Size</label>
                 <div className="ac-pill-group">
                   {[
-                    { val: 'small',  emoji: '🐩', label: 'Small',  sub: '<10 kg' },
+                    { val: 'small', emoji: '🐩', label: 'Small', sub: '<10 kg' },
                     { val: 'medium', emoji: '🐕', label: 'Medium', sub: '10–25 kg' },
-                    { val: 'large',  emoji: '🦮', label: 'Large',  sub: '25–45 kg' },
-                    { val: 'giant',  emoji: '🐻', label: 'Giant',  sub: '>45 kg' },
+                    { val: 'large', emoji: '🦮', label: 'Large', sub: '25–45 kg' },
+                    { val: 'giant', emoji: '🐻', label: 'Giant', sub: '>45 kg' },
                   ].map(({ val, emoji, label, sub }) => (
                     <button
                       key={val}
@@ -321,7 +328,7 @@ export default function AgeCalculator() {
             {/* Info grid */}
             <div className="ac-info-grid">
               {[
-                { icon: '🐾', label: 'Dog Age',    val: `${result.years}y${result.months > 0 ? ' ' + result.months + 'm' : ''}` },
+                { icon: '🐾', label: 'Dog Age', val: `${result.years}y${result.months > 0 ? ' ' + result.months + 'm' : ''}` },
                 { icon: '📏', label: 'Breed Size', val: SIZE_LABELS[result.size] },
                 { icon: '🎂', label: 'Equivalent', val: `${result.humanAge} yrs` },
                 { icon: '💛', label: 'Life Stage', val: result.sd.label },
@@ -380,7 +387,7 @@ export default function AgeCalculator() {
         )}
       </div>
 
-      <Footer openModal={() => {}} openTool={openTool} />
+      <Footer openModal={() => { }} openTool={openTool} />
     </>
   );
 }

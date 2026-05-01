@@ -1,5 +1,5 @@
 import React, { Suspense } from 'react'
-import { Routes, Route } from 'react-router-dom'
+import { Routes, Route, Navigate } from 'react-router-dom'
 import { usePageTracking } from './hooks/usePageTracking'
 import Home from './pages/Home'
 
@@ -46,6 +46,9 @@ export default function App() {
         <Route path="/tools/health-quiz" element={<HealthQuiz />} />
         <Route path="/tools/natural-healing" element={<NaturalHealing />} />
         <Route path="/blog/:id" element={<BlogPost />} />
+
+        {/* Catch-all 404 Redirect */}
+        <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </Suspense>
   )

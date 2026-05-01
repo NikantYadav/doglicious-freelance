@@ -14,10 +14,17 @@ import PaywallScreen from '../components/VetRxScan/PaywallScreen';
 
 import { getSession, saveSession, updateSessionScanCount, updateSessionPaidScans, getConfig } from '../services/auth';
 import { pushReport } from '../services/kylas';
+import { useSEO } from '../hooks/useSEO';
 
 const API = import.meta.env.VITE_API_URL ?? '';
 
 const VetRxScan = () => {
+  useSEO({
+    title: 'VetRx Scan | Free AI Health Diagnosis for Dogs',
+    description: 'Upload a clear photo of your dog\'s skin or body issue and get an instant AI-powered health diagnosis. VetRx Scan provides detailed nutritional advice.',
+    path: '/vetrxscan'
+  });
+
   // ── Auth state ──────────────────────────────────────────────────────
   const [authUser, setAuthUser] = useState(null);   // { email, contactId, scanCount, paidScans, config }
   const [authReady, setAuthReady] = useState(false); // true once localStorage checked

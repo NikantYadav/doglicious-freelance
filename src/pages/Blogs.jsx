@@ -3,6 +3,7 @@ import '../styles/Blogs.css';
 import { logoImg } from '../data/homeData';
 import Navbar from '../components/home/Navbar';
 import Footer from '../components/home/Footer';
+import { useSEO } from '../hooks/useSEO';
 
 const BLOG_CARDS = [
     {
@@ -11,7 +12,7 @@ const BLOG_CARDS = [
         catLabel: 'Nutrition', tag: 'Fresh Food Science',
         title: 'Why Ghar Ka Khana Is Finally Available for Your Dog — The Science Behind Fresh Food',
         mins: 9,
-        svg: <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--brown)" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"><path d="M3.27 6.96A10 10 0 1 0 17 20.07"/><path d="M11.29 7.03A6 6 0 0 0 7.03 11.3"/><circle cx="12" cy="12" r="2"/><path d="m2 22 4-4"/></svg>
+        svg: <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--brown)" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"><path d="M3.27 6.96A10 10 0 1 0 17 20.07" /><path d="M11.29 7.03A6 6 0 0 0 7.03 11.3" /><circle cx="12" cy="12" r="2" /><path d="m2 22 4-4" /></svg>
     },
     {
         id: 2, cat: 'nutrition',
@@ -19,7 +20,7 @@ const BLOG_CARDS = [
         catLabel: 'Nutrition', tag: 'Kibble vs Fresh',
         title: 'Kibble vs Fresh Dog Food — The Truth No Brand Will Tell You',
         mins: 9,
-        svg: <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--brown)" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"><path d="m16 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1z"/><path d="m2 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1z"/><path d="M7 21h10"/><line x1="12" y1="3" x2="12" y2="21"/><path d="M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2"/></svg>
+        svg: <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--brown)" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"><path d="m16 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1z" /><path d="m2 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1z" /><path d="M7 21h10" /><line x1="12" y1="3" x2="12" y2="21" /><path d="M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2" /></svg>
     },
     {
         id: 3, cat: 'health',
@@ -27,7 +28,7 @@ const BLOG_CARDS = [
         catLabel: 'Health & Skin', tag: 'Skin & Coat',
         title: "Is Your Dog's Coat Dull and Skin Itchy? Stop Blaming the Weather",
         mins: 8,
-        svg: <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--brown)" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+        svg: <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--brown)" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" /></svg>
     },
     {
         id: 4, cat: 'nutrition',
@@ -35,7 +36,7 @@ const BLOG_CARDS = [
         catLabel: 'Nutrition', tag: 'Transition Guide',
         title: 'How to Switch Your Dog to Fresh Food Without the Drama',
         mins: 7,
-        svg: <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--brown)" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+        svg: <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--brown)" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"><polyline points="23 4 23 10 17 10" /><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10" /></svg>
     },
     {
         id: 5, cat: 'nutrition',
@@ -43,7 +44,7 @@ const BLOG_CARDS = [
         catLabel: 'Nutrition', tag: 'Indian Dogs',
         title: "What Indian Dogs Actually Need to Eat — And Why We've Been Getting It Wrong",
         mins: 9,
-        svg: <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--brown)" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+        svg: <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--brown)" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10" /><line x1="2" y1="12" x2="22" y2="12" /><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" /></svg>
     },
     {
         id: 6, cat: 'ingredients',
@@ -51,7 +52,7 @@ const BLOG_CARDS = [
         catLabel: 'Ingredients', tag: 'Preservatives',
         title: 'The Preservative Problem in Indian Dog Food — Including the Aflatoxin Truth',
         mins: 8,
-        svg: <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--brown)" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"><path d="M9 3h6l1 9H8L9 3z"/><path d="M6.5 13h11"/><path d="M8 21h8l1-8H7l1 8z"/></svg>
+        svg: <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--brown)" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"><path d="M9 3h6l1 9H8L9 3z" /><path d="M6.5 13h11" /><path d="M8 21h8l1-8H7l1 8z" /></svg>
     },
     {
         id: 7, cat: 'lifecycle',
@@ -59,7 +60,7 @@ const BLOG_CARDS = [
         catLabel: 'Lifecycle', tag: 'Puppy Guide',
         title: "What to Feed Your Puppy in Their First Year — The Guide Most Indian Vets Don't Give You",
         mins: 8,
-        svg: <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--brown)" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"><path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/></svg>
+        svg: <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--brown)" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"><path d="M18 8h1a4 4 0 0 1 0 8h-1" /><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z" /><line x1="6" y1="1" x2="6" y2="4" /><line x1="10" y1="1" x2="10" y2="4" /><line x1="14" y1="1" x2="14" y2="4" /></svg>
     },
     {
         id: 8, cat: 'lifecycle',
@@ -67,7 +68,7 @@ const BLOG_CARDS = [
         catLabel: 'Lifecycle', tag: 'Senior Dogs',
         title: 'Your Senior Dog Is Eating Less — And the Answer Probably Isn\'t Another Vet Visit',
         mins: 8,
-        svg: <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--brown)" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        svg: <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--brown)" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" /></svg>
     },
     {
         id: 9, cat: 'ingredients',
@@ -75,7 +76,7 @@ const BLOG_CARDS = [
         catLabel: 'Ingredients', tag: 'Indian Kitchen Guide',
         title: 'The Indian Kitchen and Your Dog — What\'s Safe, What\'s a Myth, and What Could Kill Them',
         mins: 8,
-        svg: <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--brown)" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2a3 3 0 0 0-3 3 3 3 0 0 0-3 3 3 3 0 0 0 .46 1.61A3 3 0 0 0 9 15h6a3 3 0 0 0 2.54-4.39A3 3 0 0 0 18 8a3 3 0 0 0-3-3 3 3 0 0 0-3-3z"/><line x1="12" y1="15" x2="12" y2="22"/></svg>
+        svg: <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--brown)" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2a3 3 0 0 0-3 3 3 3 0 0 0-3 3 3 3 0 0 0 .46 1.61A3 3 0 0 0 9 15h6a3 3 0 0 0 2.54-4.39A3 3 0 0 0 18 8a3 3 0 0 0-3-3 3 3 0 0 0-3-3z" /><line x1="12" y1="15" x2="12" y2="22" /></svg>
     },
     {
         id: 10, cat: 'stories',
@@ -83,11 +84,17 @@ const BLOG_CARDS = [
         catLabel: 'Real Stories', tag: 'Customer Stories',
         title: 'Five Indian Dogs. Five Families. One Thing That Changed Everything.',
         mins: 7,
-        svg: <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--brown)" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" fill="var(--brown)" opacity=".15"/><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+        svg: <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--brown)" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" fill="var(--brown)" opacity=".15" /><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" /></svg>
     },
 ];
 
 export default function Blogs() {
+    useSEO({
+        title: 'Doglicious Blog | Fresh Food Science & Health Guides',
+        description: 'Read science-backed articles on dog nutrition, Kibble vs Fresh food facts, and common skin/coat health issues.',
+        path: '/blogs'
+    });
+
     const [navScrolled, setNavScrolled] = useState(false);
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
     const [blogFilter, setBlogFilter] = useState('all');
@@ -102,8 +109,8 @@ export default function Blogs() {
         window.open(`/blog/${id}`, '_blank', 'noopener,noreferrer');
     };
 
-    const openModal = () => {}; // Placeholder for navbar compatibility
-    const openTool = () => {}; // Placeholder for navbar compatibility
+    const openModal = () => { }; // Placeholder for navbar compatibility
+    const openTool = () => { }; // Placeholder for navbar compatibility
 
     return (
         <>

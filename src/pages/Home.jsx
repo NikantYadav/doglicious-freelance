@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useSEO } from '../hooks/useSEO';
 import '../styles/Home.css';
 
 import {
@@ -41,6 +42,13 @@ export default function Home() {
   const navigate = useNavigate();
   const [navScrolled, setNavScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  // ── SEO ──
+  useSEO({
+    title: 'Doglicious.in — Superfood for Dogs',
+    description: "India's first AI dog nutrition company. Fresh, human-grade, AAFCO-aligned meals. Free delivery Gurgaon & Delhi NCR.",
+    canonical: 'https://doglicious.in/'
+  });
 
   // ── Modals ──
   const [activeModal, setActiveModal] = useState(null);

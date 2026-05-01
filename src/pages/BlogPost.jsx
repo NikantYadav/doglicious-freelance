@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { useSEO } from '../hooks/useSEO';
 import Navbar from '../components/home/Navbar';
 import Footer from '../components/home/Footer';
 import { logoImg, BLOGS } from '../data/homeData';
@@ -12,6 +13,12 @@ export default function BlogPost() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const blog = BLOGS[parseInt(id)];
+
+  useSEO({
+    title: blog ? `${blog.title} | Doglicious` : 'Article Not Found | Doglicious',
+    description: blog ? blog.kw : '',
+    canonical: `https://doglicious.in/blog/${id}`
+  });
 
   useEffect(() => {
     const onScroll = () => setNavScrolled(window.scrollY > 20);
@@ -27,12 +34,12 @@ export default function BlogPost() {
     return (
       <>
         <Navbar navScrolled={navScrolled} mobileMenuOpen={mobileMenuOpen}
-          setMobileMenuOpen={setMobileMenuOpen} openModal={() => {}} openTool={openTool} logoImg={logoImg} />
+          setMobileMenuOpen={setMobileMenuOpen} openModal={() => { }} openTool={openTool} logoImg={logoImg} />
         <div className="bp-not-found">
           <h2>Article not found</h2>
           <button onClick={() => navigate('/')}>← Back to home</button>
         </div>
-        <Footer openModal={() => {}} openTool={openTool} />
+        <Footer openModal={() => { }} openTool={openTool} />
       </>
     );
   }
@@ -40,7 +47,7 @@ export default function BlogPost() {
   return (
     <>
       <Navbar navScrolled={navScrolled} mobileMenuOpen={mobileMenuOpen}
-        setMobileMenuOpen={setMobileMenuOpen} openModal={() => {}} openTool={openTool} logoImg={logoImg} />
+        setMobileMenuOpen={setMobileMenuOpen} openModal={() => { }} openTool={openTool} logoImg={logoImg} />
 
       {/* Breadcrumb */}
       <div className="bp-breadcrumb">
@@ -84,7 +91,7 @@ export default function BlogPost() {
         </div>
       </div>
 
-      <Footer openModal={() => {}} openTool={openTool} />
+      <Footer openModal={() => { }} openTool={openTool} />
     </>
   );
 }

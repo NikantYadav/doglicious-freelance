@@ -1,12 +1,20 @@
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import '../styles/Home.css';
 import '../styles/TermsOfService.css';
 import Navbar from '../components/home/Navbar';
 import Footer from '../components/home/Footer';
 import { logoImg } from '../data/homeData';
+import { useSEO } from '../hooks/useSEO';
 import { useState, useEffect } from 'react';
 
 export default function TermsOfService() {
+  useSEO({
+    title: 'Terms of Service | Doglicious.in',
+    description: 'Terms of Service and conditions',
+    path: '/terms-of-service'
+  });
+
+  const navigate = useNavigate();
   const [navScrolled, setNavScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
@@ -16,8 +24,8 @@ export default function TermsOfService() {
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
 
-  const openModal = () => {};
-  const openTool = () => {};
+  const openModal = () => { };
+  const openTool = () => { };
 
   return (
     <>

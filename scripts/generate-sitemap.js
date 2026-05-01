@@ -23,31 +23,29 @@ const routes = [
     ]
   },
 
-  // Core sections (anchor links)
-  { url: '/#vet', changefreq: 'monthly', priority: 0.9 },
-  { url: '/#why', changefreq: 'monthly', priority: 0.8 },
-  { url: '/#fresh', changefreq: 'monthly', priority: 0.8 },
-  { url: '/#recipes', changefreq: 'weekly', priority: 0.9 },
-  { url: '/#ingredients', changefreq: 'monthly', priority: 0.7 },
-  { url: '/#case-studies', changefreq: 'monthly', priority: 0.7 },
-  { url: '/#testimonials', changefreq: 'monthly', priority: 0.7 },
-  { url: '/#video-stories', changefreq: 'monthly', priority: 0.7 },
-  { url: '/#free-tools-section', changefreq: 'monthly', priority: 0.8 },
-  { url: '/#blogs', changefreq: 'weekly', priority: 0.8 },
-  { url: '/#faq', changefreq: 'monthly', priority: 0.7 },
-  { url: '/#contact', changefreq: 'monthly', priority: 0.6 },
+  // Products page
+  { url: '/products', changefreq: 'weekly', priority: 0.9 },
+
+  // VetRx Scan
+  { url: '/vetrxscan', changefreq: 'monthly', priority: 0.9 },
+
+  // Blog hub
+  { url: '/blogs', changefreq: 'weekly', priority: 0.8 },
 
   // Blog articles
-  { url: '/blog/ghar-ka-khana-for-dogs-science-behind-fresh-food', changefreq: 'monthly', priority: 0.8 },
-  { url: '/blog/kibble-vs-fresh-dog-food-truth', changefreq: 'monthly', priority: 0.8 },
-  { url: '/blog/dog-coat-dull-skin-itchy-stop-blaming-weather', changefreq: 'monthly', priority: 0.8 },
-  { url: '/blog/how-to-switch-dog-to-fresh-food', changefreq: 'monthly', priority: 0.8 },
-  { url: '/blog/what-indian-dogs-actually-need-to-eat', changefreq: 'monthly', priority: 0.8 },
-  { url: '/blog/preservative-problem-indian-dog-food-aflatoxin', changefreq: 'monthly', priority: 0.8 },
-  { url: '/blog/what-to-feed-puppy-first-year', changefreq: 'monthly', priority: 0.8 },
-  { url: '/blog/senior-dog-eating-less-fresh-food-solution', changefreq: 'monthly', priority: 0.8 },
-  { url: '/blog/indian-kitchen-safe-foods-for-dogs', changefreq: 'monthly', priority: 0.8 },
-  { url: '/blog/five-indian-dogs-fresh-food-stories', changefreq: 'monthly', priority: 0.8 },
+  { url: '/blog/1', changefreq: 'monthly', priority: 0.8 },
+  { url: '/blog/2', changefreq: 'monthly', priority: 0.8 },
+  { url: '/blog/3', changefreq: 'monthly', priority: 0.8 },
+  { url: '/blog/4', changefreq: 'monthly', priority: 0.8 },
+  { url: '/blog/5', changefreq: 'monthly', priority: 0.8 },
+  { url: '/blog/6', changefreq: 'monthly', priority: 0.8 },
+  { url: '/blog/7', changefreq: 'monthly', priority: 0.8 },
+  { url: '/blog/8', changefreq: 'monthly', priority: 0.8 },
+  { url: '/blog/9', changefreq: 'monthly', priority: 0.8 },
+  { url: '/blog/10', changefreq: 'monthly', priority: 0.8 },
+
+  // Free Tools hub
+  { url: '/tools', changefreq: 'monthly', priority: 0.8 },
 
   // Free tools
   { url: '/tools/bmi-calculator', changefreq: 'monthly', priority: 0.7 },
@@ -59,17 +57,11 @@ const routes = [
   { url: '/tools/aafco-planner', changefreq: 'monthly', priority: 0.7 },
   { url: '/tools/health-quiz', changefreq: 'monthly', priority: 0.7 },
 
-  // VetRx Scan
-  { url: '/vetrxscan', changefreq: 'monthly', priority: 0.9 },
-
   // Legal pages
   { url: '/privacy-policy', changefreq: 'yearly', priority: 0.3 },
   { url: '/terms-of-service', changefreq: 'yearly', priority: 0.3 },
   { url: '/refund-policy', changefreq: 'yearly', priority: 0.3 },
-  { url: '/shipping-policy', changefreq: 'yearly', priority: 0.3 },
-
-  // Products page
-  { url: '/products', changefreq: 'weekly', priority: 0.8 }
+  { url: '/shipping-policy', changefreq: 'yearly', priority: 0.3 }
 ];
 
 async function generateSitemap() {

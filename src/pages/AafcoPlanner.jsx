@@ -3,9 +3,16 @@ import { useNavigate } from 'react-router-dom';
 import Navbar from '../components/home/Navbar';
 import Footer from '../components/home/Footer';
 import { logoImg } from '../data/homeData';
+import { useSEO } from '../hooks/useSEO';
 import '../styles/AafcoPlanner.css';
 
 export default function AafcoPlanner() {
+  useSEO({
+    title: 'AAFCO Dog Meal Planner | Free Tool',
+    description: "Plan balanced homemade meals meeting AAFCO standards.",
+    path: '/tools/aafco-planner'
+  });
+
   const navigate = useNavigate();
   const [navScrolled, setNavScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -31,7 +38,7 @@ export default function AafcoPlanner() {
         navScrolled={navScrolled}
         mobileMenuOpen={mobileMenuOpen}
         setMobileMenuOpen={setMobileMenuOpen}
-        openModal={() => {}}
+        openModal={() => { }}
         openTool={openTool}
         logoImg={logoImg}
       />
@@ -159,14 +166,14 @@ export default function AafcoPlanner() {
           <h2>Key Nutrients Every Homemade Meal Needs</h2>
           <div className="aafco-ingredient-grid">
             {[
-              { emoji: '🥩', name: 'Protein',       desc: 'Min 18% for adults' },
-              { emoji: '🧈', name: 'Fat',            desc: 'Min 5.5% for adults' },
-              { emoji: '🦴', name: 'Calcium',        desc: '0.5–1.8% range' },
-              { emoji: '🔬', name: 'Phosphorus',     desc: '0.4–1.6% range' },
+              { emoji: '🥩', name: 'Protein', desc: 'Min 18% for adults' },
+              { emoji: '🧈', name: 'Fat', desc: 'Min 5.5% for adults' },
+              { emoji: '🦴', name: 'Calcium', desc: '0.5–1.8% range' },
+              { emoji: '🔬', name: 'Phosphorus', desc: '0.4–1.6% range' },
               { emoji: '🧬', name: 'Vitamins A, D, E', desc: 'Essential daily' },
-              { emoji: '🐟', name: 'Omega-3 & 6',   desc: 'Skin & coat health' },
-              { emoji: '💊', name: 'Zinc & Iron',    desc: 'Immune support' },
-              { emoji: '🥕', name: 'Fiber',          desc: 'Digestive health' },
+              { emoji: '🐟', name: 'Omega-3 & 6', desc: 'Skin & coat health' },
+              { emoji: '💊', name: 'Zinc & Iron', desc: 'Immune support' },
+              { emoji: '🥕', name: 'Fiber', desc: 'Digestive health' },
             ].map(({ emoji, name, desc }) => (
               <div className="aafco-ing-card" key={name}>
                 <div className="aafco-ing-emoji">{emoji}</div>
@@ -210,10 +217,10 @@ export default function AafcoPlanner() {
             <h3>📚 Related Guides</h3>
             <div className="aafco-related-grid">
               {[
-                { emoji: '🥦', label: 'Best Vegetables for Dogs',      tool: 4 },
+                { emoji: '🥦', label: 'Best Vegetables for Dogs', tool: 4 },
                 { emoji: '🍽️', label: 'How Much Should I Feed My Dog?', tool: 1 },
                 { emoji: '🐶', label: 'Puppy Feeding Guide: First Year', tool: null },
-                { emoji: '⚖️', label: 'Fresh Dog Food vs Kibble',       tool: null },
+                { emoji: '⚖️', label: 'Fresh Dog Food vs Kibble', tool: null },
               ].map(({ emoji, label, tool }) => (
                 <button
                   key={label}
@@ -236,10 +243,10 @@ export default function AafcoPlanner() {
         <p className="aafco-ts-sub">Free tools to help your dog live a healthier, happier life</p>
         <div className="aafco-tools-grid">
           {[
-            { emoji: '🍳', title: 'AAFCO Meal Planner',              desc: 'Complete recipes meeting US nutrition standards',    tool: 6 },
-            { emoji: '🍽️', title: 'How Much Should I Feed My Dog?',  desc: 'Personalised portions by breed, age & weight',       tool: 1 },
-            { emoji: '🐾', title: "Check Your Dog's Health Score",   desc: "Quick quiz to assess your dog's wellness",           tool: 7 },
-            { emoji: '🌿', title: 'Heal Your Dog Naturally',         desc: 'Holistic remedies & nutrition-based healing',        tool: 5 },
+            { emoji: '🍳', title: 'AAFCO Meal Planner', desc: 'Complete recipes meeting US nutrition standards', tool: 6 },
+            { emoji: '🍽️', title: 'How Much Should I Feed My Dog?', desc: 'Personalised portions by breed, age & weight', tool: 1 },
+            { emoji: '🐾', title: "Check Your Dog's Health Score", desc: "Quick quiz to assess your dog's wellness", tool: 7 },
+            { emoji: '🌿', title: 'Heal Your Dog Naturally', desc: 'Holistic remedies & nutrition-based healing', tool: 5 },
           ].map(({ emoji, title, desc, tool }) => (
             <button
               key={title}
@@ -257,7 +264,7 @@ export default function AafcoPlanner() {
         </div>
       </section>
 
-      <Footer openModal={() => {}} openTool={openTool} />
+      <Footer openModal={() => { }} openTool={openTool} />
     </>
   );
 }
