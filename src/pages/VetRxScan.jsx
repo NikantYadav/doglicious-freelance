@@ -186,8 +186,9 @@ const VetRxScan = () => {
     setLoading({ active: true, msg: 'Refining diagnosis', sub: 'Combining all data for precise assessment…', progress: 50 });
     goTo('loading');
 
+    let result = null;
     try {
-      const result = await callAI({
+      result = await callAI({
         type: 'refined',
         photo,
         dogProfile,
@@ -199,9 +200,16 @@ const VetRxScan = () => {
       setReport(result);
       setLoading({ active: false, msg: '', sub: '', progress: 0 });
       goTo('report');
+    } catch (e) {
+      setLoading({ active: false, msg: '', sub: '', progress: 0 });
+      setError('Diagnosis failed: ' + e.message);
+      goTo('questions');
+    }
 
-      // ── Push to Wylto CRM after report is ready ──
-      if (authUser?.contactId) {
+    // ── Push to Wylto CRM after report is ready (outside try/catch so it never breaks the user flow) ──
+    if (result && authUser?.contactId) {
+      try {
+        console.log('[VetRxScan] Pushing scan report to Wylto CRM...', { contactId: authUser.contactId, dogProfile, selectedPart, selectedSymptoms });
         const wyltoResult = await pushReport({
           contactId: authUser.contactId,
           dogProfile,
@@ -212,16 +220,15 @@ const VetRxScan = () => {
           paidScans: authUser.paidScans ?? 0,
         });
         if (wyltoResult?.scanCount != null) {
+          console.log('[VetRxScan] Wylto CRM push successful:', wyltoResult);
           updateSessionScanCount(wyltoResult.scanCount);
           const newPaid = wyltoResult.paidScans ?? authUser.paidScans ?? 0;
           updateSessionPaidScans(newPaid);
           setAuthUser(prev => prev ? { ...prev, scanCount: wyltoResult.scanCount, paidScans: newPaid } : prev);
         }
+      } catch (crmErr) {
+        console.error('[VetRxScan] Wylto CRM push failed (non-fatal):', crmErr);
       }
-    } catch (e) {
-      setLoading({ active: false, msg: '', sub: '', progress: 0 });
-      setError('Diagnosis failed: ' + e.message);
-      goTo('questions');
     }
   };
 
