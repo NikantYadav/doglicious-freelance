@@ -4,6 +4,8 @@ import Navbar from '../components/home/Navbar';
 import Footer from '../components/home/Footer';
 import { logoImg } from '../data/homeData';
 import { useSEO } from '../hooks/useSEO';
+import { normalizePhone } from '../utils/phone';
+import { pushLead } from '../services/wylto';
 import '../styles/HealthQuiz.css';
 
 const BREEDS = ['Indian Pariah', 'Labrador', 'Golden Retriever', 'German Shepherd', 'Beagle', 'Pug', 'Shih Tzu', 'Rajapalayam', 'Mudhol Hound', 'Chippiparai', 'Kombai', 'Kanni', 'Bakharwal', 'Rampur Greyhound', 'Himalayan Sheepdog', 'Dachshund', 'Rottweiler', 'Indie (Mixed)', 'Other'];
@@ -213,16 +215,46 @@ export default function HealthQuiz() {
 
   const doWA = () => {
     if (!ctaName || !ctaPhone) { alert('Please enter your name and WhatsApp number.'); return; }
+    const normPhone = normalizePhone(ctaPhone);
+
+    // Push to Wylto CRM
+    pushLead({
+      name: ctaName,
+      phone: normPhone,
+      email: ctaEmail,
+      source: 'health-quiz',
+      dogName: result.dog.name,
+      breed: result.dog.breed,
+      dogAge: result.dog.age,
+      dogWeight: result.dog.weight,
+      healthScore: result.score
+    });
+
     const msg = encodeURIComponent(
-      `🐾 *Doglicious — Dog Health Score Result*\n\nHi! My dog scored ${result.score}/100 on the health quiz.\n\n🐕 Dog: ${result.dog.name}\n🧬 Breed: ${result.dog.breed}\n🎂 Age: ${result.dog.age}\n⚖️ Weight: ${result.dog.weight || 'N/A'} kg\n\nI'd like to book a ₹99 fresh food sample!\n\n👤 Name: ${ctaName}\n📱 Phone: ${ctaPhone}`
+      `🐾 *Doglicious — Dog Health Score Result*\n\nHi! My dog scored ${result.score}/100 on the health quiz.\n\n🐕 Dog: ${result.dog.name}\n🧬 Breed: ${result.dog.breed}\n🎂 Age: ${result.dog.age}\n⚖️ Weight: ${result.dog.weight || 'N/A'} kg\n\nI'd like to book a ₹99 fresh food sample!\n\n👤 Name: ${ctaName}\n📱 Phone: ${normPhone}`
     );
     window.open(`https://wa.me/919889887980?text=${msg}`, '_blank');
   };
 
   const doMail = () => {
     if (!ctaName || !ctaPhone) { alert('Please enter your name and WhatsApp number.'); return; }
+    const normPhone = normalizePhone(ctaPhone);
+
+    // Push to Wylto CRM
+    pushLead({
+      name: ctaName,
+      phone: normPhone,
+      email: ctaEmail,
+      source: 'health-quiz-email',
+      dogName: result.dog.name,
+      breed: result.dog.breed,
+      dogAge: result.dog.age,
+      dogWeight: result.dog.weight,
+      healthScore: result.score
+    });
+
     const subj = encodeURIComponent(`[HEALTH QUIZ LEAD] ${ctaName} — ${result.dog.breed} scored ${result.score}/100`);
-    const body = encodeURIComponent(`Owner: ${ctaName}\nPhone: ${ctaPhone}\nEmail: ${ctaEmail || 'N/A'}\nDog: ${result.dog.name}\nBreed: ${result.dog.breed}\nAge: ${result.dog.age}\nWeight: ${result.dog.weight || 'N/A'} kg\nHealth Score: ${result.score}/100`);
+    const body = encodeURIComponent(`Owner: ${ctaName}\nPhone: ${normPhone}\nEmail: ${ctaEmail || 'N/A'}\nDog: ${result.dog.name}\nBreed: ${result.dog.breed}\nAge: ${result.dog.age}\nWeight: ${result.dog.weight || 'N/A'} kg\nHealth Score: ${result.score}/100`);
     window.open(`mailto:woof@doglicious.in?subject=${subj}&body=${body}`, '_blank');
   };
 

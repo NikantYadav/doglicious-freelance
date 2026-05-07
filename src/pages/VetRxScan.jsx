@@ -13,7 +13,7 @@ import AuthGate from '../components/VetRxScan/AuthGate';
 import PaywallScreen from '../components/VetRxScan/PaywallScreen';
 
 import { getSession, saveSession, updateSessionScanCount, updateSessionPaidScans, getConfig } from '../services/auth';
-import { pushReport } from '../services/kylas';
+import { pushReport } from '../services/wylto';
 import { useSEO } from '../hooks/useSEO';
 
 const API = import.meta.env.VITE_API_URL ?? '';
@@ -26,7 +26,7 @@ const VetRxScan = () => {
   });
 
   // ── Auth state ──────────────────────────────────────────────────────
-  const [authUser, setAuthUser] = useState(null);   // { email, contactId, scanCount, paidScans, config }
+  const [authUser, setAuthUser] = useState(null);   // { phone, contactId, scanCount, paidScans, config }
   const [authReady, setAuthReady] = useState(false); // true once localStorage checked
   const [payuMessage, setPayuMessage] = useState(null); // feedback after PayU redirect
   const [config, setConfig] = useState({
@@ -200,20 +200,22 @@ const VetRxScan = () => {
       setLoading({ active: false, msg: '', sub: '', progress: 0 });
       goTo('report');
 
-      // ── Push to Kylas CRM after report is ready ──
+      // ── Push to Wylto CRM after report is ready ──
       if (authUser?.contactId) {
-        const hsResult = await pushReport({
+        const wyltoResult = await pushReport({
           contactId: authUser.contactId,
           dogProfile,
           report: result,
           selectedPart,
           selectedSymptoms,
+          scanCount: authUser.scanCount ?? 0,
+          paidScans: authUser.paidScans ?? 0,
         });
-        if (hsResult?.scanCount != null) {
-          updateSessionScanCount(hsResult.scanCount);
-          const newPaid = hsResult.paidScans ?? authUser.paidScans ?? 0;
+        if (wyltoResult?.scanCount != null) {
+          updateSessionScanCount(wyltoResult.scanCount);
+          const newPaid = wyltoResult.paidScans ?? authUser.paidScans ?? 0;
           updateSessionPaidScans(newPaid);
-          setAuthUser(prev => prev ? { ...prev, scanCount: hsResult.scanCount, paidScans: newPaid } : prev);
+          setAuthUser(prev => prev ? { ...prev, scanCount: wyltoResult.scanCount, paidScans: newPaid } : prev);
         }
       }
     } catch (e) {
@@ -261,10 +263,9 @@ const VetRxScan = () => {
   if (usedFreeScan && paidRemaining <= 0 && isAtStart) {
     return (
       <PaywallScreen
-        email={authUser.email}
-        contactId={authUser.contactId}
         phone={authUser.phone || ''}
-        firstname={authUser.firstname || authUser.email?.split('@')[0] || ''}
+        contactId={authUser.contactId}
+        firstname={authUser.firstname || authUser.phone || ''}
         numScans={numPaidPerPack}
         onLogout={handleLogout}
         payuMessage={payuMessage}

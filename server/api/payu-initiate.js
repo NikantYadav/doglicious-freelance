@@ -16,6 +16,8 @@ function generateHash({ key, txnid, amount, productinfo, firstname, email, udf1 
     return crypto.createHash('sha512').update(str).digest('hex');
 }
 
+import { normalizePhone } from '../utils/phone.js';
+
 export default async function handler(req, res) {
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
@@ -23,7 +25,7 @@ export default async function handler(req, res) {
     if (req.method === 'OPTIONS') return res.status(200).end();
     if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
-    const { email, firstname, phone, contactId, price } = req.body || {};
+    const { email, firstname, phone, contactId, price, paidScans } = req.body || {};
     if (!email || !firstname) return res.status(400).json({ error: 'email and firstname required' });
 
     const key = PAYU_KEY();
@@ -39,25 +41,30 @@ export default async function handler(req, res) {
     const productinfo = process.env.PAYU_PRODUCT || 'VetRx Scan - Additional Scans Pack';
     const txnid = `VRX${Date.now()}${Math.floor(Math.random() * 1000)}`;
 
-    // udf1 stores the Kylas contactId so we can look it up on success callback
+    // udf1 stores the Wylto contactId so we can verify on success callback
     const udf1 = contactId || '';
     // udf2 stores the frontend return path so PayU redirects back to the originating page
     const udf2 = (req.body.returnPath || '').replace(/[^a-zA-Z0-9/_-]/g, '').slice(0, 200) || '/';
+    // udf3 stores current paidScans so success handler can compute new total
+    const udf3 = String(parseInt(paidScans || '0', 10));
 
-    const hash = generateHash({ key, txnid, amount, productinfo, firstname, email, udf1, udf2, salt });
+    const hash = generateHash({ key, txnid, amount, productinfo, firstname, email, udf1, udf2, udf3, salt });
 
     const baseUrl = req.headers.origin || (isProd() ? process.env.PROD_URL : process.env.DEV_URL) || 'http://localhost:5173';
     const surl = `${process.env.SERVER_URL || baseUrl.replace(':5173', ':5000')}/api/payu-success`;
     const furl = `${process.env.SERVER_URL || baseUrl.replace(':5173', ':5000')}/api/payu-failure`;
+
+    const normPhone = normalizePhone(phone);
 
     return res.status(200).json({
         payuUrl: isProd() ? 'https://secure.payu.in/_payment' : 'https://test.payu.in/_payment',
         params: {
             key, txnid, amount, productinfo,
             firstname, email,
-            phone: phone || '',
+            phone: normPhone,
             udf1,
             udf2,
+            udf3,
             surl, furl,
             hash,
         },

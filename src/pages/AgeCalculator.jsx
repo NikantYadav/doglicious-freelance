@@ -4,6 +4,8 @@ import Navbar from '../components/home/Navbar';
 import Footer from '../components/home/Footer';
 import { logoImg } from '../data/homeData';
 import { useSEO } from '../hooks/useSEO';
+import { normalizePhone } from '../utils/phone';
+import { pushLead } from '../services/wylto';
 import '../styles/AgeCalculator.css';
 
 // ── Data ──────────────────────────────────────────────────────
@@ -110,6 +112,10 @@ export default function AgeCalculator() {
   const [result, setResult] = useState(null); // null = not calculated
   const [displayed, setDisplayed] = useState(0);    // animated counter
 
+  const [ctaName, setCtaName] = useState('');
+  const [ctaPhone, setCtaPhone] = useState('');
+  const [ctaEmail, setCtaEmail] = useState('');
+
   const resultRef = useRef(null);
   const ringRef = useRef(null);
 
@@ -167,11 +173,32 @@ export default function AgeCalculator() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
+  const bookSample = () => {
+    const normPhone = normalizePhone(ctaPhone);
+
+    // Push to Wylto CRM
+    pushLead({
+      name: ctaName,
+      phone: normPhone,
+      email: ctaEmail,
+      source: 'age-calculator',
+      dogName: result?.name,
+      dogAge: result?.years,
+      dogAgeHuman: result?.humanAge,
+      breedSize: result?.size,
+      lifeStage: result?.stage
+    });
+
+    const msg = encodeURIComponent(
+      `🐾 Hi Doglicious!\n\nI used your age calculator and want to try the ₹99 fresh food sample.\n\nMy dog: ${result?.name || 'My dog'} is ${result?.humanAge} human years old.\n\nName: ${ctaName}\nPhone: ${normPhone}\n\nPlease help me get started!`
+    );
+    window.open(`https://wa.me/+919889887980?text=${msg}`, '_blank');
+  };
+
   const shareWA = () => {
     if (!result) return;
-    const { name, humanAge, years, months, size: sz, stage, sd } = result;
     const msg = encodeURIComponent(
-      `🎂 *Dog Age Calculator — Doglicious*\n\n${name} is ${humanAge} in human years!\n\n🐾 Dog age: ${years}y ${months > 0 ? months + 'm' : ''}\n📏 Breed size: ${SIZE_LABELS[sz]}\n💛 Life stage: ${sd.label}\n\nCalculate your dog's age 👇\nhttps://doglicious.in/tools/age-calculator`
+      `🎂 ${result.name} is ${result.humanAge} human years old! 🐾 Check your dog's age here: https://doglicious.in/tools/age-calculator`
     );
     window.open(`https://wa.me/?text=${msg}`, '_blank');
   };
@@ -374,14 +401,31 @@ export default function AgeCalculator() {
             <div className="ac-cta-card">
               <h3>Feed <span>{result.name}</span> right for their age</h3>
               <p>Every life stage needs different nutrition. Get a personalised fresh meal plan for just ₹99.</p>
-              <a
-                href="https://wa.me/919889887980"
-                target="_blank"
-                rel="noreferrer"
-                className="ac-cta-btn"
-              >
-                🐾 Book ₹99 Sample
-              </a>
+
+              <div className="ac-cta-form">
+                <input
+                  type="text"
+                  placeholder="Your Name"
+                  value={ctaName}
+                  onChange={e => setCtaName(e.target.value)}
+                  className="ac-cta-input"
+                />
+                <input
+                  type="tel"
+                  placeholder="+91 98765 43210"
+                  value={ctaPhone}
+                  onChange={e => setCtaPhone(e.target.value)}
+                  className="ac-cta-input"
+                />
+                <button className="ac-cta-btn" onClick={bookSample}>
+                  🐾 Book ₹99 Sample
+                </button>
+              </div>
+
+              <div className="ac-secondary-btns" style={{ marginTop: '16px', display: 'flex', gap: '8px' }}>
+                <button className="ac-share-reset" onClick={shareWA} style={{ flex: 1, padding: '10px', fontSize: '11px', border: '1px solid #ccc', borderRadius: '50px', background: 'transparent' }}>📲 Share Result</button>
+                <button className="ac-share-reset" onClick={reset} style={{ flex: 1, padding: '10px', fontSize: '11px', border: '1px solid #ccc', borderRadius: '50px', background: 'transparent' }}>🔄 Recalculate</button>
+              </div>
             </div>
           </div>
         )}

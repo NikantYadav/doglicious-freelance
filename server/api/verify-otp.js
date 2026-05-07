@@ -1,10 +1,10 @@
 import { createHmac } from 'crypto';
 
-const KYLAS_BASE = 'https://api.kylas.io';
-const kylasKey = () => process.env.KYLAS_API_KEY;
+const WYLTO_BASE = 'https://server.wylto.com';
+const wyltoKey = () => process.env.WYLTO_API_KEY;
 const SECRET = process.env.OTP_SECRET || 'vetrx-otp-secret-change-in-prod';
 
-// ── Token verification ───────────────────────────────────────────────
+// ── Token verification ────────────────────────────────────────────────
 
 function verifyToken(token) {
     if (!token || typeof token !== 'string') return null;
@@ -12,81 +12,78 @@ function verifyToken(token) {
     if (!payload || !sig) return null;
 
     const expected = createHmac('sha256', SECRET).update(payload).digest('base64url');
-    if (sig !== expected) return null;   // tampered
+    if (sig !== expected) return null; // tampered
 
     let data;
     try { data = JSON.parse(Buffer.from(payload, 'base64url').toString()); }
     catch { return null; }
 
-    if (Date.now() > data.exp) return null;  // expired
-    return data;  // { email, otp, exp }
+    if (Date.now() > data.exp) return null; // expired
+    return data; // { phone, otp, exp }
 }
 
-// ── Kylas helpers ──────────────────────────────────────────────────
+// ── Wylto helpers ─────────────────────────────────────────────────────
 
-async function kylasPost(path, body) {
-    console.log(`[kylasPost] path: ${path}`);
-    const res = await fetch(`${KYLAS_BASE}${path}`, {
-        method: 'POST',
+async function wyltoRequest(method, path, body) {
+    const res = await fetch(`${WYLTO_BASE}${path}`, {
+        method,
         headers: {
-            'api-key': kylasKey(),
+            'Authorization': `Bearer ${wyltoKey()}`,
             'Content-Type': 'application/json',
         },
-        body: JSON.stringify(body),
+        ...(body ? { body: JSON.stringify(body) } : {}),
     });
     const data = await res.json();
     if (!res.ok) {
-        throw new Error(`Kylas ${res.status}: ${JSON.stringify(data)}`);
+        throw new Error(`Wylto ${res.status}: ${JSON.stringify(data)}`);
     }
     return data;
 }
 
-async function getOrCreateContact(email) {
-    const searchRes = await kylasPost('/v1/search/lead?size=10', {
-        fields: ['emails', 'customFieldValues', 'id'],
-        jsonRule: {
-            rules: [
-                {
-                    id: 'multi_field',
-                    field: 'multi_field',
-                    type: 'multi_field',
-                    input: 'multi_field',
-                    operator: 'multi_field',
-                    value: email
-                }
-            ],
-            condition: 'AND',
-            valid: true
-        }
+async function wyltoPut(path, body) {
+    const res = await fetch(`${WYLTO_BASE}${path}`, {
+        method: 'PUT',
+        headers: {
+            'Authorization': `Bearer ${wyltoKey()}`,
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(body),
     });
-
-    if (searchRes.content && searchRes.content.length > 0) {
-        const c = searchRes.content.find(lead => lead.emails && lead.emails.some(e => e.value === email)) || searchRes.content[0];
-        const cf = c.customFieldValues || {};
-        return {
-            id: c.id,
-            scanCount: parseInt(cf.cfScanCount || cf.scan_count || '0', 10),
-            paidScans: parseInt(cf.cfPaidScans || cf.paid_scans || '0', 10),
-        };
+    if (!res.ok) {
+        const err = await res.text();
+        throw new Error(`Wylto PUT error: ${res.status} ${err}`);
     }
+    return res.json();
+}
 
-    const createRes = await kylasPost('/v1/leads/', {
-        firstName: 'Unknown',
-        lastName: email.split('@')[0],
-        emails: [
-            {
-                type: 'OFFICE',
-                value: email,
-                primary: true
-            }
-        ],
-        customFieldValues: {
-            cfScanCount: 0,
-            cfPaidScans: 0
+async function getOrCreateContact(phone) {
+    try {
+        // 1. Upsert the contact (POST — message field may be incomplete in response)
+        const contact = await wyltoRequest('POST', '/api/v1/contact', {
+            externalId: phone,
+            name: phone,
+            phoneNumber: phone,
+        });
+
+        // 2. GET the full contact to reliably read existing metadata
+        const full = await wyltoRequest('GET', `/api/v1/contact/${contact.id}`);
+        let cf = full.message || {};
+
+        // 3. If it's a new contact or missing our custom fields, initialize them
+        if (cf.cfScanCount === undefined) {
+            cf = { ...cf, cfScanCount: 0, cfPaidScans: 0 };
+            await wyltoPut(`/api/v1/contact/${contact.id}`, { message: cf });
         }
-    });
 
-    return { id: createRes.id, scanCount: 0, paidScans: 0 };
+        return {
+            id: contact.id,
+            scanCount: parseInt(cf.cfScanCount ?? '0', 10),
+            paidScans: parseInt(cf.cfPaidScans ?? '0', 10),
+        };
+    } catch (err) {
+        console.error('[verify-otp] getOrCreateContact error:', err.message);
+        throw err;
+    }
 }
 
 // ── Handler ──────────────────────────────────────────────────────────
@@ -112,22 +109,30 @@ export default async function handler(req, res) {
         return res.status(200).json({ valid: false, error: 'Incorrect code. Please try again.' });
     }
 
-    // 3. Get or create Kylas lead
+    // 3. Get or create Wylto contact
     try {
-        const { id: contactId, scanCount, paidScans } = await getOrCreateContact(payload.email);
+        const { id: contactId, scanCount, paidScans } = await getOrCreateContact(payload.phone);
         return res.status(200).json({
             valid: true,
             contactId,
+            phone: payload.phone,
             scanCount,
             paidScans,
             config: {
                 numFreeScans: parseInt(process.env.NUM_FREE_SCAN || '1', 10),
-                numPaidScansPerPack: parseInt(process.env.NUM_SCAN || '5', 10)
-            }
+                numPaidScansPerPack: parseInt(process.env.NUM_SCAN || '5', 10),
+            },
         });
     } catch (err) {
-        console.error('[verify-otp Kylas]', err.message);
-        // Return the error so it's visible during debugging
-        return res.status(200).json({ valid: true, contactId: null, scanCount: 0, paidScans: 0, _kylasError: err.message });
+        console.error('[verify-otp Wylto]', err.message);
+        // Return valid: true so user can still use the app — CRM failure shouldn't block login
+        return res.status(200).json({
+            valid: true,
+            contactId: null,
+            phone: payload.phone,
+            scanCount: 0,
+            paidScans: 0,
+            _wyltoError: err.message,
+        });
     }
 }

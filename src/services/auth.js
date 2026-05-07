@@ -1,8 +1,9 @@
 // src/services/auth.js
 // Manages OTP auth flow and localStorage session.
+import { normalizePhone } from '../utils/phone';
 
 const API = import.meta.env.VITE_API_URL ?? '';
-const SESSION_KEY = 'vetrx_kylas_session';
+const SESSION_KEY = 'vetrx_session';
 const SESSION_TTL = 7 * 24 * 60 * 60 * 1000; // 7 days
 
 export function getSession() {
@@ -20,9 +21,9 @@ export function getSession() {
     }
 }
 
-export function saveSession({ email, contactId, scanCount, paidScans = 0, config = null }) {
+export function saveSession({ phone, contactId, scanCount, paidScans = 0, config = null }) {
     const session = {
-        email,
+        phone,
         contactId,
         scanCount,
         paidScans,
@@ -56,26 +57,29 @@ export function updateSessionPaidScans(paidScans) {
     } catch { /* ignore */ }
 }
 
-export async function sendOtp(email) {
+// Send OTP via WhatsApp (Wylto). Accepts a phone number.
+export async function sendOtp(phone) {
+    const normPhone = normalizePhone(phone);
     const res = await fetch(`${API}/api/send-otp`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email }),
+        body: JSON.stringify({ phone: normPhone }),
     });
     const data = await res.json();
     if (!res.ok) throw new Error(data.error || 'Failed to send OTP');
     return data; // { ok, token }
 }
 
-export async function verifyOtp(email, otp, token) {
+export async function verifyOtp(phone, otp, token) {
+    const normPhone = normalizePhone(phone);
     const res = await fetch(`${API}/api/verify-otp`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ token, otp }),
+        body: JSON.stringify({ token, otp, phone: normPhone }),
     });
     const data = await res.json();
     if (!res.ok) throw new Error(data.error || 'Verification failed');
-    return data; // { valid, contactId, scanCount, paidScans, config }
+    return data; // { valid, contactId, phone, scanCount, paidScans, config }
 }
 
 export async function getConfig() {

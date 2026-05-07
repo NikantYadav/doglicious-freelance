@@ -1,13 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { sendOtp, verifyOtp, saveSession } from '../../services/auth';
+import { normalizePhone } from '../../utils/phone';
 import { LOGO_PLACEHOLDER } from './constants';
 
 // ── AuthGate ──────────────────────────────────────────────────────────
 // Full-screen overlay shown before the app when user is not authenticated.
+// Uses WhatsApp OTP via Wylto — user enters their phone number.
 
 const AuthGate = ({ onAuthenticated }) => {
-    const [step, setStep] = useState('email'); // 'email' | 'otp'
-    const [email, setEmail] = useState('');
+    const [step, setStep] = useState('phone'); // 'phone' | 'otp'
+    const [phone, setPhone] = useState('');
     const [pendingToken, setPendingToken] = useState(null); // signed OTP token from server
     const [otp, setOtp] = useState('');
     const [loading, setLoading] = useState(false);
@@ -21,16 +23,24 @@ const AuthGate = ({ onAuthenticated }) => {
         return () => clearTimeout(t);
     }, [resendCooldown]);
 
+    // Normalise phone: strip spaces/dashes, ensure leading +
+    const normalisePhone = (raw) => normalizePhone(raw);
+
+    const isValidPhone = (raw) => {
+        const stripped = raw.replace(/[\s\-().+]/g, '');
+        return stripped.length >= 7 && /^\d+$/.test(stripped);
+    };
+
     const handleSendOtp = async (e) => {
         e?.preventDefault();
         setError('');
-        if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-            setError('Please enter a valid email address.');
+        if (!phone || !isValidPhone(phone)) {
+            setError('Please enter a valid phone number with country code.');
             return;
         }
         setLoading(true);
         try {
-            const data = await sendOtp(email);
+            const data = await sendOtp(normalisePhone(phone));
             setPendingToken(data.token ?? null);
             setStep('otp');
             setResendCooldown(60);
@@ -45,20 +55,21 @@ const AuthGate = ({ onAuthenticated }) => {
         e?.preventDefault();
         setError('');
         if (!otp || otp.trim().length !== 6) {
-            setError('Enter the 6-digit code from your email.');
+            setError('Enter the 6-digit code from WhatsApp.');
             return;
         }
         setLoading(true);
         try {
-            const result = await verifyOtp(email, otp.trim(), pendingToken);
+            const normPhone = normalisePhone(phone);
+            const result = await verifyOtp(normPhone, otp.trim(), pendingToken);
             if (!result.valid) {
                 setError(result.error || 'Invalid or expired code. Try again.');
                 return;
             }
             const paidScans = result.paidScans ?? 0;
             const config = result.config ?? null;
-            saveSession({ email, contactId: result.contactId, scanCount: result.scanCount, paidScans, config });
-            onAuthenticated({ email, contactId: result.contactId, scanCount: result.scanCount, paidScans, config });
+            saveSession({ phone: normPhone, contactId: result.contactId, scanCount: result.scanCount, paidScans, config });
+            onAuthenticated({ phone: normPhone, contactId: result.contactId, scanCount: result.scanCount, paidScans, config });
         } catch (err) {
             setError(err.message || 'Verification failed. Please try again.');
         } finally {
@@ -87,24 +98,24 @@ const AuthGate = ({ onAuthenticated }) => {
                 background: '#FBF6EC', borderRadius: '24px', padding: '28px 24px',
                 width: '100%', maxWidth: '420px', boxShadow: '0 20px 60px rgba(0,0,0,0.35)',
             }}>
-                {step === 'email' ? (
+                {step === 'phone' ? (
                     <>
                         <h2 style={{ color: '#3D2B00', fontSize: '20px', fontWeight: 900, marginBottom: '6px' }}>
                             Welcome 🐾
                         </h2>
                         <p style={{ color: '#9B7E4A', fontSize: '14px', marginBottom: '24px', lineHeight: 1.5 }}>
-                            Enter your email to get started. We'll send you a one-time login code.
+                            Enter your WhatsApp number to get started. We'll send you a one-time login code.
                         </p>
                         <form onSubmit={handleSendOtp}>
-                            <label className="field-label">Email Address</label>
+                            <label className="field-label">WhatsApp Number</label>
                             <input
                                 className="input mb-16"
-                                type="email"
-                                inputMode="email"
-                                autoComplete="email"
-                                placeholder="you@example.com"
-                                value={email}
-                                onChange={e => { setEmail(e.target.value); setError(''); }}
+                                type="tel"
+                                inputMode="tel"
+                                autoComplete="tel"
+                                placeholder="+91 98765 43210"
+                                value={phone}
+                                onChange={e => { setPhone(e.target.value); setError(''); }}
                                 disabled={loading}
                                 autoFocus
                             />
@@ -113,8 +124,8 @@ const AuthGate = ({ onAuthenticated }) => {
                                     ⚠️ {error}
                                 </p>
                             )}
-                            <button className="btn btn-primary" type="submit" disabled={loading || !email}>
-                                {loading ? 'Sending…' : 'Send Login Code →'}
+                            <button className="btn btn-primary" type="submit" disabled={loading || !phone}>
+                                {loading ? 'Sending…' : 'Send WhatsApp Code →'}
                             </button>
                         </form>
                         <p style={{ color: '#C4AA7A', fontSize: '11px', textAlign: 'center', marginTop: '16px', lineHeight: 1.5 }}>
@@ -124,20 +135,20 @@ const AuthGate = ({ onAuthenticated }) => {
                 ) : (
                     <>
                         <button
-                            onClick={() => { setStep('email'); setOtp(''); setError(''); }}
+                            onClick={() => { setStep('phone'); setOtp(''); setError(''); }}
                             style={{ background: 'none', border: 'none', color: '#9B7E4A', fontSize: '13px', cursor: 'pointer', marginBottom: '12px', padding: 0, fontFamily: 'inherit' }}
                         >
-                            ← Change email
+                            ← Change number
                         </button>
                         <h2 style={{ color: '#3D2B00', fontSize: '20px', fontWeight: 900, marginBottom: '6px' }}>
-                            Check your inbox ✉️
+                            Check WhatsApp 📱
                         </h2>
                         <p style={{ color: '#9B7E4A', fontSize: '14px', marginBottom: '8px', lineHeight: 1.5 }}>
                             We sent a 6-digit code to<br />
-                            <strong style={{ color: '#3D2B00' }}>{email}</strong>
+                            <strong style={{ color: '#3D2B00' }}>{normalisePhone(phone)}</strong>
                         </p>
                         <p style={{ color: '#9B7E4A', fontSize: '13px', marginBottom: '20px' }}>
-                            Check your spam folder if you don't see it.
+                            Check your WhatsApp messages.
                         </p>
                         <form onSubmit={handleVerifyOtp}>
                             <label className="field-label">6-Digit Code</label>

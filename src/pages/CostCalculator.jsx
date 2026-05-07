@@ -4,6 +4,8 @@ import Navbar from '../components/home/Navbar';
 import Footer from '../components/home/Footer';
 import { logoImg } from '../data/homeData';
 import { useSEO } from '../hooks/useSEO';
+import { normalizePhone } from '../utils/phone';
+import { pushLead } from '../services/wylto';
 import '../styles/CostCalculator.css';
 
 const BRANDS = ['Pedigree', 'Royal Canin', 'Drools', 'Farmina', 'Acana', 'Other'];
@@ -33,6 +35,10 @@ export default function CostCalculator() {
   // result
   const [result, setResult] = useState(null);
   const resultRef = useRef(null);
+
+  const [ctaName, setCtaName] = useState('');
+  const [ctaPhone, setCtaPhone] = useState('');
+  const [ctaEmail, setCtaEmail] = useState('');
 
   useEffect(() => {
     const onScroll = () => setNavScrolled(window.scrollY > 20);
@@ -92,10 +98,25 @@ export default function CostCalculator() {
   };
 
   const bookSample = () => {
+    const normPhone = normalizePhone(ctaPhone);
+
+    // Push to Wylto CRM
+    pushLead({
+      name: ctaName,
+      phone: normPhone,
+      email: ctaEmail,
+      source: 'cost-calculator',
+      dogWeight: result?.weight || dogWeight,
+      brand: result?.brand || brand,
+      kibbleMonthly: result?.kibbleMonthly,
+      freshMonthly: result?.freshMonthly,
+      savingsYearly: result?.diff
+    });
+
     const msg = encodeURIComponent(
-      `🐾 Hi Doglicious!\n\nI used your cost calculator and want to try the ₹99 fresh food sample.\n\nMy dog: ${dogWeight || '?'} kg, currently on ${brand || 'kibble'}\n\nPlease help me get started!`
+      `🐾 Hi Doglicious!\n\nI used your cost calculator and want to try the ₹99 fresh food sample.\n\nMy dog: ${dogWeight || '?'} kg, currently on ${brand || 'kibble'}\n\nName: ${ctaName}\nPhone: ${normPhone}\n\nPlease help me get started!`
     );
-    window.open(`https://wa.me/919889887980?text=${msg}`, '_blank');
+    window.open(`https://wa.me/+919889887980?text=${msg}`, '_blank');
   };
 
   const openTool = (idx) => navigate('/', { state: { openTool: idx } });
@@ -289,7 +310,24 @@ export default function CostCalculator() {
                 <h3>Try fresh for ₹99</h3>
                 <p>One sample meal delivered to your door. No subscription needed.</p>
               </div>
-              <button className="cc-wa-cta-btn" onClick={bookSample}>📲 Book Now</button>
+
+              <div className="cc-cta-form">
+                <input
+                  type="text"
+                  placeholder="Your Name"
+                  value={ctaName}
+                  onChange={e => setCtaName(e.target.value)}
+                  className="cc-cta-input"
+                />
+                <input
+                  type="tel"
+                  placeholder="+91 98765 43210"
+                  value={ctaPhone}
+                  onChange={e => setCtaPhone(e.target.value)}
+                  className="cc-cta-input"
+                />
+                <button className="cc-wa-cta-btn" onClick={bookSample}>📲 Book Now</button>
+              </div>
             </div>
 
             <button className="cc-btn-reset" onClick={reset}>↩ Recalculate</button>

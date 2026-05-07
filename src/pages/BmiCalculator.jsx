@@ -4,6 +4,8 @@ import Navbar from '../components/home/Navbar';
 import Footer from '../components/home/Footer';
 import { logoImg } from '../data/homeData';
 import { useSEO } from '../hooks/useSEO';
+import { normalizePhone } from '../utils/phone';
+import { pushLead } from '../services/wylto';
 import '../styles/BmiCalculator.css';
 
 // ── Data ──────────────────────────────────────────────────────
@@ -103,6 +105,10 @@ export default function BmiCalculator() {
   const [result, setResult] = useState(null);
   const resultRef = useRef(null);
 
+  const [ctaName, setCtaName] = useState('');
+  const [ctaPhone, setCtaPhone] = useState('');
+  const [ctaEmail, setCtaEmail] = useState('');
+
   useEffect(() => {
     const onScroll = () => setNavScrolled(window.scrollY > 20);
     window.addEventListener('scroll', onScroll, { passive: true });
@@ -156,10 +162,26 @@ export default function BmiCalculator() {
 
   const bookSample = () => {
     if (!result) return;
+    const normPhone = normalizePhone(ctaPhone);
+
+    // Push to Wylto CRM
+    pushLead({
+      name: ctaName,
+      phone: normPhone,
+      email: ctaEmail,
+      source: 'bmi-calculator',
+      dogWeight: result.weight,
+      dogAge: result.age,
+      breedSize: result.size,
+      bcs: result.bcs,
+      category: result.category,
+      idealWeight: result.idealTarget
+    });
+
     const msg = encodeURIComponent(
-      `🐾 Hi Doglicious!\n\nI checked my dog's weight using your BMI tool.\n\nCurrent weight: ${result.weight}kg | BCS: ${result.bcs}/9 | Size: ${result.size}\n\nI'd like to book the ₹99 fresh food sample and get a weight-specific meal plan!`
+      `🐾 Hi Doglicious!\n\nI checked my dog's weight using your BMI tool.\n\nCurrent weight: ${result.weight}kg | BCS: ${result.bcs}/9 | Size: ${result.size}\n\nName: ${ctaName}\nPhone: ${normPhone}\n\nI'd like to book the ₹99 fresh food sample and get a weight-specific meal plan!`
     );
-    window.open(`https://wa.me/919889887980?text=${msg}`, '_blank');
+    window.open(`https://wa.me/+919889887980?text=${msg}`, '_blank');
   };
 
   const openTool = (idx) => navigate('/', { state: { openTool: idx } });
@@ -394,7 +416,24 @@ export default function BmiCalculator() {
                 <h3>Get a weight-specific meal plan</h3>
                 <p>Doglicious creates fresh meals calibrated to your dog's ideal weight. Try a sample for ₹99.</p>
               </div>
-              <button className="bmi-cta-wa" onClick={bookSample}>📲 ₹99 Sample</button>
+
+              <div className="bmi-cta-form">
+                <input
+                  type="text"
+                  placeholder="Your Name"
+                  value={ctaName}
+                  onChange={e => setCtaName(e.target.value)}
+                  className="bmi-cta-input"
+                />
+                <input
+                  type="tel"
+                  placeholder="+91 98765 43210"
+                  value={ctaPhone}
+                  onChange={e => setCtaPhone(e.target.value)}
+                  className="bmi-cta-input"
+                />
+                <button className="bmi-cta-wa" onClick={bookSample}>📲 ₹99 Sample</button>
+              </div>
             </div>
 
             <button className="bmi-btn-reset" onClick={reset}>↩ Check another dog</button>

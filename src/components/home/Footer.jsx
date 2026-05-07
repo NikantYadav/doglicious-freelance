@@ -13,7 +13,7 @@ export default function Footer({ openModal, openTool }) {
                         <p className="ft">Superfood for dogs. Personalised by AI. Vet approved. Cooked fresh daily. Delivered across Delhi NCR.</p>
                         <div className="fct">
                             <span>📱 <a href="tel:9889887980">9889887980</a></span>
-                            <span>💬 <a href="https://wa.me/919889887980" target="_blank" rel="noreferrer">WhatsApp Us</a></span>
+                            <span>💬 <a href="https://wa.me/+919889887980" target="_blank" rel="noreferrer">WhatsApp Us</a></span>
                             <span>📧 <a href="mailto:woof@doglicious.in">woof@doglicious.in</a></span>
                         </div>
                     </div>

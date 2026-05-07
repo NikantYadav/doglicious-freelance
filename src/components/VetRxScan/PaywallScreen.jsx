@@ -8,7 +8,7 @@ const API = import.meta.env.VITE_API_URL ?? '';
 // Shown when the user has used their free scan quota and must pay.
 // Calls /api/payu-initiate to get hash, then auto-submits to PayU hosted checkout.
 
-const PaywallScreen = ({ email, contactId, phone, firstname, onLogout, numScans, payuMessage }) => {
+const PaywallScreen = ({ phone, contactId, firstname, onLogout, numScans, payuMessage }) => {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
 
@@ -20,9 +20,8 @@ const PaywallScreen = ({ email, contactId, phone, firstname, onLogout, numScans,
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    email,
-                    firstname: firstname || email.split('@')[0],
                     phone: phone || '',
+                    firstname: firstname || phone || 'User',
                     contactId: contactId || '',
                     returnPath: window.location.pathname,
                 }),
@@ -63,7 +62,7 @@ const PaywallScreen = ({ email, contactId, phone, firstname, onLogout, numScans,
     };
 
     const waUrl = `https://wa.me/919889887980?text=${encodeURIComponent(
-        `Hi Doglicious! 🐾\nI'd like to continue using VetRx Scan. Please help me with the payment.\n\nMy email: ${email}`
+        `Hi Doglicious! 🐾\nI'd like to continue using VetRx Scan. Please help me with the payment.\n\nMy number: ${phone}`
     )}`;
 
     return (
@@ -163,7 +162,7 @@ const PaywallScreen = ({ email, contactId, phone, firstname, onLogout, numScans,
                         color: '#9B7E4A', fontSize: '13px', cursor: 'pointer', fontFamily: 'inherit',
                     }}
                 >
-                    Sign out ({email})
+                    Sign out ({phone})
                 </button>
             </div>
 
@@ -173,5 +172,6 @@ const PaywallScreen = ({ email, contactId, phone, firstname, onLogout, numScans,
         </div>
     );
 };
+
 
 export default PaywallScreen;

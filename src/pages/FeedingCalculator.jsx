@@ -4,6 +4,8 @@ import Navbar from '../components/home/Navbar';
 import Footer from '../components/home/Footer';
 import { logoImg } from '../data/homeData';
 import { useSEO } from '../hooks/useSEO';
+import { normalizePhone } from '../utils/phone';
+import { pushLead } from '../services/wylto';
 import '../styles/FeedingCalculator.css';
 
 // ── Data ──────────────────────────────────────────────────────
@@ -164,16 +166,46 @@ export default function FeedingCalculator() {
 
   const doWhatsApp = () => {
     if (!result) return;
+    const normPhone = normalizePhone(ctaPhone);
+
+    // Push to Wylto CRM
+    pushLead({
+      name: ctaName,
+      phone: normPhone,
+      email: ctaEmail,
+      source: 'feeding-calculator',
+      dogWeight: result.w,
+      dogAge: result.age,
+      breed: result.breedName,
+      dailyGrams: result.dailyG,
+      dailyKcal: result.dailyCal
+    });
+
     const msg = encodeURIComponent(
-      `🐾 Hi Doglicious!\n\nI used your feeding calculator.\n\nDog: ${result.w}kg ${result.age} ${result.breedName}\nDaily: ${result.dailyG}g / ${result.dailyCal} kcal\n\nName: ${ctaName}\nPhone: ${ctaPhone}\n\nI'd like to book the ₹99 sample!`
+      `🐾 Hi Doglicious!\n\nI used your feeding calculator.\n\nDog: ${result.w}kg ${result.age} ${result.breedName}\nDaily: ${result.dailyG}g / ${result.dailyCal} kcal\n\nName: ${ctaName}\nPhone: ${normPhone}\n\nI'd like to book the ₹99 sample!`
     );
-    window.open(`https://wa.me/919889887980?text=${msg}`, '_blank');
+    window.open(`https://wa.me/+919889887980?text=${msg}`, '_blank');
   };
 
   const doEmail = () => {
     if (!result) return;
+    const normPhone = normalizePhone(ctaPhone);
+
+    // Push to Wylto CRM
+    pushLead({
+      name: ctaName,
+      phone: normPhone,
+      email: ctaEmail,
+      source: 'feeding-calculator-email',
+      dogWeight: result.w,
+      dogAge: result.age,
+      breed: result.breedName,
+      dailyGrams: result.dailyG,
+      dailyKcal: result.dailyCal
+    });
+
     const sub = encodeURIComponent('₹99 Fresh Food Sample — Doglicious');
-    const body = encodeURIComponent(`Name: ${ctaName}\nPhone: ${ctaPhone}\nDog: ${result.w}kg ${result.age} ${result.breedName}\nDaily: ${result.dailyG}g`);
+    const body = encodeURIComponent(`Name: ${ctaName}\nPhone: ${normPhone}\nDog: ${result.w}kg ${result.age} ${result.breedName}\nDaily: ${result.dailyG}g`);
     window.location.href = `mailto:hello@doglicious.in?subject=${sub}&body=${body}`;
   };
 
@@ -464,7 +496,7 @@ export default function FeedingCalculator() {
               <div className="fc-cta-sub">Try Doglicious fresh meals for your dog.<br />Talk to our pet nutrition expert.</div>
               <div className="fc-cta-form">
                 <input className="fc-cta-input" type="text" placeholder="Your name" value={ctaName} onChange={e => setCtaName(e.target.value)} />
-                <input className="fc-cta-input" type="tel" placeholder="WhatsApp number" value={ctaPhone} onChange={e => setCtaPhone(e.target.value)} />
+                <input className="fc-cta-input" type="tel" placeholder="+91 98765 43210" value={ctaPhone} onChange={e => setCtaPhone(e.target.value)} />
                 <input className="fc-cta-input" type="email" placeholder="Email (optional)" value={ctaEmail} onChange={e => setCtaEmail(e.target.value)} />
               </div>
               <div className="fc-cta-btns">
