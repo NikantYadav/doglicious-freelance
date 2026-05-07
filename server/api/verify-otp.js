@@ -40,40 +40,23 @@ async function wyltoRequest(method, path, body) {
     return data;
 }
 
-async function wyltoPut(path, body) {
-    const res = await fetch(`${WYLTO_BASE}${path}`, {
-        method: 'PUT',
-        headers: {
-            'Authorization': `Bearer ${wyltoKey()}`,
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(body),
-    });
-    if (!res.ok) {
-        const err = await res.text();
-        throw new Error(`Wylto PUT error: ${res.status} ${err}`);
-    }
-    return res.json();
-}
-
 async function getOrCreateContact(phone) {
     try {
-        // 1. Upsert the contact (POST — message field may be incomplete in response)
+        // 1. Upsert the contact — include initial custom fields in the POST so a PUT is never needed for new contacts
         const contact = await wyltoRequest('POST', '/api/v1/contact', {
             externalId: phone,
             name: phone,
             phoneNumber: phone,
+            message: JSON.stringify({
+                cfScanCount: 0,
+                cfPaidScans: 0,
+            }),
         });
 
         // 2. GET the full contact to reliably read existing metadata
         const full = await wyltoRequest('GET', `/api/v1/contact/${contact.id}`);
-        let cf = full.message || {};
-
-        // 3. If it's a new contact or missing our custom fields, initialize them
-        if (cf.cfScanCount === undefined) {
-            cf = { ...cf, cfScanCount: 0, cfPaidScans: 0 };
-            await wyltoPut(`/api/v1/contact/${contact.id}`, { message: cf });
-        }
+        const rawCf = full.message;
+        const cf = rawCf ? (typeof rawCf === 'string' ? JSON.parse(rawCf) : rawCf) : {};
 
         return {
             id: contact.id,

@@ -59,7 +59,8 @@ export default async function handler(req, res) {
         });
 
         // 2. Merge existing metadata with new sample data
-        const existingCf = contact.message || {};
+        const rawCf = contact.message;
+        const existingCf = rawCf ? (typeof rawCf === 'string' ? JSON.parse(rawCf) : rawCf) : {};
         const newCf = {
             ...existingCf,
             cfDogName: dogName || '',
@@ -74,7 +75,7 @@ export default async function handler(req, res) {
 
         // 3. Update contact with merged metadata
         contact = await wyltoPut(`/api/v1/contact/${contact.id}`, {
-            message: newCf
+            message: JSON.stringify(newCf)
         });
 
         // 2. Send WhatsApp message with booking details

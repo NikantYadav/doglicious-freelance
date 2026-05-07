@@ -65,7 +65,8 @@ export default async function handler(req, res) {
 
         // Update the Wylto contact record with latest info - Fetch first to merge metadata
         const existing = await wyltoGet(`/api/v1/contact/${contactId}`);
-        const existingCf = existing.message || {};
+        const rawCf = existing.message;
+        const existingCf = rawCf ? (typeof rawCf === 'string' ? JSON.parse(rawCf) : rawCf) : {};
 
         // Build the contact name: prefer dog owner's name from profile, fall back to phone
         const contactName = dog.ownerName || existing.name || undefined;
@@ -73,7 +74,7 @@ export default async function handler(req, res) {
         const updatedContact = await wyltoPut(`/api/v1/contact/${contactId}`, {
             ...(contactName ? { name: contactName } : {}),
             ...(dog.mobile || dog.phone ? { phoneNumber: normalizePhone(dog.mobile || dog.phone) } : {}),
-            message: {
+            message: JSON.stringify({
                 ...existingCf,
                 // Scan tracking
                 cfScanCount: newCount,
@@ -98,7 +99,7 @@ export default async function handler(req, res) {
                 cfConfidence: r.confidence || 0,
                 cfDietAdvice: trunc(r.diet),
                 cfLastScanDate: new Date().toISOString().split('T')[0],
-            }
+            })
         });
 
         console.log(`[wylto-report] Updated contact ${contactId}. Scan #${newCount}, paid remaining: ${newPaid}`);

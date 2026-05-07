@@ -209,7 +209,6 @@ const VetRxScan = () => {
     // ── Push to Wylto CRM after report is ready (outside try/catch so it never breaks the user flow) ──
     if (result && authUser?.contactId) {
       try {
-        console.log('[VetRxScan] Pushing scan report to Wylto CRM...', { contactId: authUser.contactId, dogProfile, selectedPart, selectedSymptoms });
         const wyltoResult = await pushReport({
           contactId: authUser.contactId,
           dogProfile,
@@ -220,7 +219,6 @@ const VetRxScan = () => {
           paidScans: authUser.paidScans ?? 0,
         });
         if (wyltoResult?.scanCount != null) {
-          console.log('[VetRxScan] Wylto CRM push successful:', wyltoResult);
           updateSessionScanCount(wyltoResult.scanCount);
           const newPaid = wyltoResult.paidScans ?? authUser.paidScans ?? 0;
           updateSessionPaidScans(newPaid);

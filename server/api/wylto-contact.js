@@ -21,22 +21,6 @@ async function wyltoPost(path, body) {
     return res.json();
 }
 
-async function wyltoPut(path, body) {
-    const res = await fetch(`${WYLTO_BASE}${path}`, {
-        method: 'PUT',
-        headers: {
-            'Authorization': `Bearer ${wyltoKey()}`,
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(body),
-    });
-    if (!res.ok) {
-        const err = await res.text();
-        throw new Error(`Wylto PUT error: ${res.status} ${err}`);
-    }
-    return res.json();
-}
-
 import { normalizePhone } from '../utils/phone.js';
 
 export default async function handler(req, res) {
@@ -53,14 +37,15 @@ export default async function handler(req, res) {
 
     try {
         // 1. Create or get contact (upsert by externalId = normPhone)
+        // Include initial custom fields in the POST so a PUT is never needed for new contacts
         const contact = await wyltoPost('/api/v1/contact', {
             externalId: normPhone,
             name: normPhone,
             phoneNumber: normPhone,
-            message: {
+            message: JSON.stringify({
                 cfScanCount: 0,
                 cfPaidScans: 0
-            }
+            })
         });
 
         // 2. GET the full contact to reliably read existing custom fields
@@ -70,13 +55,8 @@ export default async function handler(req, res) {
             });
             return r.json();
         })();
-        let cf = full.message || {};
-
-        // 3. If custom fields are still missing, initialize them
-        if (cf.cfScanCount === undefined) {
-            cf = { ...cf, cfScanCount: 0, cfPaidScans: 0 };
-            await wyltoPut(`/api/v1/contact/${contact.id}`, { message: cf });
-        }
+        const rawCf = full.message;
+        const cf = rawCf ? (typeof rawCf === 'string' ? JSON.parse(rawCf) : rawCf) : {};
 
         return res.status(200).json({
             id: contact.id,

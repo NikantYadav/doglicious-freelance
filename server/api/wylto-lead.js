@@ -76,7 +76,8 @@ export default async function handler(req, res) {
 
         // 2. GET the full contact to safely read existing metadata before merging
         const existing = await wyltoGet(`/api/v1/contact/${contact.id}`);
-        const existingCf = existing.message || {};
+        const rawCf = existing.message;
+        const existingCf = rawCf ? (typeof rawCf === 'string' ? JSON.parse(rawCf) : rawCf) : {};
 
         // 3. Merge existing metadata with new lead data (don't overwrite with empty values)
         const newCf = {
@@ -93,7 +94,7 @@ export default async function handler(req, res) {
 
         // 4. Update contact with merged metadata
         const updated = await wyltoPut(`/api/v1/contact/${contact.id}`, {
-            message: newCf,
+            message: JSON.stringify(newCf),
         });
 
         console.log(`[wylto-lead] Lead captured for ${normPhone} | source: ${source || 'website'}`);

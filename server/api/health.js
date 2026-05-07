@@ -73,7 +73,7 @@ export default async function handler(req, res) {
     // ── 5. WhatsApp OTP Template ──────────────────────────────────────
     status.services.otpTemplate = process.env.WYLTO_OTP_TEMPLATE
         ? { status: 'ok', details: `Template: ${process.env.WYLTO_OTP_TEMPLATE}` }
-        : { status: 'warn', details: 'WYLTO_OTP_TEMPLATE not set — will use default "vetrx_otp"' };
+        : { status: 'warn', details: 'WYLTO_OTP_TEMPLATE not set — will use default "vetrx"' };
 
     // ── Overall status ────────────────────────────────────────────────
     const statuses = Object.values(status.services).map(s => s.status);
