@@ -20,7 +20,7 @@ export function signOtpToken(phone, otp) {
 // ── WhatsApp OTP via Wylto ────────────────────────────────────────────
 
 async function sendOtpWhatsApp(phone, otp) {
-    const templateName = process.env.WYLTO_OTP_TEMPLATE || 'vetrx_otp';
+    const templateName = process.env.WYLTO_OTP_TEMPLATE || 'vetrx';
     const language = process.env.WYLTO_OTP_LANGUAGE || 'en';
 
     const body = {
@@ -36,11 +36,18 @@ async function sendOtpWhatsApp(phone, otp) {
                         text: String(otp),
                     },
                 ],
+                buttons: [
+                    {
+                        type: 'url',
+                        payload: String(otp),
+                    },
+                ],
+                category: 'AUTHENTICATION',
             },
         },
     };
 
-    const res = await fetch(`${WYLTO_BASE}/api/v1/wa/send`, {
+    const res = await fetch(`${WYLTO_BASE}/api/v1/wa/send?sync=true`, {
         method: 'POST',
         headers: {
             'Authorization': `Bearer ${wyltoKey()}`,
