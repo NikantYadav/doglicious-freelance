@@ -56,12 +56,15 @@ async function sendOtpWhatsApp(phone, otp) {
         body: JSON.stringify(body),
     });
 
-    if (!res.ok) {
-        const err = await res.text();
-        throw new Error(`Wylto WhatsApp error: ${res.status} ${err}`);
+    const data = await res.json();
+
+    // Wylto returns HTTP 200 even when delivery fails — check the body status
+    if (!res.ok || data.status === 'failed') {
+        const detail = data.error || JSON.stringify(data);
+        throw new Error(`Wylto WhatsApp error: ${res.status} ${detail}`);
     }
 
-    return res.json();
+    return data;
 }
 
 // ── Handler ──────────────────────────────────────────────────────────

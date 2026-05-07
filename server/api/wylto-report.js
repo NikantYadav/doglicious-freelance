@@ -37,22 +37,6 @@ async function wyltoPut(path, body) {
     return res.json();
 }
 
-async function wyltoPost(path, body) {
-    const res = await fetch(`${WYLTO_BASE}${path}`, {
-        method: 'POST',
-        headers: {
-            'Authorization': `Bearer ${wyltoKey()}`,
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(body),
-    });
-    if (!res.ok) {
-        const err = await res.text();
-        throw new Error(`Wylto POST error: ${res.status} ${err}`);
-    }
-    return res.json();
-}
-
 import { normalizePhone } from '../utils/phone.js';
 
 export default async function handler(req, res) {
@@ -79,57 +63,41 @@ export default async function handler(req, res) {
 
         const trunc = (str, len = 250) => str ? String(str).substring(0, len) : '';
 
-        // Update contact metadata via PUT (name, phone are the only Wylto contact fields)
-        // Build a rich note message to capture scan details via WhatsApp
-        const noteText = `🐾 VetRx Scan Report
-Dog: ${dog.name || 'N/A'} (${dog.breed || 'N/A'})
-Age: ${dog.ageYears || '0'} yrs | Weight: ${dog.weight ? dog.weight + 'kg' : 'N/A'}
-Body Part: ${selectedPart || 'N/A'}
-Symptoms: ${Array.isArray(selectedSymptoms) ? selectedSymptoms.join(', ') : 'N/A'}
-Health Score: ${r.healthScore || 0}
-Diagnosis: ${r.diagnosis || 'N/A'}
-Severity: ${r.severity || 'N/A'}
-Diet Advice: ${trunc(r.diet, 200)}
-Current Food: ${dog.foodType || 'N/A'} | ${dog.foodGrams ? dog.foodGrams + 'g' : 'N/A'} | ${dog.foodTimes || 'N/A'}
-Owner Notes: ${dog.notes || 'N/A'}
-Scan #${newCount} | Paid scans remaining: ${newPaid}`.trim();
-
-        // Send summary to the contact via WhatsApp text message (if they have a number)
-        if (dog.mobile || dog.phone) {
-            const rawPhone = dog.mobile || dog.phone;
-            const targetPhone = normalizePhone(rawPhone);
-            try {
-                await wyltoPost('/api/v1/wa/send', {
-                    to: targetPhone,
-                    message: {
-                        type: 'text',
-                        text: {
-                            message: noteText,
-                        },
-                    },
-                });
-            } catch (msgErr) {
-                console.warn('[wylto-report] WhatsApp note send failed (non-fatal):', msgErr.message);
-            }
-        }
-
         // Update the Wylto contact record with latest info - Fetch first to merge metadata
         const existing = await wyltoGet(`/api/v1/contact/${contactId}`);
         const existingCf = existing.message || {};
 
+        // Build the contact name: prefer dog owner's name from profile, fall back to phone
+        const contactName = dog.ownerName || existing.name || undefined;
+
         const updatedContact = await wyltoPut(`/api/v1/contact/${contactId}`, {
-            name: dog.name || undefined,
-            phoneNumber: normalizePhone(dog.mobile || dog.phone),
+            ...(contactName ? { name: contactName } : {}),
+            ...(dog.mobile || dog.phone ? { phoneNumber: normalizePhone(dog.mobile || dog.phone) } : {}),
             message: {
                 ...existingCf,
+                // Scan tracking
                 cfScanCount: newCount,
                 cfPaidScans: newPaid,
-                cfDogName: dog.name || '',
-                cfBreed: dog.breed || '',
+                // Dog profile
+                cfDogName: trunc(dog.name, 100),
+                cfBreed: trunc(dog.breed, 100),
                 cfAge: `${dog.ageYears || 0}y ${dog.ageMonths || 0}m`,
-                cfWeight: dog.weight || '',
-                cfFoodType: dog.foodType || '',
-                cfNotes: dog.notes || ''
+                cfAgeYears: parseInt(dog.ageYears || '0', 10),
+                cfWeight: dog.weight ? `${dog.weight}kg` : '',
+                cfFoodType: trunc(dog.foodType, 100),
+                cfFoodGrams: dog.foodGrams ? `${dog.foodGrams}g` : '',
+                cfFoodTimes: trunc(dog.foodTimes, 100),
+                cfNotes: trunc(dog.notes),
+                // Scan results
+                cfBodyPart: trunc(selectedPart, 100),
+                cfSymptoms: trunc(Array.isArray(selectedSymptoms) ? selectedSymptoms.join(', ') : ''),
+                cfDiagnosis: trunc(r.diagnosis),
+                cfSeverity: trunc(r.severity, 100),
+                cfUrgency: trunc(r.urgency, 100),
+                cfHealthScore: r.healthScore || 0,
+                cfConfidence: r.confidence || 0,
+                cfDietAdvice: trunc(r.diet),
+                cfLastScanDate: new Date().toISOString().split('T')[0],
             }
         });
 
