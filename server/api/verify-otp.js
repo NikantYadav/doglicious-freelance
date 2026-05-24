@@ -1,7 +1,6 @@
 import { createHmac } from 'crypto';
+import { supabase } from '../utils/supabase.js';
 
-const WYLTO_BASE = 'https://server.wylto.com';
-const wyltoKey = () => process.env.WYLTO_API_KEY;
 const SECRET = process.env.OTP_SECRET || 'vetrx-otp-secret-change-in-prod';
 
 // ── Token verification ────────────────────────────────────────────────
@@ -22,51 +21,22 @@ function verifyToken(token) {
     return data; // { phone, otp, exp }
 }
 
-// ── Wylto helpers ─────────────────────────────────────────────────────
+// ── Upsert user + fetch scan counts from Supabase ────────────────────
 
-async function wyltoRequest(method, path, body) {
-    const res = await fetch(`${WYLTO_BASE}${path}`, {
-        method,
-        headers: {
-            'Authorization': `Bearer ${wyltoKey()}`,
-            'Content-Type': 'application/json',
-        },
-        ...(body ? { body: JSON.stringify(body) } : {}),
-    });
-    const data = await res.json();
-    if (!res.ok) {
-        throw new Error(`Wylto ${res.status}: ${JSON.stringify(data)}`);
-    }
+async function getOrCreateUser(phone) {
+    // Upsert: create user if not exists, return existing data if they do
+    const { data, error } = await supabase
+        .from('vetrx_users')
+        .upsert({ phone }, { onConflict: 'phone', ignoreDuplicates: false })
+        .select('id, phone, scan_count, paid_scans')
+        .single();
+
+    if (error) throw error;
     return data;
 }
 
-async function getOrCreateContact(phone) {
-    try {
-        // 1. Upsert the contact — include initial custom fields in the POST so a PUT is never needed for new contacts
-        const contact = await wyltoRequest('POST', '/api/v1/contact', {
-            externalId: phone,
-            name: phone,
-            phoneNumber: phone,
-            message: JSON.stringify({
-                cfScanCount: 0,
-                cfPaidScans: 0,
-            }),
-        });
-
-        // 2. GET the full contact to reliably read existing metadata
-        const full = await wyltoRequest('GET', `/api/v1/contact/${contact.id}`);
-        const rawCf = full.message;
-        const cf = rawCf ? (typeof rawCf === 'string' ? JSON.parse(rawCf) : rawCf) : {};
-
-        return {
-            id: contact.id,
-            scanCount: parseInt(cf.cfScanCount ?? '0', 10),
-            paidScans: parseInt(cf.cfPaidScans ?? '0', 10),
-        };
-    } catch (err) {
-        console.error('[verify-otp] getOrCreateContact error:', err.message);
-        throw err;
-    }
+async function recordLoginEvent(phone) {
+    await supabase.from('wa_auth_users').insert({ phone });
 }
 
 // ── Handler ──────────────────────────────────────────────────────────
@@ -92,30 +62,30 @@ export default async function handler(req, res) {
         return res.status(200).json({ valid: false, error: 'Incorrect code. Please try again.' });
     }
 
-    // 3. Get or create Wylto contact
+    // 3. Upsert user in Supabase and record login event (non-blocking for login event)
+    let user;
     try {
-        const { id: contactId, scanCount, paidScans } = await getOrCreateContact(payload.phone);
-        return res.status(200).json({
-            valid: true,
-            contactId,
-            phone: payload.phone,
-            scanCount,
-            paidScans,
-            config: {
-                numFreeScans: parseInt(process.env.NUM_FREE_SCAN || '1', 10),
-                numPaidScansPerPack: parseInt(process.env.NUM_SCAN || '5', 10),
-            },
-        });
+        user = await getOrCreateUser(payload.phone);
     } catch (err) {
-        console.error('[verify-otp Wylto]', err.message);
-        // Return valid: true so user can still use the app — CRM failure shouldn't block login
-        return res.status(200).json({
-            valid: true,
-            contactId: null,
-            phone: payload.phone,
-            scanCount: 0,
-            paidScans: 0,
-            _wyltoError: err.message,
-        });
+        console.error('[verify-otp] Supabase upsert failed:', err.message);
+        // Fail gracefully — return zero counts so user can still proceed
+        user = { id: null, phone: payload.phone, scan_count: 0, paid_scans: 0 };
     }
+
+    // Record login event non-blocking
+    recordLoginEvent(payload.phone).catch(err =>
+        console.warn('[verify-otp] Login event insert failed (non-fatal):', err.message)
+    );
+
+    return res.status(200).json({
+        valid: true,
+        contactId: payload.phone,
+        phone: payload.phone,
+        scanCount: user.scan_count ?? 0,
+        paidScans: user.paid_scans ?? 0,
+        config: {
+            numFreeScans: parseInt(process.env.NUM_FREE_SCAN || '1', 10),
+            numPaidScansPerPack: parseInt(process.env.NUM_SCAN || '5', 10),
+        },
+    });
 }

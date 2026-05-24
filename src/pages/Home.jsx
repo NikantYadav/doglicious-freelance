@@ -1,32 +1,12 @@
 import { useState, useEffect, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { useSEO } from '../hooks/useSEO';
 import '../styles/Home.css';
 
-import {
-  logoImg,
-  foodImg,
-  RECIPES,
-  GRAM_OPTS,
-  GRAM_PRICES,
-} from '../data/homeData';
-
-// Home Components
-import Navbar from '../components/home/Navbar';
-import AnnBar from '../components/home/AnnBar';
-import GuaranteesBar from '../components/home/GuaranteesBar';
-import Hero from '../components/home/Hero';
-import TrustSection from '../components/home/TrustSection';
-import VetRxHero from '../components/home/VetRxHero';
-import HowItWorksSection from '../components/home/HowItWorksSection';
-import VideoStories from '../components/home/VideoStories';
-import CaseStudies from '../components/home/CaseStudies';
-import LeadMagnet from '../components/home/LeadMagnet';
-import CTASection from '../components/home/CTASection';
-import Footer from '../components/home/Footer';
+import { logoImg, RECIPES, GRAM_OPTS, GRAM_PRICES } from '../data/homeData';
 import { normalizePhone } from '../utils/phone';
-
 import { pushSampleToCRM, initiatePayU } from '../services/sampleBooking';
+
 import VetRxModal from '../components/modals/VetRxModal';
 import SampleModal from '../components/modals/SampleModal';
 import PaymentModal from '../components/modals/PaymentModal';
@@ -34,35 +14,14 @@ import ConfirmModal from '../components/modals/ConfirmModal';
 import ToolsModal from '../components/modals/ToolsModal';
 import QuizModal from '../components/modals/QuizModal';
 
-// ─────────────────────────────────────────────────────────────
-// Home Component
-// ─────────────────────────────────────────────────────────────
 export default function Home() {
-
-  // ── Nav / Menu ──
   const navigate = useNavigate();
   const [navScrolled, setNavScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-
-  // ── SEO ──
-  useSEO({
-    title: 'Doglicious.in — Superfood for Dogs',
-    description: "India's first AI dog nutrition company. Fresh, human-grade, AAFCO-aligned meals. Free delivery Gurgaon & Delhi NCR.",
-    canonical: 'https://doglicious.in/'
-  });
-
-  // ── Modals ──
   const [activeModal, setActiveModal] = useState(null);
-  const openModal = (id) => {
-    setActiveModal(id);
-    document.body.style.overflow = 'hidden';
-  };
-  const closeModal = () => {
-    setActiveModal(null);
-    document.body.style.overflow = '';
-  };
+  const [faqOpen, setFaqOpen] = useState(null);
 
-  // ── Sample flow ──
+  // Sample flow
   const [sampleStep, setSampleStep] = useState(1);
   const [selectedRecipe, setSelectedRecipe] = useState(0);
   const [selectedGramIdx, setSelectedGramIdx] = useState(0);
@@ -73,21 +32,21 @@ export default function Home() {
   const [deliveryCity, setDeliveryCity] = useState('');
   const [deliveryPin, setDeliveryPin] = useState('');
   const [mapSrc, setMapSrc] = useState('');
-
-  // ── Confirm order details (PayU fallback) ──
   const [orderDetails, setOrderDetails] = useState({});
-
-  // ── Tools ──
   const [activeTool, setActiveTool] = useState(0);
-
-  // ── Quiz ──
   const [quizStep, setQuizStep] = useState(0);
   const [quizName, setQuizName] = useState('');
   const [quizAnswers, setQuizAnswers] = useState({});
 
-  // ─────────────────────────────────────────────
-  // Effects
-  // ─────────────────────────────────────────────
+  useSEO({
+    title: 'Doglicious.in — Fresh Food & AI Analysis for Dogs',
+    description: "Vet-approved, internationally acclaimed fresh dog food. Book a sample for ₹99. AI Dog Analysis — Vet Rx Scan + Poop Analyser. Free. Gurgaon & Delhi NCR.",
+    canonical: 'https://doglicious.in/'
+  });
+
+  const openModal = (id) => { setActiveModal(id); document.body.style.overflow = 'hidden'; };
+  const closeModal = () => { setActiveModal(null); document.body.style.overflow = ''; };
+
   useEffect(() => {
     const onScroll = () => setNavScrolled(window.scrollY > 20);
     window.addEventListener('scroll', onScroll, { passive: true });
@@ -104,37 +63,23 @@ export default function Home() {
     const els = document.querySelectorAll('.rv, .sg');
     const obs = new IntersectionObserver(
       (entries) => entries.forEach((entry) => {
-        if (entry.isIntersecting) {
-          entry.target.classList.add('in');
-          obs.unobserve(entry.target);
-        }
+        if (entry.isIntersecting) { entry.target.classList.add('in'); obs.unobserve(entry.target); }
       }),
       { threshold: 0.08, rootMargin: '0px 0px -20px 0px' }
     );
     els.forEach((el) => obs.observe(el));
     setTimeout(() => {
       document.querySelectorAll('.hero .rv').forEach((el, i) => {
-        setTimeout(() => {
-          el.style.opacity = '1';
-          el.style.transform = 'none';
-        }, i * 90);
+        setTimeout(() => { el.style.opacity = '1'; el.style.transform = 'none'; }, i * 90);
       });
     }, 60);
     return () => obs.disconnect();
   }, []);
 
-  // ─────────────────────────────────────────────
-  // Handlers
-  // ─────────────────────────────────────────────
   const handleMobileInput = (val) => {
     setMobile(val);
     const digits = val.replace(/\D/g, '');
-    // Valid if 10 digits, or 12 digits starting with 91, or has + and at least 7 digits
-    setMobileValid(
-      digits.length === 10 ||
-      (digits.length === 12 && digits.startsWith('91')) ||
-      (val.startsWith('+') && digits.length >= 7)
-    );
+    setMobileValid(digits.length === 10 || (digits.length === 12 && digits.startsWith('91')) || (val.startsWith('+') && digits.length >= 7));
   };
 
   const handlePincodeInput = (val) => {
@@ -151,40 +96,17 @@ export default function Home() {
   };
 
   const proceedToPayment = async () => {
-    if (!mobile || !dogName || !deliveryAddress || !deliveryCity || !deliveryPin) {
-      alert('Please fill all fields.');
-      return;
-    }
-
+    if (!mobile || !dogName || !deliveryAddress || !deliveryCity || !deliveryPin) { alert('Please fill all fields.'); return; }
     const recipe = RECIPES[selectedRecipe];
     const grams = GRAM_OPTS[selectedGramIdx];
     const price = GRAM_PRICES[selectedGramIdx];
-
-    // 1. Push lead to Wylto CRM (silent — never blocks UX)
-    pushSampleToCRM({
-      dogName,
-      phone: normalizePhone(mobile),
-      address: deliveryAddress,
-      city: deliveryCity,
-      pincode: deliveryPin,
-      recipe,
-      grams,
-      price,
-    });
-
-    // 2. Initiate PayU payment — redirects to PayU hosted checkout
+    pushSampleToCRM({ dogName, phone: normalizePhone(mobile), address: deliveryAddress, city: deliveryCity, pincode: deliveryPin, recipe, grams, price });
     try {
       closeModal();
-      const normPhone = normalizePhone(mobile);
-      await initiatePayU({ dogName, phone: normPhone, price, recipe, grams });
+      await initiatePayU({ dogName, phone: normalizePhone(mobile), price, recipe, grams });
     } catch (err) {
       console.error('[PayU] initiation failed:', err);
-      // Fallback: show confirm modal so order isn't lost
-      const normPhone = normalizePhone(mobile);
-      setOrderDetails({
-        dogName, mobile: normPhone, recipe, grams, price,
-        address: `${deliveryAddress}, ${deliveryCity} - ${deliveryPin}`,
-      });
+      setOrderDetails({ dogName, mobile: normalizePhone(mobile), recipe, grams, price, address: `${deliveryAddress}, ${deliveryCity} - ${deliveryPin}` });
       openModal('confirm');
     }
   };
@@ -198,142 +120,577 @@ export default function Home() {
     if (idx === 5) { navigate('/tools/natural-healing'); return; }
     if (idx === 6) { navigate('/tools/aafco-planner'); return; }
     if (idx === 7) { navigate('/tools/health-quiz'); return; }
-    setActiveTool(idx);
-    openModal('tools');
+    setActiveTool(idx); openModal('tools');
   };
 
-  const playVid = (n) => {
-    const cover = document.getElementById(`vcover${n}`);
-    const vid = document.getElementById(`vid${n}`);
-    if (cover && vid) {
-      cover.style.display = 'none';
-      vid.style.display = 'block';
-      vid.play().catch(() => { });
-    }
-  };
+  const toggleFaq = (i) => setFaqOpen(faqOpen === i ? null : i);
 
-  const submitLead = (e) => {
-    e.preventDefault();
-    const name = e.target.ln.value;
-    const mob = e.target.lm.value;
-    const email = e.target.le.value;
-    const normPhone = normalizePhone(mob);
-    const msg = encodeURIComponent(
-      `Hi Doglicious! 🐾\n\nFree guide request:\nName: ${name}\nMobile: ${normPhone}\nEmail: ${email}\n\nPlease send the guide!`
-    );
-    window.open(`https://wa.me/+919889887980?text=${msg}`, '_blank');
-    e.target.innerHTML =
-      '<div style="text-align:center;padding:20px;">' +
-      '<div style="font-size:32px;margin-bottom:8px;">✅</div>' +
-      '<div style="font-size:15px;font-weight:600;color:var(--green);">Guide sent!</div>' +
-      '<div style="font-size:12px;color:var(--t3);margin-top:4px;">Check WhatsApp in 2 minutes 🐾</div>' +
-      '</div>';
-  };
-
-  // ─────────────────────────────────────────────
-  // Derived values
-  // ─────────────────────────────────────────────
   const currentPrice = GRAM_PRICES[selectedGramIdx];
   const currentGrams = GRAM_OPTS[selectedGramIdx];
 
-  // ─────────────────────────────────────────────
-  // Render
-  // ─────────────────────────────────────────────
   return (
     <>
-      <AnnBar />
-      <Navbar
-        navScrolled={navScrolled}
-        mobileMenuOpen={mobileMenuOpen}
-        setMobileMenuOpen={setMobileMenuOpen}
-        openModal={openModal}
-        openTool={openTool}
-        logoImg={logoImg}
-      />
-      <Hero openModal={openModal} />
-      <GuaranteesBar />
-      <VetRxHero openModal={openModal} />
-      <HowItWorksSection openModal={openModal} />
-      <TrustSection />
-      <VideoStories playVid={playVid} />
-      <CaseStudies />
-      <LeadMagnet foodImg={foodImg} submitLead={submitLead} />
-      <CTASection openModal={openModal} />
-      <Footer openModal={openModal} openTool={openTool} />
+      {/* ── STICKY HEADER ── */}
+      <div className="site-header">
+        {/* TICKER */}
+        <div className="ticker">
+          <span className="ticker-t">
+            🐾 Vet Approved &amp; Internationally Acclaimed &nbsp;·&nbsp; Free same-day delivery · Gurgaon &amp; Delhi NCR &nbsp;·&nbsp; Freshly cooked every morning &nbsp;·&nbsp; NABL certified every batch &nbsp;·&nbsp; Book a sample for ₹99 — no subscription &nbsp;·&nbsp; 5,00,000 meals served since 2020 &nbsp;·&nbsp; Zero preservatives · Zero fillers &nbsp;·&nbsp; AI-Powered Dog Analysis — Free &nbsp;·&nbsp;&nbsp; 🐾 Vet Approved &amp; Internationally Acclaimed
+          </span>
+        </div>
+        {/* NAV */}
+        <nav className={`nav${navScrolled ? ' s' : ''}`} id="nav">
+          <div className="nav-in">
+            <Link to="/" className="nav-logo">
+              <img src={logoImg} alt="Doglicious.in" style={{ height: '44px', width: 'auto', mixBlendMode: 'multiply', display: 'block' }} />
+            </Link>
+            <ul className="nav-links">
+              <li><a href="#book">Book Sample</a></li>
+              <li><a href="#recipes">Recipes</a></li>
+              <li>
+                <button>AI Analysis <span className="nav-caret">▾</span></button>
+                <div className="dd-menu">
+                  <div className="dd-item" onClick={() => openModal('vet')}>
+                    <div className="dd-icon">🔬</div>
+                    <div><div style={{ fontWeight: 700 }}>Vet Rx Scan</div><div className="dd-sub">Upload photo · describe symptoms — Free</div></div>
+                  </div>
+                  <div className="dd-item" onClick={() => { navigate('/poopsense'); }}>
+                    <div className="dd-icon">💩</div>
+                    <div><div style={{ fontWeight: 700 }}>PoopSense AI</div><div className="dd-sub">Stool health AI analysis — Free</div></div>
+                  </div>
+                </div>
+              </li>
+              <li>
+                <button>Free Tools <span className="nav-caret">▾</span></button>
+                <div className="dd-menu" style={{ minWidth: '260px', right: 0, left: 'auto' }}>
+                  {[['⚖️','Dog BMI Calculator','Is your dog at a healthy weight?',0],['🍽️','Feeding Calculator','How much should your dog eat?',1],['💰','Cost Calculator','Fresh vs kibble — real comparison',2],['📅','Age Calculator','Dog age in human years',3]].map(([ic,n,s,idx]) => (
+                    <div key={n} className="dd-item" onClick={() => openTool(idx)}><div className="dd-icon">{ic}</div><div><div>{n}</div><div className="dd-sub">{s}</div></div></div>
+                  ))}
+                  <div className="dd-sep" />
+                  {[['🥦','Safe Vegetables Guide','What\'s safe for your dog?',4],['💊','Natural Healing Guide','Vet-reviewed remedies',5],['📋','AAFCO Meal Planner','Build a balanced meal plan',6],['🧠','Dog Health Quiz','Get your dog\'s health score',7]].map(([ic,n,s,idx]) => (
+                    <div key={n} className="dd-item" onClick={() => openTool(idx)}><div className="dd-icon">{ic}</div><div><div>{n}</div><div className="dd-sub">{s}</div></div></div>
+                  ))}
+                </div>
+              </li>
+              <li><a href="#faq">FAQs</a></li>
+            </ul>
+            <div className="nav-r">
+              <button className="btn-nav-cta" onClick={() => openModal('sample')}>
+                <span style={{ fontSize: '13px', fontWeight: 800, letterSpacing: '.01em' }}>Upgrade Now! 🚀</span>
+                <span style={{ fontSize: '10px', fontWeight: 600, opacity: .80, marginTop: '1px' }}>Book a Sample for ₹99</span>
+              </button>
+              <button className={`hbg${mobileMenuOpen ? ' o' : ''}`} onClick={() => setMobileMenuOpen(p => !p)}>
+                <span /><span /><span />
+              </button>
+            </div>
+          </div>
+        </nav>
+      </div>
 
-      {/* Modals */}
-      <VetRxModal isOpen={activeModal === 'vet'} onClose={closeModal} />
-      <SampleModal
-        isOpen={activeModal === 'sample'}
-        onClose={closeModal}
-        sampleStep={sampleStep}
-        setSampleStep={setSampleStep}
-        selectedRecipe={selectedRecipe}
-        setSelectedRecipe={setSelectedRecipe}
-        selectedGramIdx={selectedGramIdx}
-        setSelectedGramIdx={setSelectedGramIdx}
-        dogName={dogName}
-        setDogName={setDogName}
-        mobile={mobile}
-        mobileValid={mobileValid}
-        handleMobileInput={handleMobileInput}
-        deliveryAddress={deliveryAddress}
-        setDeliveryAddress={setDeliveryAddress}
-        deliveryCity={deliveryCity}
-        setDeliveryCity={setDeliveryCity}
-        deliveryPin={deliveryPin}
-        handlePincodeInput={handlePincodeInput}
-        mapSrc={mapSrc}
-        openMapVerify={openMapVerify}
-        proceedToPayment={proceedToPayment}
-        currentPrice={currentPrice}
-        currentGrams={currentGrams}
-      />
-      <ConfirmModal
-        isOpen={activeModal === 'confirm'}
-        onClose={closeModal}
-        dogName={orderDetails.dogName}
-        mobile={orderDetails.mobile}
-        recipe={orderDetails.recipe}
-        grams={orderDetails.grams}
-        price={orderDetails.price}
-        address={orderDetails.address}
-      />
-      <ToolsModal
-        isOpen={activeModal === 'tools'}
-        onClose={closeModal}
-        activeTool={activeTool}
-        setActiveTool={setActiveTool}
-      />
-      <QuizModal
-        isOpen={activeModal === 'quiz'}
-        onClose={closeModal}
-        quizStep={quizStep}
-        setQuizStep={setQuizStep}
-        quizName={quizName}
-        setQuizName={setQuizName}
-        quizAnswers={quizAnswers}
-        setQuizAnswers={setQuizAnswers}
-        openModal={openModal}
-      />
+      {/* MOBILE DRAWER */}
+      <div className={`mob-drawer${mobileMenuOpen ? ' o' : ''}`}>
+        <a href="#book" onClick={() => setMobileMenuOpen(false)}>Book ₹99 Sample</a>
+        <a href="#recipes" onClick={() => setMobileMenuOpen(false)}>Recipes</a>
+        <span className="mob-section">AI Analysis</span>
+        <button onClick={() => { setMobileMenuOpen(false); openModal('vet'); }}>🔬 Vet Rx Scan — Free</button>
+        <button onClick={() => { setMobileMenuOpen(false); navigate('/poopsense'); }}>💩 PoopSense AI — Free</button>
+        <span className="mob-section">Free Tools</span>
+        <button onClick={() => { setMobileMenuOpen(false); openTool(0); }}>⚖️ BMI · 🍽️ Feeding · 💰 Cost</button>
+        <button onClick={() => { setMobileMenuOpen(false); openTool(3); }}>📅 Age · 🥦 Vegetables · 🧠 Quiz</button>
+        <span className="mob-section">Questions &amp; Answers</span>
+        <a href="#faq" onClick={() => setMobileMenuOpen(false)}>See all FAQs →</a>
+        <button onClick={() => { setMobileMenuOpen(false); openModal('sample'); }}>Book a Sample for ₹99 →</button>
+      </div>
 
-      {/* WhatsApp Float — matches HTML exactly */}
-      <div className="wa">
-        <a href="https://wa.me/+919889887980?text=Hi!%20I%20want%20to%20try%20Doglicious." target="_blank" rel="noreferrer">
-          <div className="wa-d"></div>
-          <svg width="26" height="26" viewBox="0 0 24 24" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413z" /></svg>
+      {/* ── HERO ── */}
+      <section className="hero" id="home" style={{ padding: 0 }}>
+        <div className="w" style={{ paddingTop: 0, paddingBottom: 0 }}>
+          <div className="hero-grid">
+            <div className="hero-content rv">
+              <div className="hero-label"><span className="hero-dot" />&nbsp;India's First AI Dog Nutrition &amp; Analysis Platform · Estd. 2020</div>
+              <h1 className="hero-h1">Fresh food &amp;<br />AI care for your<br /><em>dog. 🐾</em></h1>
+              <p className="hero-tagline">Different Dog. <span>Different Food.</span></p>
+              <p className="hero-sub"><strong>Vet-approved &amp; internationally acclaimed.</strong> Freshly cooked every morning, delivered same day. Free AI health analysis for every dog.</p>
+              <div className="hero-cards">
+                <button className="hcard hcard-a" onClick={() => openModal('sample')}>
+                  <div className="hcard-glow" />
+                  <span className="hcard-icon">🍗</span>
+                  <div className="hcard-over">AI-Driven</div>
+                  <div className="hcard-title">Personalised Nutrition, Cooked Fresh.</div>
+                  <div className="hcard-desc">Vet-approved · Internationally acclaimed · Fresh food cooked daily &amp; delivered</div>
+                  <div className="hcard-badge">Try a sample · <strong>₹99</strong></div>
+                  <span className="hcard-arr">→</span>
+                </button>
+                <button className="hcard hcard-b" onClick={() => navigate('/poopsense')}>
+                  <div className="hcard-glow" />
+                  <span className="hcard-icon">🔍</span>
+                  <div className="hcard-over">AI-Driven</div>
+                  <div className="hcard-title">Scan → Diagnose → Feed Right.</div>
+                  <div className="hcard-desc">AI-powered health &amp; nutrition analysis for your dog</div>
+                  <div className="hcard-badge">Free · First scan complimentary</div>
+                  <span className="hcard-arr">→</span>
+                </button>
+              </div>
+              <div className="trust-chips">
+                {['Vet Approved','Internationally Acclaimed','NABL Certified','AAFCO Aligned','Zero Preservatives','5L+ Meals Served'].map(c => <span key={c} className="chip">{c}</span>)}
+              </div>
+            </div>
+            <div className="hero-image">
+              <img src="/happy-dog.webp" srcSet="/happy-dog-720.webp 720w, /happy-dog.webp 900w" sizes="(max-width:768px) 720px, 900px" alt="Happy dog with fresh food" width="900" height="600" fetchPriority="high" />
+              <div className="hero-pill">
+                <div className="pill-dot" />
+                <div>
+                  <div className="pill-t">Freshly cooked today</div>
+                  <div className="pill-s">Delivered same day · Free</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ── PROOF BAR ── */}
+      <div className="proof">
+        <div className="w">
+          <div className="proof-inner">
+            {['Vet Approved & Internationally Acclaimed','NABL Certified every batch','Free same-day delivery','100% Money Back Guarantee. No question asked.'].map(t => (
+              <div key={t} className="proof-i">
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                {t}
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* ── PATHS / HOW TO START ── */}
+      <section id="book" style={{ background: 'var(--c3)', paddingTop: '96px', paddingBottom: '96px' }}>
+        <div className="w">
+          <div className="center rv" style={{ marginBottom: '56px' }}>
+            <span className="sec-label">✦ Two products · One platform</span>
+            <h2 className="sec-h">How would you like to start?</h2>
+          </div>
+          <div className="paths-grid">
+            {/* Card A — Fresh Food */}
+            <div className="path-card-a rv">
+              <div className="pc-pill">AI-POWERED</div>
+              <span className="pc-icon">🍗</span>
+              <h3 className="pc-h">Personalised Nutrition, Cooked Fresh.</h3>
+              <p className="pc-sub">Vet-approved · Internationally acclaimed · Fresh food cooked daily &amp; delivered</p>
+              <div className="pc-items">
+                <div className="pc-item" onClick={() => openModal('sample')}>
+                  <span className="pc-item-em">🥩</span>
+                  <div className="pc-item-body">
+                    <div className="pc-item-name">6 Vet-Approved Recipes</div>
+                    <span className="pc-item-badge badge-brown">FROM ₹99 PER 100G</span>
+                    <div className="pc-item-desc">Chicken · Lamb · Bone Broth · Quinoa · Paneer · Liver — freshly cooked every morning.</div>
+                  </div>
+                </div>
+                <div className="pc-item" onClick={() => openModal('sample')}>
+                  <span className="pc-item-em">🚚</span>
+                  <div className="pc-item-body">
+                    <div className="pc-item-name">Free Same-Day Delivery</div>
+                    <span className="pc-item-badge badge-brown">GURGAON &amp; DELHI NCR</span>
+                    <div className="pc-item-desc">NABL certified · AAFCO aligned · 100% Money Back Guarantee. No question asked.</div>
+                  </div>
+                </div>
+              </div>
+              <button className="pc-btn-primary" onClick={() => openModal('sample')}>🛒 Upgrade Your Dog's Food – ₹99</button>
+              <p className="pc-note">No lock-in · Free delivery · Fresh today</p>
+            </div>
+            {/* Card B — AI Analysis */}
+            <div className="path-card-b rv">
+              <div className="pc-pill">AI-DRIVEN <span className="pc-live-dot" /></div>
+              <span className="pc-icon">🔍</span>
+              <h3 className="pc-h">Scan → Diagnose → Feed Right.</h3>
+              <p className="pc-sub">AI-powered health &amp; nutrition analysis for your dog</p>
+              <div className="pc-free-pill">⚡ First 2 scans free · ₹99/mo after</div>
+              <div className="pc-items">
+                <div className="pc-item" onClick={() => openModal('vet')}>
+                  <span className="pc-item-em">🔬</span>
+                  <div className="pc-item-body">
+                    <div className="pc-item-name">Vet Rx Scan</div>
+                    <span className="pc-item-badge badge-teal">BE YOUR OWN VET</span>
+                    <div className="pc-item-desc">Upload a photo, describe symptoms — get AI-powered health insights &amp; a customised meal plan.</div>
+                    <div className="pc-item-cta cta-filled" style={{ flexDirection: 'column', alignItems: 'flex-start', gap: '1px', padding: '5px 12px' }}>
+                      <span>Free · Launch now →</span><span style={{ fontSize: '9px', opacity: .75, fontWeight: 500 }}>First 2 scans free · ₹99/mo after</span>
+                    </div>
+                  </div>
+                </div>
+                <div className="pc-item" onClick={() => navigate('/poopsense')}>
+                  <span className="pc-item-em">💩</span>
+                  <div className="pc-item-body">
+                    <div className="pc-item-name">PoopSense AI</div>
+                    <span className="pc-item-badge badge-yellow">FREE</span>
+                    <div className="pc-item-desc">Upload a stool photo — AI analyses gut health &amp; recommends the right dietary adjustments.</div>
+                    <div className="pc-item-cta cta-outline">Launch PoopSense AI →</div>
+                  </div>
+                </div>
+              </div>
+              <button className="pc-btn-secondary" onClick={() => openModal('vet')}>🔍 Launch Vet Rx Scan — Free</button>
+              <p className="pc-note">First 2 scans free · ₹99/month after · No sign-up</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ── RECIPES ── */}
+      <section id="recipes" style={{ background: 'var(--c1-05)', borderTop: '1px solid var(--sep)' }}>
+        <div className="w">
+          <div className="rv" style={{ marginBottom: '40px' }}>
+            <span className="sec-label">All ₹99 to try</span>
+            <h2 className="sec-h">6 vet-approved recipes. 🍽️</h2>
+            <p className="sec-p" style={{ maxWidth: '480px' }}>Freshly cooked to order every morning. Click any to book your sample.</p>
+          </div>
+          <div className="recipes-grid sg">
+            {[
+              { badge: 'Bestseller', em: '🍗', name: 'Chicken & Pumpkin', desc: 'Gut-soothing pumpkin with lean chicken and brown rice. Perfect for sensitive tummies.' },
+              { badge: 'Fan Favorite', em: '🍖', name: 'Tender Lamb in Gravy', desc: 'Slow-cooked lamb with organic carrots and millets. Rich, hearty, iron-packed.' },
+              { badge: 'Joint Health', em: '🦴', name: 'Bone Broth Pour-Over', desc: 'Mineral-rich broth over chicken and sweet potato. Joint support in every bite.' },
+              { badge: 'High Energy', em: '🥗', name: 'Chicken Quinoa Bowl', desc: 'High-protein wellness bowl with farm chicken and seasonal greens.' },
+              { badge: 'Vegetarian', em: '🧀', name: 'Paneer & Farm Feast', desc: 'Fresh paneer with seasonal farm vegetables and brown rice. Calcium-rich.' },
+              { badge: 'Superfood', em: '🫀', name: 'Healthy Liver Delite', desc: 'Chicken liver, pumpkin and millets. Naturally high in iron and Vitamin A.' },
+            ].map((r, i) => (
+              <div key={r.name} className="rc" onClick={() => { setSelectedRecipe(i); setSampleStep(1); openModal('sample'); }}>
+                <div className="rc-badge">{r.badge}</div>
+                <div className="rc-em">{r.em}</div>
+                <div className="rc-n">{r.name}</div>
+                <div className="rc-d">{r.desc}</div>
+                <div className="rc-arrow">Book this recipe →</div>
+              </div>
+            ))}
+          </div>
+          <div className="center mt-32 rv">
+            <button className="btn-primary" onClick={() => openModal('sample')}>Try any recipe — ₹99</button>
+          </div>
+        </div>
+      </section>
+
+      {/* ── FRESH FOOD SECTION ── */}
+      <section style={{ background: 'var(--c3)' }}>
+        <div className="w">
+          <div className="fresh-grid">
+            <div className="rv">
+              <div className="fstats">
+                {[['100%','Fresh whole-food ingredients'],['0','Preservatives, ever'],['3h','Kitchen to bowl'],['5L+','Meals served since 2020']].map(([n,l]) => (
+                  <div key={l} className="fstat"><div className="fstat-n">{n}</div><div className="fstat-l">{l}</div></div>
+                ))}
+              </div>
+            </div>
+            <div className="rv">
+              <span className="sec-label">What is fresh dog food?</span>
+              <h2 className="sec-h">Cooked daily.<br />Served daily. 🍳</h2>
+              <p className="sec-p" style={{ marginBottom: '6px' }}>Real food, real ingredients — not kibble, not processed packs.</p>
+              <div className="fresh-pts">
+                {[
+                  { ic: '🚫', t: 'Not kibble', d: 'Ultra-processed at 120°C+, destroying nutrients. Ours is gently cooked to preserve every vitamin.' },
+                  { ic: '🚫', t: 'Not processed packs', d: 'No mystery shelf-life. Fresh food expires like real food — because it IS real food.' },
+                  { ic: '✅', t: 'Real food, traceable ingredients', d: 'Whole proteins, organic vegetables, complex carbs. Every ingredient visible on the label.' },
+                  { ic: '🏆', t: 'Vet Approved & Internationally Acclaimed', d: 'NABL lab-certified every batch. Recipes by internationally acclaimed veterinary nutritionists.' },
+                ].map(fp => (
+                  <div key={fp.t} className="fp">
+                    <div className="fp-ic">{fp.ic}</div>
+                    <div><div className="fp-t">{fp.t}</div><div className="fp-d">{fp.d}</div></div>
+                  </div>
+                ))}
+              </div>
+              <div style={{ marginTop: '24px' }}>
+                <button className="btn-primary" onClick={() => openModal('sample')}>Try it for ₹99</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ── TESTIMONIALS ── */}
+      <section style={{ background: 'var(--c1-05)', borderTop: '1px solid var(--sep)' }}>
+        <div className="w">
+          <div className="center rv" style={{ marginBottom: '52px' }}>
+            <span className="sec-label">✦ Real stories</span>
+            <h2 className="sec-h">Loved by dogs.<br />Trusted by parents.</h2>
+          </div>
+          <div className="testi-grid sg">
+            <div className="tc">
+              <div className="tc-stars">{[...Array(5)].map((_,i) => <div key={i} className="star" />)}</div>
+              <p className="tc-q">"Bruno was on kibble for 3 years. Within 2 weeks — shinier coat, more energy, and he gets <strong>excited at meal time</strong>. Never happened before."</p>
+              <div className="tc-by"><div className="tc-av">R</div><div><div className="tc-n">Ritu Sharma</div><div className="tc-d">Bruno · 4yr Labrador, Gurgaon</div></div></div>
+            </div>
+            <div className="tc" style={{ marginTop: '28px' }}>
+              <div className="tc-stars">{[...Array(5)].map((_,i) => <div key={i} className="star" />)}</div>
+              <p className="tc-q">"Max had terrible skin issues. Doglicious customised his plan via the Vet Rx Scan. <strong>The change in 3 weeks was incredible.</strong>"</p>
+              <div className="tc-by"><div className="tc-av tc-av-2">A</div><div><div className="tc-n">Aditya Kapoor</div><div className="tc-d">Max · 2yr Beagle, South Delhi</div></div></div>
+            </div>
+            <div className="tc">
+              <div className="tc-stars">{[...Array(5)].map((_,i) => <div key={i} className="star" />)}</div>
+              <p className="tc-q">"The ₹99 sample changed my mind instantly. Zeus ate it in seconds. <strong>He has never done that with any food.</strong>"</p>
+              <div className="tc-by"><div className="tc-av tc-av-3">P</div><div><div className="tc-n">Priya Malhotra</div><div className="tc-d">Zeus · 6yr German Shepherd, Noida</div></div></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ── BLOG ── */}
+      <section id="blog" className="blog-sec" style={{ padding: '96px 0' }}>
+        <div className="w">
+          <div className="blog-header rv">
+            <span className="blog-label">✦ Expert Knowledge</span>
+            <h2 className="blog-title">Dog Health &amp; <em>Nutrition</em> Blog</h2>
+            <p className="blog-subtitle">Vet-backed guides to help you raise a healthier, happier dog.</p>
+          </div>
+          {/* Featured — Blog ID 1 */}
+          <div className="blog-featured rv" onClick={() => navigate('/blog/1')}>
+            <div className="blog-feat-visual">🍗</div>
+            <div className="blog-feat-content">
+              <div className="blog-feat-cat">⭐ Featured · Nutrition · Fresh Food Science</div>
+              <h3 className="blog-feat-h">Why Ghar Ka Khana Is Finally Available for Your Dog</h3>
+              <p className="blog-feat-d">The science behind fresh food — why ultra-processed kibble falls short, and what your dog is really missing from their bowl every single day.</p>
+              <span className="blog-feat-link">Read full article →</span>
+              <div className="blog-feat-meta">9 min read</div>
+            </div>
+          </div>
+          {/* Grid — IDs 2–7, titles match homeData.js exactly */}
+          <div className="blog-grid sg">
+            {[
+              { bg: 'linear-gradient(145deg,#fff3e0,#ffe0b2)', em: '⚖️', cat: 'blog-cat-nutrition', catLabel: 'Nutrition', h: 'Kibble vs Fresh Dog Food — The Truth No Brand Will Tell You', d: 'What kibble is really made from, why "complete nutrition" labels mislead, and what the real comparison looks like.', meta: '9 min read · Nutrition', id: 2 },
+              { bg: 'linear-gradient(145deg,#fce4ec,#f8bbd0)', em: '🧴', cat: 'blog-cat-care', catLabel: 'Skin & Coat', h: "Is Your Dog's Coat Dull and Skin Itchy? Stop Blaming the Weather", d: 'Skin problems almost always trace back to food. The carb-yeast connection most vets never mention.', meta: '8 min read · Skin & Coat Health', id: 3 },
+              { bg: 'linear-gradient(145deg,#e8f5e9,#c8e6c9)', em: '🔄', cat: 'blog-cat-gut', catLabel: 'Transition Guide', h: 'How to Switch Your Dog to Fresh Food Without the Drama', d: 'The exact day-by-day transition plan, the palatant problem, and the one mistake that derails every switch.', meta: '7 min read · Transition Guide', id: 4 },
+              { bg: 'linear-gradient(145deg,#fff8e1,#ffecb3)', em: '🇮🇳', cat: 'blog-cat-nutrition', catLabel: 'Indian Dogs', h: "What Indian Dogs Actually Need to Eat — And Why We've Been Getting It Wrong", d: 'Indian dogs live in Indian conditions. Why imported western kibble formulas were never designed for them.', meta: '9 min read · Indian Dogs', id: 5 },
+              { bg: 'linear-gradient(145deg,#e8eaf6,#c5cae9)', em: '⚗️', cat: 'blog-cat-science', catLabel: 'Ingredients', h: 'The Preservative Problem in Indian Dog Food — Including the Aflatoxin Truth', d: 'BHA, BHT, ethoxyquin, aflatoxin — the chemicals in your dog\'s food and why India\'s warm climate makes it worse.', meta: '8 min read · Ingredients', id: 6 },
+              { bg: 'linear-gradient(145deg,#e0f2f1,#b2dfdb)', em: '🐶', cat: 'blog-cat-care', catLabel: 'Lifecycle · Puppy', h: "What to Feed Your Puppy in Their First Year — The Guide Most Indian Vets Don't Give You", d: 'The first year shapes everything. What to feed, when to feed it, and the calcium mistake large-breed owners make.', meta: '8 min read · Puppy Guide', id: 7 },
+            ].map(b => (
+              <div key={b.id} className="blog-card rv" onClick={() => navigate(`/blog/${b.id}`)}>
+                <div className="blog-card-top" style={{ background: b.bg }}>{b.em}</div>
+                <div className="blog-card-body">
+                  <div className={`blog-cat ${b.cat}`}>{b.catLabel}</div>
+                  <h3 className="blog-h">{b.h}</h3>
+                  <p className="blog-d">{b.d}</p>
+                  <span className="blog-link">Read more →</span>
+                  <div className="blog-meta">{b.meta}</div>
+                </div>
+              </div>
+            ))}
+          </div>
+          {/* Bottom wide cards — IDs 8 & 9 */}
+          <div className="blog-bottom sg">
+            <div className="blog-wide rv" onClick={() => navigate('/blog/8')}>
+              <div className="blog-wide-icon">🌟</div>
+              <div className="blog-wide-body">
+                <div className="blog-wide-cat">Lifecycle · Senior</div>
+                <h3 className="blog-wide-h">Your Senior Dog Is Eating Less — And the Answer Probably Isn't Another Vet Visit</h3>
+                <p className="blog-wide-d">Why older dogs stop eating, why their protein needs actually increase with age, and what really helps.</p>
+                <span className="blog-wide-link">Read more →</span>
+              </div>
+            </div>
+            <div className="blog-wide rv" onClick={() => navigate('/blog/9')}>
+              <div className="blog-wide-icon">🥦</div>
+              <div className="blog-wide-body">
+                <div className="blog-wide-cat">Indian Kitchen Guide</div>
+                <h3 className="blog-wide-h">The Indian Kitchen and Your Dog — What's Safe, What's a Myth, and What Could Kill Them</h3>
+                <p className="blog-wide-d">Onion, garlic, roti, grapes — what's dangerous, what's fine, and what Indian dog parents get wrong every day.</p>
+                <span className="blog-wide-link">Read more →</span>
+              </div>
+            </div>
+          </div>
+          <div className="blog-view-all rv">
+            <button className="btn-blog-all" onClick={() => navigate('/blogs')}>📚 View all articles →</button>
+          </div>
+        </div>
+      </section>
+
+      {/* ── FAQ ── */}
+      <section id="faq" style={{ background: 'var(--c1-05)', borderTop: '1px solid var(--sep)' }}>
+        <div className="w-sm">
+          <div className="rv" style={{ marginBottom: '36px' }}>
+            <span className="sec-label">FAQ</span>
+            <h2 className="sec-h">Questions &amp; answers. 🤔</h2>
+            <p className="sec-p mt-8" style={{ maxWidth: '480px' }}>Everything you need to know. Click any question to expand.</p>
+          </div>
+          <div className="rv">
+            {[
+              { q: 'How does the ₹99 sample work?', a: 'Pick a recipe, select a quantity (100g–500g), enter your address, and pay. We cook fresh the same morning and deliver same day. No subscription, no commitment. Just ₹99 to try.' },
+              { q: 'What does "Vet Approved & Internationally Acclaimed" mean?', a: 'All our recipes are curated by internationally acclaimed veterinary nutritionists and are AAFCO-aligned. Every batch is NABL lab-certified. You receive the lab report with your order.' },
+              { q: 'What is Vet Rx Scan?', a: "India's first AI dog health scanner. Upload a photo, describe symptoms, get an AI-powered first assessment with personalised nutrition recommendations — free for everyone." },
+              { q: 'What is PoopSense AI?', a: 'Upload a photo of your dog\'s stool and our AI analyses colour, consistency, and form to flag potential gut health concerns and recommend dietary adjustments. Free to try.' },
+              { q: 'Where do you deliver?', a: 'We currently deliver across Gurgaon and selected areas of Delhi NCR. WhatsApp us at 988 988 7980 to check your specific pin code.' },
+              { q: "What if my dog doesn't like it?", a: '5-day full money-back guarantee — no questions asked. Contact us at woof@doglicious.in within 5 days and we\'ll refund you completely.' },
+            ].map((faq, i) => (
+              <div key={i} className={`fq${faqOpen === i ? ' op' : ''}`}>
+                <button className="fq-btn" onClick={() => toggleFaq(i)}>
+                  {faq.q}
+                  <span className="fq-ico">+</span>
+                </button>
+                <div className="fq-ans"><div className="fq-body">{faq.a}</div></div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── FINAL CTA ── */}
+      <section className="cta-sec">
+        <div className="cta-paws">
+          {[{t:'8%',l:'6%',fs:'42px',d:'0s'},{t:'20%',r:'8%',fs:'24px',d:'2s'},{b:'15%',l:'12%',fs:'32px',d:'4s'},{b:'25%',r:'14%',fs:'20px',d:'1s'},{t:'50%',l:'3%',fs:'18px',d:'6s'},{t:'40%',r:'4%',fs:'36px',d:'3s'}].map((p,i) => (
+            <span key={i} className="cta-paw" style={{ top: p.t, bottom: p.b, left: p.l, right: p.r, fontSize: p.fs, animationDelay: p.d }}>🐾</span>
+          ))}
+        </div>
+        <div className="w" style={{ position: 'relative', zIndex: 2 }}>
+          <div className="rv center">
+            <div style={{ marginBottom: '32px' }}>
+              <img src={logoImg} style={{ maxWidth: '150px', height: 'auto', filter: 'brightness(0) invert(1)', opacity: .88, display: 'inline-block' }} alt="Doglicious" />
+            </div>
+            <div style={{ width: '56px', height: '2px', background: 'var(--c2)', borderRadius: '2px', margin: '0 auto 28px', opacity: .7 }} />
+            <span className="sec-label">✦ &nbsp;Ready to begin?&nbsp; ✦</span>
+            <h2 className="sec-h" style={{ marginTop: '14px' }}>Give your dog the food<br />they <em>deserve.</em></h2>
+            <p className="sec-p">Freshly cooked every morning. Delivered same day.<br />Vet-approved. Start with a ₹99 sample — no commitment, no subscription.</p>
+            <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: '8px', marginBottom: '40px' }}>
+              {[['🏆','NABL Certified'],['🧬','Vet Approved'],['🚚','Free Same-Day Delivery'],['💯','100% Money Back']].map(([ic,l]) => (
+                <span key={l} style={{ fontSize: '11px', fontWeight: 600, color: 'rgba(254,253,249,.55)', background: 'rgba(254,253,249,.07)', border: '1px solid rgba(254,253,249,.10)', padding: '5px 14px', borderRadius: '999px' }}>{ic} {l}</span>
+              ))}
+            </div>
+            <div className="cta-btns">
+              <button className="btn-primary" onClick={() => openModal('sample')} style={{ fontSize: '16px', padding: '17px 36px', boxShadow: '0 8px 32px rgba(151,103,70,.45)', letterSpacing: '.01em' }}>🛒 Book ₹99 Sample</button>
+              <a className="btn-outline" href="https://wa.me/919889887980" target="_blank" rel="noreferrer">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413z"/></svg>
+                Chat on WhatsApp
+              </a>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ── FOOTER ── */}
+      <footer>
+        <div className="w">
+          <div className="footer-top">
+            <div>
+              <div className="f-logo" style={{ background: '#fff', borderRadius: '8px', padding: '8px', display: 'inline-block' }}>
+                <img src={logoImg} style={{ maxWidth: '160px', height: 'auto', display: 'block', mixBlendMode: 'multiply', filter: 'contrast(1.05)' }} alt="Doglicious.in" />
+              </div>
+              <p className="f-tagline">Fresh food for dogs. Personalised by AI. Vet approved &amp; internationally acclaimed. Cooked fresh daily.</p>
+              <div className="f-contact">
+                <a href="tel:+919889887980">📞 988 988 7980</a>
+                <a href="mailto:woof@doglicious.in">✉️ woof@doglicious.in</a>
+                <span>Gurgaon &amp; Delhi NCR · 10AM–6PM daily</span>
+              </div>
+            </div>
+            <div>
+              <div className="f-hl">Products</div>
+              <ul className="fl">
+                <li><a href="#" onClick={e => { e.preventDefault(); openModal('sample'); }}>Book ₹99 Sample</a></li>
+                <li><a href="#recipes">All Recipes</a></li>
+                <li><a href="#" onClick={e => { e.preventDefault(); openModal('vet'); }}>Vet Rx Scan (Free · First 2 scans / ₹99/mo)</a></li>
+                <li><a href="#" onClick={e => { e.preventDefault(); navigate('/poopsense'); }}>PoopSense AI (Free)</a></li>
+              </ul>
+            </div>
+            <div>
+              <div className="f-hl">Company</div>
+              <ul className="fl">
+                <li><a href="#faq">FAQ</a></li>
+                <li><a href="#blog">Blog</a></li>
+                <li><a href="mailto:woof@doglicious.in">Contact Us</a></li>
+                <li><Link to="/privacy-policy">Privacy Policy</Link></li>
+                <li><Link to="/terms-of-service">Terms</Link></li>
+                <li><Link to="/refund-policy">Refund Policy</Link></li>
+              </ul>
+            </div>
+          </div>
+        </div>
+        <div className="footer-bottom">
+          <div className="w">
+            <div className="fbb-inner">
+              <div style={{ display: 'flex', alignItems: 'center', gap: '14px', flexWrap: 'wrap' }}>
+                <img src={logoImg} style={{ maxWidth: '90px', height: 'auto', filter: 'brightness(0) invert(1)', opacity: .80 }} alt="Doglicious" />
+                <span className="f-cp">© 2025 Doglicious.in &nbsp;·&nbsp; Petlicious Superfoods India Private Limited</span>
+              </div>
+              <div className="f-leg">
+                <Link to="/privacy-policy">Privacy</Link>
+                <Link to="/terms-of-service">Terms</Link>
+                <Link to="/refund-policy">Refund Policy</Link>
+              </div>
+            </div>
+          </div>
+        </div>
+      </footer>
+
+      {/* ── WHATSAPP FLOAT ── */}
+      <div className="wa-float">
+        <a href="https://wa.me/919889887980" target="_blank" rel="noopener noreferrer" aria-label="Chat on WhatsApp">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 175.216 175.552" width="58" height="58">
+            <defs><linearGradient id="waGrad" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style={{ stopColor: '#25CF43' }} /><stop offset="100%" style={{ stopColor: '#20B038' }} /></linearGradient></defs>
+            <rect width="175.216" height="175.552" rx="36" fill="url(#waGrad)" />
+            <path fill="#fff" d="M87.65 21.1C51.6 21.1 22.3 50.4 22.3 86.5c0 11.5 3.1 22.3 8.5 31.6L21.1 154l37.4-9.8c9 4.9 19.3 7.7 30.2 7.7 36.1 0 65.4-29.3 65.4-65.4-.1-36-29.4-65.4-66.45-65.4zm.35 120.1c-10.1 0-20-2.7-28.6-7.8l-2-.1-20.9 5.5 5.6-20.3-.2-2.1c-5.5-8.9-8.5-19.2-8.5-29.9 0-31 25.2-56.2 56.2-56.2 30 0 56.1 25.3 56.1 56.2 0 30.9-25.2 56.6-57.7 56.6zm30.8-42c-1.7-.8-9.9-4.9-11.4-5.4-1.5-.6-2.6-.8-3.7.9-1.1 1.7-4.3 5.4-5.3 6.5-1 1.1-1.9 1.2-3.6.4-1.7-.8-7.1-2.6-13.5-8.3-5-4.5-8.4-10-9.4-11.7-1-1.7-.1-2.6.7-3.4.7-.7 1.7-1.9 2.5-2.9.8-1 1.1-1.7 1.7-2.8.6-1.1.3-2.1-.1-2.9-.4-.8-3.8-9.1-5.2-12.5-1.3-3.3-2.7-2.8-3.8-2.9-1 0-2.1 0-3.2 0-1.1 0-2.9.4-4.4 2.1-1.5 1.7-5.9 5.7-5.9 14s6 16.3 6.9 17.4c.8 1.1 11.9 18.1 28.7 25.4 4 1.7 7.1 2.8 9.5 3.5 4 1.3 7.6 1.1 10.5.7 3.2-.5 9.9-4 11.3-7.9 1.4-3.8 1.4-7.1.9-7.8-.4-.7-1.5-1.1-3.2-1.9z" />
+          </svg>
+          <div className="wa-dot" />
         </a>
       </div>
 
-      {/* Mobile Sticky CTA — matches HTML exactly */}
-      <div className="sm-cta">
-        <div className="sm-t">
-          <strong>Doglicious.in</strong>
-          <span>AI-Powered Dog Nutrition</span>
+      {/* ── MOBILE STICKY BAR ── */}
+      <div className="msb">
+        <div className="msb-t"><strong>Fresh food · AI analysis</strong><span>From ₹99 · Free delivery</span></div>
+        <div className="msb-btns">
+          <button className="msb-scan" onClick={() => navigate('/poopsense')}>🔍 AI Scan</button>
+          <button className="msb-book" onClick={() => openModal('sample')}>Book ₹99</button>
         </div>
-        <div style={{ display: "flex", gap: "6px" }}>
-          <button className="btn btn-secondary btn-sm" onClick={() => openModal('vet')}>🔍 Scan</button>
-          <button className="btn btn-primary btn-sm" onClick={() => openModal('sample')}>₹99</button>
+      </div>
+
+      {/* ── MODALS ── */}
+      <VetRxModal isOpen={activeModal === 'vet'} onClose={closeModal} />
+      <SampleModal
+        isOpen={activeModal === 'sample'} onClose={closeModal}
+        sampleStep={sampleStep} setSampleStep={setSampleStep}
+        selectedRecipe={selectedRecipe} setSelectedRecipe={setSelectedRecipe}
+        selectedGramIdx={selectedGramIdx} setSelectedGramIdx={setSelectedGramIdx}
+        dogName={dogName} setDogName={setDogName}
+        mobile={mobile} mobileValid={mobileValid} handleMobileInput={handleMobileInput}
+        deliveryAddress={deliveryAddress} setDeliveryAddress={setDeliveryAddress}
+        deliveryCity={deliveryCity} setDeliveryCity={setDeliveryCity}
+        deliveryPin={deliveryPin} handlePincodeInput={handlePincodeInput}
+        mapSrc={mapSrc} openMapVerify={openMapVerify}
+        proceedToPayment={proceedToPayment}
+        currentPrice={currentPrice} currentGrams={currentGrams}
+      />
+      <ConfirmModal
+        isOpen={activeModal === 'confirm'} onClose={closeModal}
+        dogName={orderDetails.dogName} mobile={orderDetails.mobile}
+        recipe={orderDetails.recipe} grams={orderDetails.grams}
+        price={orderDetails.price} address={orderDetails.address}
+      />
+      <ToolsModal isOpen={activeModal === 'tools'} onClose={closeModal} activeTool={activeTool} setActiveTool={setActiveTool} />
+      <QuizModal
+        isOpen={activeModal === 'quiz'} onClose={closeModal}
+        quizStep={quizStep} setQuizStep={setQuizStep}
+        quizName={quizName} setQuizName={setQuizName}
+        quizAnswers={quizAnswers} setQuizAnswers={setQuizAnswers}
+        openModal={openModal}
+      />
+
+      {/* Analysis Modal (inline) */}
+      <div className={`mbk${activeModal === 'analysis' ? ' o' : ''}`} onClick={e => { if (e.target === e.currentTarget) closeModal(); }}>
+        <div className="mbox" style={{ maxWidth: '480px' }}>
+          <div className="mh">
+            <div className="mh-t">🔍 AI-Driven Dog Analysis</div>
+            <button className="mcl" onClick={closeModal}>✕</button>
+          </div>
+          <p style={{ fontSize: '13px', color: 'var(--c1-70)', marginBottom: '18px', lineHeight: 1.65, fontStyle: 'italic' }}>Super AI Analysis for Dogs — Analyse health · Analyse poop · Get customised food.</p>
+          <div className="am-tool am-a" onClick={() => { closeModal(); setTimeout(() => openModal('vet'), 50); }}>
+            <div className="am-icon">🔬</div>
+            <div>
+              <div className="am-label">Vet Rx Scan</div>
+              <div className="am-name">Health &amp; Nutrition Scan</div>
+              <div className="am-desc">Upload a photo, describe symptoms — AI-powered health assessment and customised meal recommendation for your ailing dog.</div>
+              <div className="am-cta">Launch Vet Rx Scan — Free →</div>
+            </div>
+          </div>
+          <div className="am-tool am-a" onClick={() => { closeModal(); navigate('/poopsense'); }}>
+            <div className="am-icon">💩</div>
+            <div>
+              <div className="am-label">PoopSense AI</div>
+              <div className="am-name">Stool Health Analysis</div>
+              <div className="am-desc">Upload a photo of your dog's stool — AI analyses colour, consistency, and form to flag gut health concerns and recommend dietary adjustments.</div>
+              <div className="am-cta">Launch PoopSense AI — Free →</div>
+            </div>
+          </div>
+          <p style={{ fontSize: '11px', color: 'var(--c1-50)', textAlign: 'center', marginTop: '12px' }}>Free for everyone · First scan complimentary · No sign-up needed</p>
         </div>
       </div>
     </>

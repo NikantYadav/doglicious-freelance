@@ -1,11 +1,9 @@
 import { Link, useNavigate } from 'react-router-dom';
 import '../styles/Home.css';
 import '../styles/TermsOfService.css';
-import Navbar from '../components/home/Navbar';
-import Footer from '../components/home/Footer';
-import { logoImg } from '../data/homeData';
+import SiteHeader from '../components/shared/SiteHeader';
+import SiteFooter from '../components/shared/SiteFooter';
 import { useSEO } from '../hooks/useSEO';
-import { useState, useEffect } from 'react';
 
 export default function TermsOfService() {
   useSEO({
@@ -14,29 +12,9 @@ export default function TermsOfService() {
     path: '/terms-of-service'
   });
 
-  const navigate = useNavigate();
-  const [navScrolled, setNavScrolled] = useState(false);
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-
-  useEffect(() => {
-    const onScroll = () => setNavScrolled(window.scrollY > 20);
-    window.addEventListener('scroll', onScroll, { passive: true });
-    return () => window.removeEventListener('scroll', onScroll);
-  }, []);
-
-  const openModal = () => { };
-  const openTool = () => { };
-
   return (
     <>
-      <Navbar
-        navScrolled={navScrolled}
-        mobileMenuOpen={mobileMenuOpen}
-        setMobileMenuOpen={setMobileMenuOpen}
-        openModal={openModal}
-        openTool={openTool}
-        logoImg={logoImg}
-      />
+      <SiteHeader />
 
       <header className="page-header">
         <div className="ph-inner">
@@ -216,7 +194,7 @@ export default function TermsOfService() {
         </div>
       </main>
 
-      <Footer openModal={openModal} openTool={openTool} />
+      <SiteFooter />
     </>
   );
 }

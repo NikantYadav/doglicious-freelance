@@ -1,11 +1,14 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import Navbar from '../components/home/Navbar';
-import Footer from '../components/home/Footer';
+
+
 import { logoImg } from '../data/homeData';
+import SiteHeader from '../components/shared/SiteHeader';
+import SiteFooter from '../components/shared/SiteFooter';
 import { useSEO } from '../hooks/useSEO';
 import { normalizePhone } from '../utils/phone';
 import { pushLead } from '../services/wylto';
+import '../styles/Home.css';
 import '../styles/AgeCalculator.css';
 
 // ── Data ──────────────────────────────────────────────────────
@@ -99,8 +102,6 @@ export default function AgeCalculator() {
   });
 
   const navigate = useNavigate();
-  const [navScrolled, setNavScrolled] = useState(false);
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   // form state
   const [dogName, setDogName] = useState('');
@@ -120,9 +121,6 @@ export default function AgeCalculator() {
   const ringRef = useRef(null);
 
   useEffect(() => {
-    const onScroll = () => setNavScrolled(window.scrollY > 20);
-    window.addEventListener('scroll', onScroll, { passive: true });
-    return () => window.removeEventListener('scroll', onScroll);
   }, []);
 
   useEffect(() => { window.scrollTo(0, 0); }, []);
@@ -216,14 +214,7 @@ export default function AgeCalculator() {
 
   return (
     <>
-      <Navbar
-        navScrolled={navScrolled}
-        mobileMenuOpen={mobileMenuOpen}
-        setMobileMenuOpen={setMobileMenuOpen}
-        openModal={() => { }}
-        openTool={openTool}
-        logoImg={logoImg}
-      />
+      <SiteHeader />
 
       {/* Hero */}
       <div className="ac-hero">
@@ -431,7 +422,7 @@ export default function AgeCalculator() {
         )}
       </div>
 
-      <Footer openModal={() => { }} openTool={openTool} />
+      <SiteFooter />
     </>
   );
 }

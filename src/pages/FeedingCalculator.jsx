@@ -1,11 +1,14 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import Navbar from '../components/home/Navbar';
-import Footer from '../components/home/Footer';
+
+
 import { logoImg } from '../data/homeData';
+import SiteHeader from '../components/shared/SiteHeader';
+import SiteFooter from '../components/shared/SiteFooter';
 import { useSEO } from '../hooks/useSEO';
 import { normalizePhone } from '../utils/phone';
 import { pushLead } from '../services/wylto';
+import '../styles/Home.css';
 import '../styles/FeedingCalculator.css';
 
 // ── Data ──────────────────────────────────────────────────────
@@ -50,8 +53,6 @@ export default function FeedingCalculator() {
   });
 
   const navigate = useNavigate();
-  const [navScrolled, setNavScrolled] = useState(false);
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   // wizard state
   const [step, setStep] = useState(1);
@@ -75,9 +76,6 @@ export default function FeedingCalculator() {
   const weightRef = useRef(null);
 
   useEffect(() => {
-    const onScroll = () => setNavScrolled(window.scrollY > 20);
-    window.addEventListener('scroll', onScroll, { passive: true });
-    return () => window.removeEventListener('scroll', onScroll);
   }, []);
 
   useEffect(() => { window.scrollTo(0, 0); }, []);
@@ -239,14 +237,7 @@ export default function FeedingCalculator() {
 
   return (
     <>
-      <Navbar
-        navScrolled={navScrolled}
-        mobileMenuOpen={mobileMenuOpen}
-        setMobileMenuOpen={setMobileMenuOpen}
-        openModal={() => { }}
-        openTool={openTool}
-        logoImg={logoImg}
-      />
+      <SiteHeader />
 
       {/* Hero */}
       <section className="fc-hero">
@@ -510,7 +501,7 @@ export default function FeedingCalculator() {
         </section>
       )}
 
-      <Footer openModal={() => { }} openTool={openTool} />
+      <SiteFooter />
     </>
   );
 }

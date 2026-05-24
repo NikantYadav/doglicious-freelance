@@ -11,6 +11,7 @@ const RefundPolicy = React.lazy(() => import('./pages/RefundPolicy'))
 const ShippingPolicy = React.lazy(() => import('./pages/ShippingPolicy'))
 const TermsOfService = React.lazy(() => import('./pages/TermsOfService'))
 const VetRxScan = React.lazy(() => import('./pages/VetRxScan'))
+const PoopSense = React.lazy(() => import('./pages/PoopSense'))
 const AafcoPlanner = React.lazy(() => import('./pages/AafcoPlanner'))
 const AgeCalculator = React.lazy(() => import('./pages/AgeCalculator'))
 const BestVegetables = React.lazy(() => import('./pages/BestVegetables'))
@@ -37,6 +38,7 @@ export default function App() {
         <Route path="/shipping-policy" element={<ShippingPolicy />} />
         <Route path="/terms-of-service" element={<TermsOfService />} />
         <Route path="/vetrxscan" element={<VetRxScan />} />
+        <Route path="/poopsense" element={<PoopSense />} />
         <Route path="/tools/aafco-planner" element={<AafcoPlanner />} />
         <Route path="/tools/age-calculator" element={<AgeCalculator />} />
         <Route path="/tools/best-vegetables" element={<BestVegetables />} />

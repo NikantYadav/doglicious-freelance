@@ -1,9 +1,9 @@
 import { useState, useEffect, useRef } from 'react';
+import '../styles/Home.css';
 import '../styles/Products.css';
 
 // Home Components
-import Navbar from '../components/home/Navbar';
-import AnnBar from '../components/home/AnnBar';
+import SiteHeader from '../components/shared/SiteHeader';
 import WhySection from '../components/home/WhySection';
 import WhatIsFreshSection from '../components/home/WhatIsFreshSection';
 import IngredientsSection from '../components/home/IngredientsSection';
@@ -11,7 +11,7 @@ import RecipesSection from '../components/home/RecipesSection';
 import TestimonialsCarousel from '../components/home/TestimonialsCarousel';
 import FAQSection from '../components/home/FAQSection';
 import CTASection from '../components/home/CTASection';
-import Footer from '../components/home/Footer';
+import SiteFooter from '../components/shared/SiteFooter';
 
 import { logoImg } from '../data/homeData';
 
@@ -34,10 +34,6 @@ export default function Products() {
   });
 
   const navigate = useNavigate();
-
-  // ── Nav / Menu ──
-  const [navScrolled, setNavScrolled] = useState(false);
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   // ── Modals ──
   const [activeModal, setActiveModal] = useState(null);
@@ -235,15 +231,7 @@ export default function Products() {
   // ─────────────────────────────────────────────
   return (
     <>
-      <AnnBar />
-      <Navbar
-        navScrolled={navScrolled}
-        mobileMenuOpen={mobileMenuOpen}
-        setMobileMenuOpen={setMobileMenuOpen}
-        openModal={openModal}
-        openTool={openTool}
-        logoImg={logoImg}
-      />
+      <SiteHeader openModal={openModal} />
 
       {/* Products Page Hero */}
       <section className="products-hero">
@@ -272,7 +260,7 @@ export default function Products() {
       />
       <FAQSection openFaq={openFaq} toggleFaq={toggleFaq} />
       <CTASection openModal={openModal} />
-      <Footer openModal={openModal} openTool={openTool} />
+      <SiteFooter />
 
       {/* Modals */}
       <VetRxModal isOpen={activeModal === 'vet'} onClose={closeModal} />

@@ -1,16 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useSEO } from '../hooks/useSEO';
-import Navbar from '../components/home/Navbar';
-import Footer from '../components/home/Footer';
+import SiteHeader from '../components/shared/SiteHeader';
+import SiteFooter from '../components/shared/SiteFooter';
 import { logoImg, BLOGS } from '../data/homeData';
+import '../styles/Home.css';
 import '../styles/BlogPost.css';
 
 export default function BlogPost() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const [navScrolled, setNavScrolled] = useState(false);
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const blog = BLOGS[parseInt(id)];
 
@@ -20,34 +19,24 @@ export default function BlogPost() {
     canonical: `https://doglicious.in/blog/${id}`
   });
 
-  useEffect(() => {
-    const onScroll = () => setNavScrolled(window.scrollY > 20);
-    window.addEventListener('scroll', onScroll, { passive: true });
-    return () => window.removeEventListener('scroll', onScroll);
-  }, []);
-
   useEffect(() => { window.scrollTo(0, 0); }, [id]);
-
-  const openTool = (idx) => navigate('/', { state: { openTool: idx } });
 
   if (!blog) {
     return (
       <>
-        <Navbar navScrolled={navScrolled} mobileMenuOpen={mobileMenuOpen}
-          setMobileMenuOpen={setMobileMenuOpen} openModal={() => { }} openTool={openTool} logoImg={logoImg} />
+        <SiteHeader />
         <div className="bp-not-found">
           <h2>Article not found</h2>
           <button onClick={() => navigate('/')}>← Back to home</button>
         </div>
-        <Footer openModal={() => { }} openTool={openTool} />
+        <SiteFooter />
       </>
     );
   }
 
   return (
     <>
-      <Navbar navScrolled={navScrolled} mobileMenuOpen={mobileMenuOpen}
-        setMobileMenuOpen={setMobileMenuOpen} openModal={() => { }} openTool={openTool} logoImg={logoImg} />
+      <SiteHeader />
 
       {/* Breadcrumb */}
       <div className="bp-breadcrumb">
@@ -91,7 +80,7 @@ export default function BlogPost() {
         </div>
       </div>
 
-      <Footer openModal={() => { }} openTool={openTool} />
+      <SiteFooter />
     </>
   );
 }

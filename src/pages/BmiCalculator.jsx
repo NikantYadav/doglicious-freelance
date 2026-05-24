@@ -1,11 +1,14 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import Navbar from '../components/home/Navbar';
-import Footer from '../components/home/Footer';
+
+
 import { logoImg } from '../data/homeData';
+import SiteHeader from '../components/shared/SiteHeader';
+import SiteFooter from '../components/shared/SiteFooter';
 import { useSEO } from '../hooks/useSEO';
 import { normalizePhone } from '../utils/phone';
 import { pushLead } from '../services/wylto';
+import '../styles/Home.css';
 import '../styles/BmiCalculator.css';
 
 // ── Data ──────────────────────────────────────────────────────
@@ -91,8 +94,6 @@ export default function BmiCalculator() {
   });
 
   const navigate = useNavigate();
-  const [navScrolled, setNavScrolled] = useState(false);
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   // inputs
   const [currentWeight, setCurrentWeight] = useState('');
@@ -110,9 +111,6 @@ export default function BmiCalculator() {
   const [ctaEmail, setCtaEmail] = useState('');
 
   useEffect(() => {
-    const onScroll = () => setNavScrolled(window.scrollY > 20);
-    window.addEventListener('scroll', onScroll, { passive: true });
-    return () => window.removeEventListener('scroll', onScroll);
   }, []);
 
   useEffect(() => { window.scrollTo(0, 0); }, []);
@@ -188,14 +186,7 @@ export default function BmiCalculator() {
 
   return (
     <>
-      <Navbar
-        navScrolled={navScrolled}
-        mobileMenuOpen={mobileMenuOpen}
-        setMobileMenuOpen={setMobileMenuOpen}
-        openModal={() => { }}
-        openTool={openTool}
-        logoImg={logoImg}
-      />
+      <SiteHeader />
 
       {/* Hero */}
       <div className="bmi-hero">
@@ -441,7 +432,7 @@ export default function BmiCalculator() {
         )}
       </div>
 
-      <Footer openModal={() => { }} openTool={openTool} />
+      <SiteFooter />
     </>
   );
 }

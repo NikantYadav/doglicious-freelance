@@ -1,8 +1,8 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
+import '../styles/Home.css';
 import '../styles/Blogs.css';
-import { logoImg } from '../data/homeData';
-import Navbar from '../components/home/Navbar';
-import Footer from '../components/home/Footer';
+import SiteHeader from '../components/shared/SiteHeader';
+import SiteFooter from '../components/shared/SiteFooter';
 import { useSEO } from '../hooks/useSEO';
 
 const BLOG_CARDS = [
@@ -95,51 +95,29 @@ export default function Blogs() {
         path: '/blogs'
     });
 
-    const [navScrolled, setNavScrolled] = useState(false);
-    const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
     const [blogFilter, setBlogFilter] = useState('all');
-
-    useEffect(() => {
-        const onScroll = () => setNavScrolled(window.scrollY > 20);
-        window.addEventListener('scroll', onScroll, { passive: true });
-        return () => window.removeEventListener('scroll', onScroll);
-    }, []);
 
     const handleBlogClick = (id) => {
         window.open(`/blog/${id}`, '_blank', 'noopener,noreferrer');
     };
 
-    const openModal = () => { }; // Placeholder for navbar compatibility
-    const openTool = () => { }; // Placeholder for navbar compatibility
-
     return (
         <>
-            <Navbar
-                navScrolled={navScrolled}
-                mobileMenuOpen={mobileMenuOpen}
-                setMobileMenuOpen={setMobileMenuOpen}
-                openModal={openModal}
-                openTool={openTool}
-                logoImg={logoImg}
-            />
+            <SiteHeader />
 
-            <section className="blogs-hero" style={{ background: "var(--cream-2)", paddingTop: "120px", paddingBottom: "60px" }}>
-                <div className="wrap">
-                    <div className="sh">
-                        <span className="lbl">Blog</span>
-                        <h1 className="title" style={{ fontSize: "48px", marginTop: "12px" }}>
-                            Dog nutrition,<br />health &amp; fresh food guides.
-                        </h1>
-                        <p className="lead mt12" style={{ maxWidth: "680px", margin: "16px auto 0" }}>
-                            10 science-backed articles by India's first AI dog nutrition company — written for Indian dog parents.
-                        </p>
-                    </div>
+            {/* HERO */}
+            <div className="blogs-hero">
+                <div className="w">
+                    <span className="blogs-hero-label">✦ Expert Knowledge</span>
+                    <h1 className="blogs-hero-title">Dog Health &amp; Nutrition Blog</h1>
+                    <p className="blogs-hero-sub">10 science-backed guides by India's first AI dog nutrition company — written for Indian dog parents.</p>
                 </div>
-            </section>
+            </div>
 
-            <section style={{ background: "var(--cream-2)", paddingBottom: "80px" }}>
-                <div className="wrap">
-                    <div className="blog-filter" id="blogFilter">
+            {/* FILTER + GRID */}
+            <div className="blogs-section">
+                <div className="w">
+                    <div className="blog-filter">
                         {[
                             { key: 'all', label: 'All Articles' },
                             { key: 'nutrition', label: 'Nutrition' },
@@ -157,21 +135,22 @@ export default function Blogs() {
                             </button>
                         ))}
                     </div>
-                    <div className="blog-grid" id="blogGrid">
+
+                    <div className="blogs-grid">
                         {BLOG_CARDS.map(b => (
                             <div
                                 key={b.id}
-                                className="blog-card"
+                                className="bc"
                                 style={{
-                                    opacity: blogFilter === 'all' || b.cat === blogFilter ? '1' : '0.2',
+                                    opacity: blogFilter === 'all' || b.cat === blogFilter ? 1 : 0.2,
                                     transform: blogFilter === 'all' || b.cat === blogFilter ? '' : 'scale(.97)',
-                                    transition: 'opacity .3s, transform .3s'
+                                    transition: 'opacity .3s, transform .3s',
                                 }}
                                 onClick={() => handleBlogClick(b.id)}
                             >
                                 <div className="bc-vis" style={{ background: b.bg }}>
                                     <div className="bc-icon-wrap">{b.svg}</div>
-                                    <div className="bc-cat">{b.catLabel}</div>
+                                    <span className="bc-cat-pill">{b.catLabel}</span>
                                 </div>
                                 <div className="bc-body">
                                     <div className="bc-tag">{b.tag}</div>
@@ -185,9 +164,9 @@ export default function Blogs() {
                         ))}
                     </div>
                 </div>
-            </section>
+            </div>
 
-            <Footer openModal={openModal} openTool={openTool} />
+            <SiteFooter />
         </>
     );
 }

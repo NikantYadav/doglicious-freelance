@@ -1,11 +1,14 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import Navbar from '../components/home/Navbar';
-import Footer from '../components/home/Footer';
+
+
 import { logoImg } from '../data/homeData';
+import SiteHeader from '../components/shared/SiteHeader';
+import SiteFooter from '../components/shared/SiteFooter';
 import { useSEO } from '../hooks/useSEO';
 import { normalizePhone } from '../utils/phone';
 import { pushLead } from '../services/wylto';
+import '../styles/Home.css';
 import '../styles/HealthQuiz.css';
 
 const BREEDS = ['Indian Pariah', 'Labrador', 'Golden Retriever', 'German Shepherd', 'Beagle', 'Pug', 'Shih Tzu', 'Rajapalayam', 'Mudhol Hound', 'Chippiparai', 'Kombai', 'Kanni', 'Bakharwal', 'Rampur Greyhound', 'Himalayan Sheepdog', 'Dachshund', 'Rottweiler', 'Indie (Mixed)', 'Other'];
@@ -94,8 +97,6 @@ export default function HealthQuiz() {
   });
 
   const navigate = useNavigate();
-  const [navScrolled, setNavScrolled] = useState(false);
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   // wizard: -1 = dog info, 0..9 = questions
   const [step, setStep] = useState(-1);
@@ -124,9 +125,6 @@ export default function HealthQuiz() {
   const cardRef = useRef(null);
 
   useEffect(() => {
-    const onScroll = () => setNavScrolled(window.scrollY > 20);
-    window.addEventListener('scroll', onScroll, { passive: true });
-    return () => window.removeEventListener('scroll', onScroll);
   }, []);
 
   useEffect(() => { window.scrollTo(0, 0); }, []);
@@ -268,8 +266,7 @@ export default function HealthQuiz() {
 
   return (
     <>
-      <Navbar navScrolled={navScrolled} mobileMenuOpen={mobileMenuOpen}
-        setMobileMenuOpen={setMobileMenuOpen} openModal={() => { }} openTool={openTool} logoImg={logoImg} />
+      <SiteHeader />
 
       {/* Hero */}
       <section className="hq-hero">
@@ -461,7 +458,7 @@ export default function HealthQuiz() {
         </section>
       )}
 
-      <Footer openModal={() => { }} openTool={openTool} />
+      <SiteFooter />
     </>
   );
 }

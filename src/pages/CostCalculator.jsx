@@ -1,11 +1,14 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import Navbar from '../components/home/Navbar';
-import Footer from '../components/home/Footer';
+
+
 import { logoImg } from '../data/homeData';
+import SiteHeader from '../components/shared/SiteHeader';
+import SiteFooter from '../components/shared/SiteFooter';
 import { useSEO } from '../hooks/useSEO';
 import { normalizePhone } from '../utils/phone';
 import { pushLead } from '../services/wylto';
+import '../styles/Home.css';
 import '../styles/CostCalculator.css';
 
 const BRANDS = ['Pedigree', 'Royal Canin', 'Drools', 'Farmina', 'Acana', 'Other'];
@@ -20,8 +23,6 @@ export default function CostCalculator() {
   });
 
   const navigate = useNavigate();
-  const [navScrolled, setNavScrolled] = useState(false);
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   // inputs
   const [dogWeight, setDogWeight] = useState('');
@@ -41,9 +42,6 @@ export default function CostCalculator() {
   const [ctaEmail, setCtaEmail] = useState('');
 
   useEffect(() => {
-    const onScroll = () => setNavScrolled(window.scrollY > 20);
-    window.addEventListener('scroll', onScroll, { passive: true });
-    return () => window.removeEventListener('scroll', onScroll);
   }, []);
 
   useEffect(() => { window.scrollTo(0, 0); }, []);
@@ -123,14 +121,7 @@ export default function CostCalculator() {
 
   return (
     <>
-      <Navbar
-        navScrolled={navScrolled}
-        mobileMenuOpen={mobileMenuOpen}
-        setMobileMenuOpen={setMobileMenuOpen}
-        openModal={() => { }}
-        openTool={openTool}
-        logoImg={logoImg}
-      />
+      <SiteHeader />
 
       {/* Header */}
       <div className="cc-header">
@@ -335,7 +326,7 @@ export default function CostCalculator() {
         )}
       </div>
 
-      <Footer openModal={() => { }} openTool={openTool} />
+      <SiteFooter />
     </>
   );
 }

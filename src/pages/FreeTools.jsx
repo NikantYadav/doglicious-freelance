@@ -2,8 +2,10 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import '../styles/FreeTools.css';
 import { logoImg } from '../data/homeData';
-import Navbar from '../components/home/Navbar';
-import Footer from '../components/home/Footer';
+import SiteHeader from '../components/shared/SiteHeader';
+import SiteFooter from '../components/shared/SiteFooter';
+
+
 import { useSEO } from '../hooks/useSEO';
 
 export default function FreeTools() {
@@ -14,13 +16,8 @@ export default function FreeTools() {
   });
 
   const navigate = useNavigate();
-  const [navScrolled, setNavScrolled] = useState(false);
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   useEffect(() => {
-    const onScroll = () => setNavScrolled(window.scrollY > 20);
-    window.addEventListener('scroll', onScroll, { passive: true });
-    return () => window.removeEventListener('scroll', onScroll);
   }, []);
 
   const handleTool = (idx) => {
@@ -38,14 +35,7 @@ export default function FreeTools() {
 
   return (
     <>
-      <Navbar
-        navScrolled={navScrolled}
-        mobileMenuOpen={mobileMenuOpen}
-        setMobileMenuOpen={setMobileMenuOpen}
-        openModal={openModal}
-        openTool={handleTool}
-        logoImg={logoImg}
-      />
+      <SiteHeader />
 
       <section className="free-tools-hero" style={{ background: "var(--cream)", paddingTop: "120px", paddingBottom: "60px" }}>
         <div className="wrap">
@@ -163,7 +153,7 @@ export default function FreeTools() {
         </div>
       </section>
 
-      <Footer openModal={openModal} openTool={handleTool} />
+      <SiteFooter />
     </>
   );
 }
