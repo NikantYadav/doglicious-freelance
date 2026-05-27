@@ -30,6 +30,10 @@ services:
     ports:
       # Bind to localhost only — host Nginx proxies 80/443 → 8080
       - "127.0.0.1:8080:80"
+    volumes:
+      # Mount testimonial videos from host — keeps large media out of the Docker image
+      # On the server, run: git lfs pull  (or scp the real MP4s here)
+      - ./public/testimonials:/usr/share/nginx/html/testimonials:ro
     depends_on:
       - backend
     networks:

@@ -40,3 +40,6 @@ Thumbs.db
 .vercel
 vercel.json
 server/vercel.json
+
+# Large media files — served directly from host, not baked into Docker image
+public/testimonials
