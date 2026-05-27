@@ -3,6 +3,8 @@
 
 import { createClient } from '@supabase/supabase-js';
 
+import WebSocket from 'ws';
+
 let _client = null;
 
 function getClient() {
@@ -15,7 +17,10 @@ function getClient() {
         throw new Error('[supabase] SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY not set in environment.');
     }
 
-    _client = createClient(url, key, { auth: { persistSession: false } });
+    _client = createClient(url, key, {
+        auth: { persistSession: false },
+        realtime: { transport: WebSocket } // Needed for Node < 22 where native WebSocket is missing
+    });
     return _client;
 }
 

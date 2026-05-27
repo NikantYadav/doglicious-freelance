@@ -72,7 +72,7 @@ export default async function handler(req, res) {
 
         if (insertErr) {
             console.error('[payu-initiate] Could not save pending booking:', insertErr);
-            return res.status(500).json({ error: 'Failed to initialize booking in database. Please run SQL migration if txnid column is missing.' });
+            return res.status(500).json({ error: 'Failed to initialize booking in database' });
         }
     }
 
