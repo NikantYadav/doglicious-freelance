@@ -26,18 +26,22 @@ export async function pushSampleToCRM({ dogName, phone, address, city, pincode, 
  * Calls the backend to generate the hash, then auto-submits a hidden form
  * to PayU's payment page — this is the only secure way to do PayU.
  */
-export async function initiatePayU({ dogName, phone, price, recipe, grams }) {
+export async function initiatePayU({ dogName, phone, price, recipe, grams, address, city, pincode }) {
     const normPhone = normalizePhone(phone);
     const res = await fetch(`${API}/api/payu-initiate`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
             firstname: dogName || 'Dog Parent',
-            email: `${normPhone}@doglicious.in`,   // phone-based email since we don't collect email here
+            email: `${normPhone.replace(/\D/g, '')}@doglicious.in`,
             phone: normPhone,
-            price: String(price),              // pass the actual displayed price to the backend
-            // udf1 used to carry order info back on success callback
-            udf1: `${recipe}|${grams}g|₹${price}`,
+            price: String(price),
+            // Pack all order data into udf fields for server-side saving on success
+            udf1: normPhone,
+            udf2: window.location.pathname,
+            udf3: String(price),
+            udf4: `${recipe}|${grams}|${dogName || ''}`,
+            udf5: `${address || ''}|${city || ''}|${pincode || ''}`,
             returnPath: window.location.pathname,
         }),
     });
@@ -49,7 +53,6 @@ export async function initiatePayU({ dogName, phone, price, recipe, grams }) {
 
     const { payuUrl, params } = await res.json();
 
-    // Build and auto-submit a hidden form — required by PayU
     const form = document.createElement('form');
     form.method = 'POST';
     form.action = payuUrl;

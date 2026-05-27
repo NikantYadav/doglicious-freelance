@@ -1,7 +1,3 @@
-// api/payu-success.js
-// PayU POSTs to this URL on successful payment.
-// We verify the reverse hash, then grant the user NUM_SCAN extra scans via Supabase.
-
 import crypto from 'crypto';
 import { supabase } from '../utils/supabase.js';
 
@@ -36,7 +32,7 @@ export default async function handler(req, res) {
     const salt = PAYU_SALT();
     const numScans = parseInt(process.env.NUM_SCAN || '5', 10);
 
-    // ----- 1. Validate reverse hash -----
+    // 1. Validate reverse hash
     if (!verifyReverseHash(params, salt)) {
         console.error('[payu-success] Hash mismatch! Possible tampering.', {
             txnid: params.txnid,
@@ -45,52 +41,71 @@ export default async function handler(req, res) {
         return redirectToFrontend(res, 'payment_failed', 'Hash mismatch', {}, params.udf2);
     }
 
-    // ----- 2. Check payment status -----
+    // 2. Check payment status
     if (params.status !== 'success') {
         console.warn('[payu-success] Non-success status:', params.status);
         return redirectToFrontend(res, 'payment_failed', params.status, {}, params.udf2);
     }
 
-    // ----- 3. Update user paid_scans in Supabase -----
-    // udf1 = phone (used as contactId), udf3 = current paidScans count at payment initiation
-    const phone = params.udf1;
-    const prevPaid = parseInt(params.udf3 || '0', 10);
-    const newPaid = prevPaid + numScans;
+    // 3. Parse order data from udf fields
+    // udf1 = phone, udf3 = price, udf4 = recipe|grams|dogName, udf5 = address|city|pincode
+    const phone    = params.udf1 || '';
+    const price    = params.udf3 || '';
+    const udf4Parts = (params.udf4 || '').split('|');
+    const udf5Parts = (params.udf5 || '').split('|');
+    const recipe   = udf4Parts[0] || null;
+    const grams    = udf4Parts[1] || null;
+    const dogName  = udf4Parts[2] || null;
+    const address  = udf5Parts[0] || null;
+    const city     = udf5Parts[1] || null;
+    const pincode  = udf5Parts[2] || null;
 
+    // 4. Save booking to sample_bookings
     if (phone) {
         try {
-            // Upsert user (creates if not exists) and set new paid_scans
-            const { error } = await supabase
-                .from('vetrx_users')
-                .upsert(
-                    { phone, paid_scans: newPaid },
-                    { onConflict: 'phone' }
-                );
-
-            if (error) throw error;
-
-            console.log(`[payu-success] Payment granted ${numScans} scans to ${phone}. New total: ${newPaid}`);
-
-            return redirectToFrontend(res, 'payment_success', null, {
-                paidScans: newPaid,
-                txnid: params.txnid,
-            }, params.udf2);
+            const { error: bookingErr } = await supabase.from('sample_bookings').insert({
+                phone,
+                dog_name: dogName || null,
+                address:  address  || null,
+                city:     city     || null,
+                pincode:  pincode  || null,
+                recipe:   recipe   || null,
+                grams:    grams    || null,
+                price:    price    || null,
+                status:   'paid',
+            });
+            if (bookingErr) console.error('[payu-success] sample_bookings insert error:', bookingErr.message);
+            else console.log(`[payu-success] Booking saved for ${phone} — ${recipe} ${grams}`);
         } catch (err) {
-            console.error('[payu-success] Supabase update failed:', err.message);
-            // Still redirect as success — payment was real
-            return redirectToFrontend(res, 'payment_success', 'db_update_failed', {
-                paidScans: newPaid,
-                txnid: params.txnid,
-            }, params.udf2);
+            console.error('[payu-success] Booking save failed (non-fatal):', err.message);
         }
     }
 
-    return redirectToFrontend(res, 'payment_success', null, { paidScans: newPaid, txnid: params.txnid }, params.udf2);
+    // 5. Update VetRx paid_scans if applicable (udf3 was previously paidScans for VetRx)
+    // Only do this if udf4 is empty (VetRx flow, not sample booking)
+    const isVetRxFlow = !params.udf4;
+    if (isVetRxFlow && phone) {
+        const prevPaid = parseInt(params.udf3 || '0', 10);
+        const newPaid  = prevPaid + numScans;
+        try {
+            const { error } = await supabase
+                .from('vetrx_users')
+                .upsert({ phone, paid_scans: newPaid }, { onConflict: 'phone' });
+            if (error) throw error;
+            console.log(`[payu-success] VetRx: granted ${numScans} scans to ${phone}. New total: ${newPaid}`);
+            return redirectToFrontend(res, 'payment_success', null, { paidScans: newPaid, txnid: params.txnid }, params.udf2);
+        } catch (err) {
+            console.error('[payu-success] VetRx Supabase update failed:', err.message);
+            return redirectToFrontend(res, 'payment_success', 'db_update_failed', { paidScans: newPaid, txnid: params.txnid }, params.udf2);
+        }
+    }
+
+    return redirectToFrontend(res, 'payment_success', null, { txnid: params.txnid }, params.udf2);
 }
 
 function redirectToFrontend(res, status, error, data = {}, returnPath = '/') {
     const base = process.env.FRONTEND_URL || 'http://localhost:5173';
-    const origin = base.replace(/\/[^?#]*$/, '');
+    const { origin } = new URL(base);
     const safePath = (returnPath || '/').replace(/[^a-zA-Z0-9/_-]/g, '') || '/';
     const queryParams = new URLSearchParams({ payu_status: status, ...data });
     if (error) queryParams.set('error', error);

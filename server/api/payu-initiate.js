@@ -41,14 +41,13 @@ export default async function handler(req, res) {
     const productinfo = process.env.PAYU_PRODUCT || 'VetRx Scan - Additional Scans Pack';
     const txnid = `VRX${Date.now()}${Math.floor(Math.random() * 1000)}`;
 
-    // udf1 stores the Wylto contactId so we can verify on success callback
-    const udf1 = contactId || '';
-    // udf2 stores the frontend return path so PayU redirects back to the originating page
-    const udf2 = (req.body.returnPath || '').replace(/[^a-zA-Z0-9/_-]/g, '').slice(0, 200) || '/';
-    // udf3 stores current paidScans so success handler can compute new total
-    const udf3 = String(parseInt(paidScans || '0', 10));
+    const udf1 = req.body.udf1 || contactId || '';
+    const udf2 = (req.body.udf2 || req.body.returnPath || '').replace(/[^a-zA-Z0-9/_-]/g, '').slice(0, 200) || '/';
+    const udf3 = String(parseInt(req.body.udf3 || paidScans || '0', 10));
+    const udf4 = (req.body.udf4 || '').slice(0, 250); // recipe|grams|dogName
+    const udf5 = (req.body.udf5 || '').slice(0, 250); // address|city|pincode
 
-    const hash = generateHash({ key, txnid, amount, productinfo, firstname, email, udf1, udf2, udf3, salt });
+    const hash = generateHash({ key, txnid, amount, productinfo, firstname, email, udf1, udf2, udf3, udf4, udf5, salt });
 
     const baseUrl = req.headers.origin || (isProd() ? process.env.PROD_URL : process.env.DEV_URL) || 'http://localhost:5173';
     const surl = `${process.env.SERVER_URL || baseUrl.replace(':5173', ':5000')}/api/payu-success`;
@@ -62,9 +61,7 @@ export default async function handler(req, res) {
             key, txnid, amount, productinfo,
             firstname, email,
             phone: normPhone,
-            udf1,
-            udf2,
-            udf3,
+            udf1, udf2, udf3, udf4, udf5,
             surl, furl,
             hash,
         },

@@ -119,10 +119,10 @@ export default function Home() {
     const recipe = RECIPES[selectedRecipe];
     const grams = GRAM_OPTS[selectedGramIdx];
     const price = GRAM_PRICES[selectedGramIdx];
-    pushSampleToCRM({ dogName, phone: normalizePhone(mobile), address: deliveryAddress, city: deliveryCity, pincode: deliveryPin, recipe, grams, price });
+    // No longer fire-and-forget here — data saved server-side on PayU success
     try {
       closeModal();
-      await initiatePayU({ dogName, phone: normalizePhone(mobile), price, recipe, grams });
+      await initiatePayU({ dogName, phone: normalizePhone(mobile), price, recipe, grams, address: deliveryAddress, city: deliveryCity, pincode: deliveryPin });
     } catch (err) {
       console.error('[PayU] initiation failed:', err);
       setOrderDetails({ dogName, mobile: normalizePhone(mobile), recipe, grams, price, address: `${deliveryAddress}, ${deliveryCity} - ${deliveryPin}` });
@@ -582,8 +582,8 @@ export default function Home() {
         <div className="w">
           <div className="footer-top">
             <div>
-              <div className="f-logo" style={{ background: '#fff', borderRadius: '8px', padding: '8px', display: 'inline-block' }}>
-                <img src={logoImg} style={{ maxWidth: '160px', height: 'auto', display: 'block', mixBlendMode: 'multiply', filter: 'contrast(1.05)' }} alt="Doglicious.in" />
+              <div className="f-logo">
+                <img src={logoImg} style={{ maxWidth: '140px', height: 'auto', display: 'block', borderRadius: 8 }} alt="Doglicious.in" />
               </div>
               <p className="f-tagline">Fresh food for dogs. Personalised by AI. Vet approved &amp; internationally acclaimed. Cooked fresh daily.</p>
               <div className="f-contact">
@@ -749,7 +749,6 @@ export default function Home() {
                     </div>
                   </div>
                   <div style={{ fontSize: '12px', color: '#8B6B3D', lineHeight: 1.7, marginBottom: '20px', textAlign: 'center' }}>
-                    🚚 Your fresh food sample will be delivered <strong>same day</strong> if ordered before 10AM, or next morning.<br />
                     We'll WhatsApp you the delivery update.
                   </div>
                   <button
