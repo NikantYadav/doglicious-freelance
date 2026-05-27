@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { useApp } from './AppContext';
-import { useToastContext } from './ToastContext';
+import { useToast } from '../common/Toast';
 import { getTrialStatus } from './helpers';
 import { psSaveSettings } from './psService';
 import { getPsSession } from './psSession';
 
 const SettingsModal = ({ open, onClose, onSubscribe }) => {
   const { state, dispatch, setVet, activateSub } = useApp();
-  const { toast } = useToastContext();
+  const { toast } = useToast();
 
   const [lang, setLang] = useState(state.pdfLang);
   const [vetName, setVetName] = useState(state.vet.name);
@@ -175,7 +175,7 @@ const SettingsModal = ({ open, onClose, onSubscribe }) => {
                     </div>
                   </div>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 3, alignItems: 'flex-end' }}>
-                    {['✓ AI Analysis','✓ PDF Reports','✓ Vet Sharing','✓ Progress Charts'].map(f => (
+                    {['✓ AI Analysis', '✓ PDF Reports', '✓ Vet Sharing', '✓ Progress Charts'].map(f => (
                       <div key={f} style={{ fontSize: 9.5, color: 'rgba(255,255,255,.65)', fontWeight: 600 }}>{f}</div>
                     ))}
                   </div>
