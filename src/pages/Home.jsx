@@ -119,7 +119,12 @@ export default function Home() {
     const recipe = RECIPES[selectedRecipe];
     const grams = GRAM_OPTS[selectedGramIdx];
     const price = GRAM_PRICES[selectedGramIdx];
-    // No longer fire-and-forget here — data saved server-side on PayU success
+
+    // Fire-and-forget: save booking to Supabase immediately when user taps Pay.
+    // This ensures data is always captured regardless of whether PayU's webhook
+    // callback can reach the server (e.g. localhost in dev, or network issues).
+    pushSampleToCRM({ dogName, phone: normalizePhone(mobile), price, recipe, grams, address: deliveryAddress, city: deliveryCity, pincode: deliveryPin });
+
     try {
       closeModal();
       await initiatePayU({ dogName, phone: normalizePhone(mobile), price, recipe, grams, address: deliveryAddress, city: deliveryCity, pincode: deliveryPin });
