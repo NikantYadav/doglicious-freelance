@@ -536,7 +536,7 @@ export default function Home() {
         <div className="w" style={{ position: 'relative', zIndex: 2 }}>
           <div className="rv center">
             <div style={{ marginBottom: '32px' }}>
-              <img src={logoImg} style={{ maxWidth: '150px', height: 'auto', filter: 'brightness(0) invert(1)', opacity: .88, display: 'inline-block' }} alt="Doglicious" />
+              <img src={logoImg} style={{ maxWidth: '150px', height: 'auto', mixBlendMode: 'screen', opacity: .9, display: 'inline-block' }} alt="Doglicious" />
             </div>
             <div style={{ width: '56px', height: '2px', background: 'var(--c2)', borderRadius: '2px', margin: '0 auto 28px', opacity: .7 }} />
             <span className="sec-label">✦ &nbsp;Ready to begin?&nbsp; ✦</span>
@@ -599,7 +599,7 @@ export default function Home() {
           <div className="w">
             <div className="fbb-inner">
               <div style={{ display: 'flex', alignItems: 'center', gap: '14px', flexWrap: 'wrap' }}>
-                <img src={logoImg} style={{ maxWidth: '90px', height: 'auto', filter: 'brightness(0) invert(1)', opacity: .80 }} alt="Doglicious" />
+                <img src={logoImg} style={{ maxWidth: '90px', height: 'auto', mixBlendMode: 'screen', opacity: .9 }} alt="Doglicious" />
                 <span className="f-cp">© 2025 Doglicious.in &nbsp;·&nbsp; Petlicious Superfoods India Private Limited</span>
               </div>
               <div className="f-leg">

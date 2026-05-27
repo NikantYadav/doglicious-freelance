@@ -40,15 +40,15 @@ const HomeVetCard = ({ vetName, vetNum, todayScans, lastEntry, onShare, onSaveVe
   const [showEdit, setShowEdit] = useState(false);
   const [inputName, setInputName] = useState(vetName);
   const [inputNum, setInputNum] = useState(vetNum);
-  const [selectedScanId, setSelectedScanId] = useState('latest');
+  const [selectedScanId, setSelectedScanId] = useState(null);
 
   const hasVet = !!(vetName && vetNum);
 
-  // The entry to share — either selected from picker or the latest
-  const entryToShare = (() => {
-    if (selectedScanId === 'latest') return lastEntry;
-    return todayScans.find(s => s.id === selectedScanId) || lastEntry;
-  })();
+  // Auto-select the most recent scan
+  const recentScans = todayScans.slice(0, 2);
+  const defaultScan = recentScans[0] || lastEntry;
+  const effectiveId = selectedScanId || defaultScan?.id || null;
+  const entryToShare = recentScans.find(s => s.id === effectiveId) || lastEntry;
 
   const canShare = hasVet && !!entryToShare;
 
@@ -123,28 +123,13 @@ const HomeVetCard = ({ vetName, vetNum, todayScans, lastEntry, onShare, onSaveVe
         )}
 
         {/* Scan picker — shown when there are today's scans */}
-        {hasVet && todayScans.length > 1 && (
+        {hasVet && todayScans.length > 0 && (
           <div style={{ marginBottom: 8 }}>
             <div style={{ fontSize: 9.5, fontWeight: 700, color: 'rgba(255,255,255,.55)', textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: 5 }}>
               Choose scan to share
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-              <button
-                onClick={() => setSelectedScanId('latest')}
-                style={{
-                  background: selectedScanId === 'latest' ? 'rgba(255,255,255,.2)' : 'rgba(255,255,255,.08)',
-                  border: `1.5px solid ${selectedScanId === 'latest' ? 'rgba(255,255,255,.5)' : 'rgba(255,255,255,.15)'}`,
-                  borderRadius: 8, padding: '7px 10px', cursor: 'pointer',
-                  display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                }}
-                type="button"
-              >
-                <span style={{ fontSize: 11, color: '#fff', fontWeight: 600 }}>Latest scan</span>
-                <span style={{ fontSize: 10, color: 'rgba(255,255,255,.6)' }}>
-                  Score {lastEntry?.score ?? '—'} · {lastEntry?.time ?? ''}
-                </span>
-              </button>
-              {todayScans.filter(s => s.id !== lastEntry?.id).map(scan => (
+              {todayScans.slice(0, 2).map(scan => (
                 <button
                   key={scan.id}
                   onClick={() => setSelectedScanId(scan.id)}
@@ -153,11 +138,12 @@ const HomeVetCard = ({ vetName, vetNum, todayScans, lastEntry, onShare, onSaveVe
                     border: `1.5px solid ${selectedScanId === scan.id ? 'rgba(255,255,255,.5)' : 'rgba(255,255,255,.15)'}`,
                     borderRadius: 8, padding: '7px 10px', cursor: 'pointer',
                     display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                    textAlign: 'left',
                   }}
                   type="button"
                 >
-                  <span style={{ fontSize: 11, color: '#fff', fontWeight: 600 }}>{scan.stoolType}</span>
-                  <span style={{ fontSize: 10, color: 'rgba(255,255,255,.6)' }}>
+                  <span style={{ fontSize: 11, color: '#fff', fontWeight: 600 }}>{scan.stoolType || 'Scan'}</span>
+                  <span style={{ fontSize: 10, color: 'rgba(255,255,255,.6)', flexShrink: 0, marginLeft: 8 }}>
                     Score {scan.score} · {scan.time}
                   </span>
                 </button>
