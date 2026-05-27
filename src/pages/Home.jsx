@@ -5,7 +5,7 @@ import '../styles/Home.css';
 
 import { logoImg, RECIPES, GRAM_OPTS, GRAM_PRICES } from '../data/homeData';
 import { normalizePhone } from '../utils/phone';
-import { pushSampleToCRM, initiatePayU } from '../services/sampleBooking';
+import { initiatePayU } from '../services/sampleBooking';
 
 import VetRxModal from '../components/modals/VetRxModal';
 import SampleModal from '../components/modals/SampleModal';
@@ -132,10 +132,7 @@ export default function Home() {
       setIsProcessing(true);
       closeModal();
 
-      // Save to Supabase first
-      await pushSampleToCRM({ dogName, phone: normalizePhone(mobile), price, recipe, grams, address: deliveryAddress, city: deliveryCity, pincode: deliveryPin });
-
-      // Then initiate PayU
+      // Initiate PayU (which also creates the PENDING record in db)
       await initiatePayU({ dogName, phone: normalizePhone(mobile), price, recipe, grams, address: deliveryAddress, city: deliveryCity, pincode: deliveryPin });
 
       // Note: Page will navigate away due to form.submit() in initiatePayU

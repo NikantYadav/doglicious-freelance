@@ -5,23 +5,6 @@ import { normalizePhone } from '../utils/phone';
 const API = import.meta.env.VITE_API_URL ?? '';
 
 /**
- * Push sample booking to Supabase via backend.
- * Fails silently — never blocks the user flow.
- */
-export async function pushSampleToCRM({ dogName, phone, address, city, pincode, recipe, grams, price }) {
-    try {
-        const normPhone = normalizePhone(phone);
-        await fetch(`${API}/api/db-sample`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ dogName, phone: normPhone, address, city, pincode, recipe, grams, price }),
-        });
-    } catch (err) {
-        console.error('[db-sample] push failed:', err);
-    }
-}
-
-/**
  * Initiates a PayU hosted-checkout payment.
  * Calls the backend to generate the hash, then auto-submits a hidden form
  * to PayU's payment page — this is the only secure way to do PayU.

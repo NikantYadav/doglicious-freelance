@@ -20,7 +20,9 @@ import SampleModal from '../components/modals/SampleModal';
 import ConfirmModal from '../components/modals/ConfirmModal';
 import ToolsModal from '../components/modals/ToolsModal';
 
-import { pushSampleToCRM, initiatePayU } from '../services/sampleBooking';
+import { initiatePayU } from '../services/sampleBooking';
+import { useToast } from '../components/common/Toast';
+import LoadingOverlay from '../components/common/LoadingOverlay';
 import { RECIPES, GRAM_OPTS, GRAM_PRICES } from '../data/homeData';
 import { useNavigate } from 'react-router-dom';
 import { useSEO } from '../hooks/useSEO';
@@ -60,6 +62,8 @@ export default function Products() {
 
   // ── Confirm order details (PayU fallback) ──
   const [orderDetails, setOrderDetails] = useState({});
+  const [isProcessing, setIsProcessing] = useState(false);
+  const { toast } = useToast();
 
   // ── Tools ──
   const [activeTool, setActiveTool] = useState(0);
@@ -162,7 +166,7 @@ export default function Products() {
 
   const proceedToPayment = async () => {
     if (!mobile || !dogName || !deliveryAddress || !deliveryCity || !deliveryPin) {
-      alert('Please fill all fields.');
+      toast('Please fill all fields before proceeding.', 'error');
       return;
     }
 
@@ -170,25 +174,21 @@ export default function Products() {
     const grams = GRAM_OPTS[selectedGramIdx];
     const price = GRAM_PRICES[selectedGramIdx];
 
-    // 1. Push lead to Wylto CRM (silent — never blocks UX)
-    pushSampleToCRM({
-      dogName,
-      phone: normalizePhone(mobile),
-      address: deliveryAddress,
-      city: deliveryCity,
-      pincode: deliveryPin,
-      recipe,
-      grams,
-      price,
-    });
-
-    // 2. Initiate PayU payment — redirects to PayU hosted checkout
     try {
+      setIsProcessing(true);
       closeModal();
       const normPhone = normalizePhone(mobile);
-      await initiatePayU({ dogName, phone: normPhone, price, recipe, grams });
+      // Initiate PayU (which also creates the PENDING record in db)
+      await initiatePayU({
+        dogName, phone: normPhone, price, recipe, grams,
+        address: deliveryAddress, city: deliveryCity, pincode: deliveryPin
+      });
+      // Note: Page will navigate away due to form.submit() in initiatePayU
     } catch (err) {
+      setIsProcessing(false);
       console.error('[PayU] initiation failed:', err);
+      toast('Payment could not be initiated. Please try again.', 'error');
+
       // Fallback: show confirm modal so order isn't lost
       const normPhone = normalizePhone(mobile);
       setOrderDetails({
@@ -231,6 +231,7 @@ export default function Products() {
   // ─────────────────────────────────────────────
   return (
     <>
+      {isProcessing && <LoadingOverlay />}
       <SiteHeader openModal={openModal} />
 
       {/* Products Page Hero */}
