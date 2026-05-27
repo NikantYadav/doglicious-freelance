@@ -36,6 +36,8 @@ export async function initiatePayU({ dogName, phone, price, recipe, grams, addre
             email: `${normPhone.replace(/\D/g, '')}@doglicious.in`,
             phone: normPhone,
             price: String(price),
+            // Explicit fields to create the PENDING record in db
+            dogName, recipe, grams, address, city, pincode,
             // Pack all order data into udf fields for server-side saving on success
             udf1: normPhone,
             udf2: window.location.pathname,

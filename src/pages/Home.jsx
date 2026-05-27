@@ -120,11 +120,6 @@ export default function Home() {
     const grams = GRAM_OPTS[selectedGramIdx];
     const price = GRAM_PRICES[selectedGramIdx];
 
-    // MUST await — initiatePayU calls form.submit() which navigates the page,
-    // cancelling any in-flight fetch requests. Awaiting here ensures the booking
-    // is saved to Supabase before the browser leaves the page.
-    await pushSampleToCRM({ dogName, phone: normalizePhone(mobile), price, recipe, grams, address: deliveryAddress, city: deliveryCity, pincode: deliveryPin });
-
     try {
       closeModal();
       await initiatePayU({ dogName, phone: normalizePhone(mobile), price, recipe, grams, address: deliveryAddress, city: deliveryCity, pincode: deliveryPin });

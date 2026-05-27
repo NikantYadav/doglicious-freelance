@@ -49,35 +49,29 @@ export default async function handler(req, res) {
 
     // 3. Parse order data from udf fields
     // udf1 = phone, udf3 = price, udf4 = recipe|grams|dogName, udf5 = address|city|pincode
-    const phone    = params.udf1 || '';
-    const price    = params.udf3 || '';
+    const phone = params.udf1 || '';
+    const price = params.udf3 || '';
     const udf4Parts = (params.udf4 || '').split('|');
     const udf5Parts = (params.udf5 || '').split('|');
-    const recipe   = udf4Parts[0] || null;
-    const grams    = udf4Parts[1] || null;
-    const dogName  = udf4Parts[2] || null;
-    const address  = udf5Parts[0] || null;
-    const city     = udf5Parts[1] || null;
-    const pincode  = udf5Parts[2] || null;
+    const recipe = udf4Parts[0] || null;
+    const grams = udf4Parts[1] || null;
+    const dogName = udf4Parts[2] || null;
+    const address = udf5Parts[0] || null;
+    const city = udf5Parts[1] || null;
+    const pincode = udf5Parts[2] || null;
 
-    // 4. Save booking to sample_bookings
-    if (phone) {
+    // 4. Update booking in sample_bookings
+    if (phone && (recipe || grams || params.udf4)) {
         try {
-            const { error: bookingErr } = await supabase.from('sample_bookings').insert({
-                phone,
-                dog_name: dogName || null,
-                address:  address  || null,
-                city:     city     || null,
-                pincode:  pincode  || null,
-                recipe:   recipe   || null,
-                grams:    grams    || null,
-                price:    price    || null,
-                status:   'paid',
-            });
-            if (bookingErr) console.error('[payu-success] sample_bookings insert error:', bookingErr.message);
-            else console.log(`[payu-success] Booking saved for ${phone} — ${recipe} ${grams}`);
+            const { error: bookingErr } = await supabase
+                .from('sample_bookings')
+                .update({ status: 'COMPLETED' })
+                .eq('txnid', params.txnid);
+
+            if (bookingErr) console.error('[payu-success] sample_bookings update error:', bookingErr.message);
+            else console.log(`[payu-success] Booking marked COMPLETED for txnid ${params.txnid} (${phone})`);
         } catch (err) {
-            console.error('[payu-success] Booking save failed (non-fatal):', err.message);
+            console.error('[payu-success] Booking update failed (non-fatal):', err.message);
         }
     }
 
@@ -86,7 +80,7 @@ export default async function handler(req, res) {
     const isVetRxFlow = !params.udf4;
     if (isVetRxFlow && phone) {
         const prevPaid = parseInt(params.udf3 || '0', 10);
-        const newPaid  = prevPaid + numScans;
+        const newPaid = prevPaid + numScans;
         try {
             const { error } = await supabase
                 .from('vetrx_users')

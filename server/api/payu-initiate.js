@@ -17,6 +17,7 @@ function generateHash({ key, txnid, amount, productinfo, firstname, email, udf1 
 }
 
 import { normalizePhone } from '../utils/phone.js';
+import { supabase } from '../utils/supabase.js';
 
 export default async function handler(req, res) {
     res.setHeader('Access-Control-Allow-Origin', '*');
@@ -25,7 +26,7 @@ export default async function handler(req, res) {
     if (req.method === 'OPTIONS') return res.status(200).end();
     if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
-    const { email, firstname, phone, contactId, price, paidScans } = req.body || {};
+    const { email, firstname, phone, contactId, price, paidScans, dogName, recipe, grams, address, city, pincode } = req.body || {};
     if (!email || !firstname) return res.status(400).json({ error: 'email and firstname required' });
 
     const key = PAYU_KEY();
@@ -54,6 +55,25 @@ export default async function handler(req, res) {
     const furl = `${process.env.SERVER_URL || baseUrl.replace(':5173', ':5000')}/api/payu-failure`;
 
     const normPhone = normalizePhone(phone);
+
+    if (recipe || grams || req.body.udf4) {
+        try {
+            await supabase.from('sample_bookings').upsert({
+                phone: normPhone,
+                dog_name: dogName || null,
+                address: address || null,
+                city: city || null,
+                pincode: pincode || null,
+                recipe: recipe || null,
+                grams: grams || null,
+                price: price || null,
+                status: 'PENDING',
+                txnid: txnid
+            }, { onConflict: 'txnid' });
+        } catch (err) {
+            console.error('[payu-initiate] Could not save pending booking', err);
+        }
+    }
 
     return res.status(200).json({
         payuUrl: isProd() ? 'https://secure.payu.in/_payment' : 'https://test.payu.in/_payment',
