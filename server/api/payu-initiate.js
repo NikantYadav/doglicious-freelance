@@ -57,21 +57,22 @@ export default async function handler(req, res) {
     const normPhone = normalizePhone(phone);
 
     if (recipe || grams || req.body.udf4) {
-        try {
-            await supabase.from('sample_bookings').upsert({
-                phone: normPhone,
-                dog_name: dogName || null,
-                address: address || null,
-                city: city || null,
-                pincode: pincode || null,
-                recipe: recipe || null,
-                grams: grams || null,
-                price: price || null,
-                status: 'PENDING',
-                txnid: txnid
-            }, { onConflict: 'txnid' });
-        } catch (err) {
-            console.error('[payu-initiate] Could not save pending booking', err);
+        const { error: insertErr } = await supabase.from('sample_bookings').upsert({
+            phone: normPhone,
+            dog_name: dogName || null,
+            address: address || null,
+            city: city || null,
+            pincode: pincode || null,
+            recipe: recipe || null,
+            grams: grams || null,
+            price: price || null,
+            status: 'PENDING',
+            txnid: txnid
+        }, { onConflict: 'txnid' });
+
+        if (insertErr) {
+            console.error('[payu-initiate] Could not save pending booking:', insertErr);
+            return res.status(500).json({ error: 'Failed to initialize booking in database. Please run SQL migration if txnid column is missing.' });
         }
     }
 
