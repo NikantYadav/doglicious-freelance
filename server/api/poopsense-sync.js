@@ -13,11 +13,22 @@ function trunc(str, len = 500) {
 
 // Upsert user row, return user id + subscription info
 async function upsertUser(phone) {
+  // Try to find existing user first
+  const { data: existing } = await supabase
+    .from('ps_users')
+    .select('id, phone, subscribed, sub_date, start_date, vet_name, vet_num, pdf_lang')
+    .eq('phone', phone)
+    .maybeSingle();
+
+  if (existing) return existing;
+
+  // Insert new user
   const { data, error } = await supabase
     .from('ps_users')
-    .upsert({ phone }, { onConflict: 'phone', ignoreDuplicates: false })
+    .insert({ phone })
     .select('id, phone, subscribed, sub_date, start_date, vet_name, vet_num, pdf_lang')
     .single();
+
   if (error) throw error;
   return data;
 }
@@ -82,14 +93,23 @@ async function handleSaveScan(phone, entry, dogId) {
     possible_conditions: entry.possibleConditions || [],
     recommendations: entry.recommendations || [],
     symptoms: entry.symptoms || null,
-    img_b64: entry.imgB64 ? entry.imgB64.substring(0, 50000) : null, // cap size
+    img_b64: entry.imgB64 ? entry.imgB64.substring(0, 50000) : null,
   };
 
-  const { error } = await supabase
+  const { data: existing } = await supabase
     .from('ps_scans')
-    .upsert(payload, { onConflict: 'entry_id' });
+    .select('id')
+    .eq('entry_id', entry.id)
+    .maybeSingle();
 
-  if (error) throw error;
+  if (existing) {
+    const { error } = await supabase.from('ps_scans').update(payload).eq('entry_id', entry.id);
+    if (error) throw error;
+  } else {
+    const { error } = await supabase.from('ps_scans').insert(payload);
+    if (error) throw error;
+  }
+
   return { ok: true };
 }
 
@@ -98,7 +118,6 @@ async function handleSaveScan(phone, entry, dogId) {
 async function handleSaveDogs(phone, dogs) {
   const user = await upsertUser(phone);
 
-  // Upsert each dog
   for (const dog of dogs) {
     const payload = {
       user_id: user.id,
@@ -116,22 +135,40 @@ async function handleSaveDogs(phone, dogs) {
       parent_name: dog.parentName || null,
       parent_mobile: dog.parentMobile || null,
     };
-    const { error } = await supabase
+
+    // Check if dog already exists
+    const { data: existing } = await supabase
       .from('ps_dogs')
-      .upsert(payload, { onConflict: 'dog_id' });
-    if (error) console.error('[poopsense-sync] dog upsert error:', error.message);
+      .select('id')
+      .eq('dog_id', dog.id)
+      .maybeSingle();
+
+    if (existing) {
+      // Update
+      const { error } = await supabase
+        .from('ps_dogs')
+        .update(payload)
+        .eq('dog_id', dog.id);
+      if (error) console.error('[poopsense-sync] dog update error:', error.message, error.details);
+    } else {
+      // Insert
+      const { error } = await supabase
+        .from('ps_dogs')
+        .insert(payload);
+      if (error) console.error('[poopsense-sync] dog insert error:', error.message, error.details);
+    }
   }
 
-  // Delete dogs that are no longer in the list
+  // Delete dogs removed from the list
   const dogIds = dogs.map(d => d.id);
   if (dogIds.length > 0) {
-    await supabase
+    const { error } = await supabase
       .from('ps_dogs')
       .delete()
       .eq('user_id', user.id)
-      .not('dog_id', 'in', `(${dogIds.map(id => `'${id}'`).join(',')})`);
+      .not('dog_id', 'in', `(${dogIds.join(',')})`);
+    if (error) console.error('[poopsense-sync] dog delete error:', error.message);
   } else {
-    // All dogs deleted
     await supabase.from('ps_dogs').delete().eq('user_id', user.id);
   }
 
@@ -229,6 +266,22 @@ export default async function handler(req, res) {
 
       case 'save-settings':
         return res.status(200).json(await handleSaveSettings(normPhone, payload.settings));
+
+      case 'get-quota': {
+        const user = await upsertUser(normPhone);
+        const numFree = parseInt(process.env.PS_FREE_SCANS || process.env.NUM_FREE_SCAN || '3', 10);
+        const now = new Date();
+        const isSubscribed = user.subscribed && user.sub_expires_at && new Date(user.sub_expires_at) > now;
+        const subExpired = user.subscribed && user.sub_expires_at && new Date(user.sub_expires_at) <= now;
+        return res.status(200).json({
+          scanCount: user.scan_count || 0,
+          subscribed: isSubscribed,
+          subExpired,
+          subExpiresAt: user.sub_expires_at || null,
+          numFree,
+          canScan: isSubscribed || (user.scan_count || 0) < numFree,
+        });
+      }
 
       default:
         return res.status(400).json({ error: `Unknown action: ${action}` });

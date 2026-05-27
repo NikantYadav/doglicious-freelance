@@ -24,61 +24,14 @@ import WaAuthModal from './WaAuthModal';
 import { EditDogModal } from './EditDogModal';
 import { EntryDetailModal } from './EntryDetailModal';
 import PsAuthGate from './PsAuthGate';
+import PsPaywall from './PsPaywall';
 
 import { getTrialStatus, uid, todayStr } from './helpers';
 import { getPsSession, savePsSession } from './psSession';
-import { psLoad, psRunAI } from './psService';
-import { downloadPoopSensePDF } from './psPdf';
+import { psLoad, psRunAI, psGetQuota } from './psService';
+import { downloadPoopSensePDF, downloadProgressPDF } from './psPdf';
 
 /* ─── PAY MODAL ─── */
-function PayGateway({ onClose, onSuccess }) {
-  const [name, setName] = useState('');
-  const [card, setCard] = useState('');
-  const [exp, setExp] = useState('');
-  const [cvv, setCvv] = useState('');
-  const [processing, setProcessing] = useState(false);
-
-  const pay = () => {
-    if (!name || !card) { alert('Please fill in your payment details'); return; }
-    setProcessing(true);
-    setTimeout(() => { onSuccess(); }, 1800);
-  };
-
-  return (
-    <div
-      style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,.6)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px', fontFamily: 'Poppins, sans-serif', backdropFilter: 'blur(4px)' }}
-      onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
-    >
-      <div style={{ background: '#FFF', borderRadius: '20px', width: '100%', maxWidth: '360px', overflow: 'hidden', boxShadow: '0 24px 64px rgba(0,0,0,.35)', position: 'relative' }}>
-        <div style={{ background: 'linear-gradient(135deg,#3A2700,#6B4100)', padding: '18px 20px', textAlign: 'center' }}>
-          <div style={{ fontSize: '11px', fontWeight: 700, letterSpacing: '.15em', textTransform: 'uppercase', color: 'rgba(255,255,255,.55)', marginBottom: '4px' }}>PoopSense AI</div>
-          <div style={{ fontSize: '26px', fontWeight: 900, color: '#FFD580' }}>₹499<span style={{ fontSize: '14px', fontWeight: 500, color: 'rgba(255,213,128,.6)' }}>/month</span></div>
-          <div style={{ fontSize: '11px', color: 'rgba(255,255,255,.6)', marginTop: '4px' }}>Renews automatically · Cancel anytime</div>
-        </div>
-        <div style={{ padding: '20px' }}>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '16px' }}>
-            <input type="text" placeholder="Cardholder / Account name" value={name} onChange={e => setName(e.target.value)} style={{ width: '100%', padding: '11px 13px', border: '1.5px solid #DDD', borderRadius: '10px', fontSize: '13px', fontFamily: 'Poppins,sans-serif', boxSizing: 'border-box', outline: 'none' }} />
-            <input type="tel" placeholder="Card number or UPI ID" value={card} onChange={e => setCard(e.target.value)} style={{ width: '100%', padding: '11px 13px', border: '1.5px solid #DDD', borderRadius: '10px', fontSize: '13px', fontFamily: 'Poppins,sans-serif', boxSizing: 'border-box', outline: 'none' }} />
-            <div style={{ display: 'flex', gap: '10px' }}>
-              <input type="text" placeholder="MM/YY" maxLength={5} value={exp} onChange={e => setExp(e.target.value)} style={{ flex: 1, padding: '11px 13px', border: '1.5px solid #DDD', borderRadius: '10px', fontSize: '13px', fontFamily: 'Poppins,sans-serif', boxSizing: 'border-box', outline: 'none' }} />
-              <input type="tel" placeholder="CVV" maxLength={4} value={cvv} onChange={e => setCvv(e.target.value)} style={{ flex: 1, padding: '11px 13px', border: '1.5px solid #DDD', borderRadius: '10px', fontSize: '13px', fontFamily: 'Poppins,sans-serif', boxSizing: 'border-box', outline: 'none' }} />
-            </div>
-          </div>
-          <div style={{ background: '#F7F5F0', borderRadius: '10px', padding: '10px 14px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
-            <span style={{ fontSize: '12px', color: '#666', fontWeight: 600 }}>Total due today</span>
-            <span style={{ fontSize: '16px', fontWeight: 800, color: '#3A2700' }}>₹499</span>
-          </div>
-          <button onClick={pay} disabled={processing} style={{ width: '100%', padding: '14px', background: 'linear-gradient(135deg,#3A2700,#6B4100)', color: '#FFF', border: 'none', borderRadius: '12px', fontFamily: 'Poppins,sans-serif', fontSize: '15px', fontWeight: 700, cursor: processing ? 'wait' : 'pointer', boxShadow: '0 4px 16px rgba(58,39,0,.3)' }}>
-            {processing ? 'Processing…' : 'Pay ₹499 Securely'}
-          </button>
-          <div style={{ textAlign: 'center', marginTop: '10px', fontSize: '10px', color: '#AAA' }}>🔒 256-bit SSL encrypted · Cancel anytime</div>
-        </div>
-        <button onClick={onClose} style={{ position: 'absolute', top: '14px', right: '14px', background: 'rgba(255,255,255,.15)', border: 'none', borderRadius: '50%', width: '30px', height: '30px', color: '#FFF', fontSize: '16px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>✕</button>
-      </div>
-    </div>
-  );
-}
-
 /* ─── MAIN APP ─── */
 const PoopSenseApp = () => {
   const { state, dispatch, addEntry, addDog, editDog, deleteDog, setVet, activateSub } = useApp();
@@ -113,7 +66,6 @@ const PoopSenseApp = () => {
           subDate: user.sub_date || undefined,
           startDate: user.start_date || undefined,
         };
-        // Only override fields that came back from DB
         Object.keys(payload).forEach(k => payload[k] === undefined && delete payload[k]);
         dispatch({ type: 'INIT', payload });
       })
@@ -125,6 +77,40 @@ const PoopSenseApp = () => {
     setPhone(p);
     dispatch({ type: 'SET_PHONE', phone: p });
   };
+
+  // ── Quota state (from backend) ────────────────────────────────────
+  const [quota, setQuota] = useState(null); // { canScan, scanCount, subscribed, numFree, subExpired }
+  const [paywallReason, setPaywallReason] = useState(null); // 'free_limit_reached' | 'subscription_expired'
+
+  // Fetch quota from backend on login
+  useEffect(() => {
+    if (!phone) return;
+    psGetQuota(phone)
+      .then(q => setQuota(q))
+      .catch(e => console.warn('[PoopSenseApp] psGetQuota failed:', e.message));
+  }, [phone]);
+
+  // Handle PayU redirect back (payu_status in URL)
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const status = params.get('payu_status');
+    if (!status) return;
+    window.history.replaceState({}, '', window.location.pathname);
+
+    if (status === 'payment_success') {
+      // Refresh quota from backend
+      if (phone) {
+        psGetQuota(phone).then(q => {
+          setQuota(q);
+          setPaywallReason(null);
+          dispatch({ type: 'ACTIVATE_SUB' });
+          toast('🎉 Subscription activated! Unlimited scans unlocked.');
+        }).catch(() => {});
+      }
+    } else if (status === 'payment_failed') {
+      toast('❌ Payment was not completed. Please try again.');
+    }
+  }, [phone]);
 
   const [activeTab, setActiveTab] = useState('home');
   const [scanScreen, setScanScreen] = useState('s1');
@@ -186,7 +172,7 @@ const PoopSenseApp = () => {
 
     const doScan = async () => {
       try {
-        const result = await psRunAI(pendingImage.b64, dog, pendingSymptoms);
+        const result = await psRunAI(pendingImage.b64, dog, pendingSymptoms, phone);
 
         const now = new Date();
         const entry = {
@@ -214,28 +200,37 @@ const PoopSenseApp = () => {
           dogAv: dog.av,
         };
 
-        addEntry(entry); // also syncs to Supabase via AppContext
+        // Update local quota count
+        if (result.scanCount) setQuota(q => q ? { ...q, scanCount: result.scanCount } : q);
+
+        addEntry(entry);
         setCurrentEntry(entry);
         setScanRunning(false);
         goToScreen('s5');
       } catch (e) {
         setScanRunning(false);
-        toast('Scan failed: ' + (e.message || 'Unknown error'));
-        goToScreen('s3');
+        // Quota errors → show paywall
+        if (e.reason === 'free_limit_reached' || e.reason === 'subscription_expired') {
+          setPaywallReason(e.reason);
+          goToScreen('s1');
+        } else {
+          toast('Scan failed: ' + (e.message || 'Unknown error'));
+          goToScreen('s3');
+        }
       }
     };
 
     const timer = setTimeout(doScan, 2000);
     return () => clearTimeout(timer);
-  }, [scanRunning, pendingSymptoms, pendingImage, state.dogs, state.curDog]);
+  }, [scanRunning, pendingSymptoms, pendingImage, state.dogs, state.curDog, phone]);
 
-  const handleShareVet = (vetName, vetNum) => {
+  const handleShareVet = (vetName, vetNum, specificEntry) => {
     const dog = state.dogs[state.curDog] || null;
-    const entry = currentEntry;
+    const entry = specificEntry || currentEntry;
     if (!entry) { toast('Complete a scan first to share a report.'); return; }
 
-    const num = vetNum.replace(/\D/g, '');
-    const summary = entry.sum || entry.clinicalSummary || 'PoopSense AI report available.';
+    const num = (vetNum || '').replace(/\D/g, '');
+    const summary = entry.sum || 'PoopSense AI report available.';
     const dogName = dog?.name || 'my dog';
     const score = entry.score || '?';
 
@@ -253,7 +248,18 @@ const PoopSenseApp = () => {
   const handleSubscribeSuccess = () => {
     activateSub();
     setPayOpen(false);
+    setPaywallReason(null);
+    // Refresh quota from backend
+    if (phone) psGetQuota(phone).then(q => setQuota(q)).catch(() => {});
     toast('Subscription activated! Thank you.');
+  };
+
+  const handleDownloadProgressPDF = async (days) => {
+    try {
+      await downloadProgressPDF(dogHistory, dog, days);
+    } catch (e) {
+      toast('PDF generation failed: ' + (e.message || 'Unknown error'));
+    }
   };
 
   const handleDownloadPDF = async (entry) => {
@@ -356,7 +362,7 @@ const PoopSenseApp = () => {
           vetNum={state.vet.num}
           onEntryClick={(entry) => { setViewEntry(entry); setEntryDetailOpen(true); }}
           onShareVet={handleShareVetFromHistory}
-          onDownloadHistoryPDF={(days) => toast(`History PDF for ${days} days — coming soon!`)}
+          onDownloadHistoryPDF={handleDownloadProgressPDF}
         />
       )}
 
@@ -367,7 +373,7 @@ const PoopSenseApp = () => {
           dogName={dog?.name || ''}
           vetName={state.vet.name}
           onShareVet={handleShareVetFromHistory}
-          onDownloadProgressPDF={(days) => toast(`Progress PDF for ${days} days — coming soon!`)}
+          onDownloadProgressPDF={handleDownloadProgressPDF}
         />
       )}
 
@@ -414,8 +420,21 @@ const PoopSenseApp = () => {
         onDownloadPDF={handleDownloadPDF}
       />
 
-      {payOpen && (
-        <PayGateway onClose={() => setPayOpen(false)} onSuccess={handleSubscribeSuccess} />
+      {/* ── PAYWALL (quota exceeded / subscription expired / settings subscribe) ── */}
+      {(paywallReason || payOpen) && (
+        <PsPaywall
+          reason={paywallReason || 'subscribe'}
+          phone={phone}
+          dogName={dog?.name}
+          onClose={() => { setPaywallReason(null); setPayOpen(false); }}
+          onDevActivate={() => {
+            activateSub();
+            setPaywallReason(null);
+            setPayOpen(false);
+            setQuota(q => q ? { ...q, canScan: true, subscribed: true } : q);
+            toast('Dev: subscription activated!');
+          }}
+        />
       )}
     </div>
   );

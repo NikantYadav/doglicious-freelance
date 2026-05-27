@@ -63,13 +63,62 @@ export function psSaveSettings(phone, settings) {
 
 // ── AI scan ───────────────────────────────────────────────────────────
 
-export async function psRunAI(imageB64, dog, symptoms) {
+export async function psRunAI(imageB64, dog, symptoms, phone) {
   const res = await fetch(`${API}/api/poopsense/ai`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ imageB64, dog, symptoms }),
+    body: JSON.stringify({ imageB64, dog, symptoms, phone }),
   });
   const data = await res.json();
-  if (!res.ok) throw new Error(data.error || 'AI analysis failed');
+  if (!res.ok) {
+    // Attach reason so frontend can show paywall
+    const err = new Error(data.error || 'AI analysis failed');
+    err.reason = data.reason;
+    err.scanCount = data.scanCount;
+    err.numFree = data.numFree;
+    throw err;
+  }
   return data;
+}
+
+// ── PayU subscription ─────────────────────────────────────────────────
+
+export async function psInitiatePayment(phone, firstname, email) {
+  const res = await fetch(`${API}/api/poopsense/payu-initiate`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ phone, firstname, email }),
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || 'Payment initiation failed');
+  return data; // { payuUrl, params }
+}
+
+// Submit PayU form programmatically
+export function submitPayUForm(payuUrl, params) {
+  const form = document.createElement('form');
+  form.method = 'POST';
+  form.action = payuUrl;
+  Object.entries(params).forEach(([k, v]) => {
+    const input = document.createElement('input');
+    input.type = 'hidden';
+    input.name = k;
+    input.value = v;
+    form.appendChild(input);
+  });
+  document.body.appendChild(form);
+  form.submit();
+}
+
+// ── Fetch user quota from backend ─────────────────────────────────────
+
+export async function psGetQuota(phone) {
+  const res = await fetch(`${API}/api/poopsense/sync`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ action: 'get-quota', phone }),
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || 'Failed to fetch quota');
+  return data; // { scanCount, subscribed, subExpiresAt, numFree, isSubscribed, canScan }
 }

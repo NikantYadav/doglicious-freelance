@@ -226,7 +226,7 @@
 .ps-app .rgauge { position:relative; width:70px; height:70px; flex-shrink:0; }
 .ps-app .rgauge svg { width:70px; height:70px; }
 .ps-app .rsval { position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); text-align:center; }
-.ps-app .rv  { font-size:22px; font-weight:800; color:#fff; line-height:1; }
+.ps-app .rv  { font-size:22px; font-weight:800; color:#fff; line-height:1; opacity:1 !important; transform:none !important; }
 .ps-app .sdn { font-size:8px; color:rgba(255,255,255,.75); }
 .ps-app .rsi { flex:1; }
 .ps-app .rpill { display:inline-flex; align-items:center; gap:4px; padding:3px 10px; border-radius:20px; font-size:10px; font-weight:600; margin-bottom:5px; }
@@ -515,3 +515,20 @@
 
 /* ═══ COLOR DIST ═══ */
 .ps-app .cd-bars { padding: 4px 0; }
+
+/* ═══ GLOBAL CLASS ISOLATION ═══ */
+/* Prevent site-wide .rv scroll-reveal animation from leaking into PoopSense */
+.ps-app .rv,
+.ps-app [class~="rv"] {
+  opacity: 1 !important;
+  transform: none !important;
+  animation: none !important;
+  transition: none !important;
+}
+/* Re-apply the score value style specifically */
+.ps-app .rsval .rv {
+  font-size: 22px;
+  font-weight: 800;
+  color: #fff;
+  line-height: 1;
+}

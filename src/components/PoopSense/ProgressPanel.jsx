@@ -358,15 +358,24 @@ export const ProgressPanel = ({ history, dogName, vetName, onShareVet, onDownloa
               </div>
               <div>
                 <div className="svw-title">Share Progress with Vet</div>
-                <div className="svw-vet-name">{vetName || '—'}</div>
+                <div className="svw-vet-name">{vetName ? vetName : '— Add vet in Settings'}</div>
               </div>
             </div>
-            <button className="svw-btn" onClick={() => onShareVet?.()}>
+            <button
+              className="svw-btn"
+              onClick={() => onShareVet?.()}
+              disabled={!vetName}
+              style={{ opacity: vetName ? 1 : 0.45, cursor: vetName ? 'pointer' : 'not-allowed' }}
+            >
               <WhatsAppIcon size={12} />
               Send to Vet
             </button>
           </div>
-          {!vetName && <div className="svw-hint">ℹ Add vet name in Settings to enable sharing</div>}
+          {!vetName && (
+            <div className="svw-hint">
+              ℹ Add vet name in Settings to enable sharing
+            </div>
+          )}
         </div>
 
         <div style={{ height: 14 }} />

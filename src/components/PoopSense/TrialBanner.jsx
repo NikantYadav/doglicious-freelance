@@ -36,10 +36,16 @@ export const TrialBanner = ({ trial }) => {
           <div className="tb-sub">{sub}</div>
         </div>
       </div>
-      <div className="tb-badge">
-        <div className="tb-count">{count}</div>
-        <div className="tb-clbl">{trial.isSubscribed ? 'active' : countLabel}</div>
-      </div>
+      {trial.isSubscribed ? (
+        <div className="tb-badge" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div className="tb-clbl" style={{ fontSize: 10, fontWeight: 800, letterSpacing: '.06em', textTransform: 'uppercase', color: '#FFD580' }}>ACTIVE</div>
+        </div>
+      ) : (
+        <div className="tb-badge">
+          <div className="tb-count">{count}</div>
+          <div className="tb-clbl">{countLabel}</div>
+        </div>
+      )}
     </div>
   );
 };

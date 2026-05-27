@@ -23,6 +23,7 @@ import payuFailure from './api/payu-failure.js';
 import configHandler from './api/config.js';
 import poopsenseAi from './api/poopsense-ai.js';
 import poopsenseSync from './api/poopsense-sync.js';
+import { initiateHandler as psPayuInitiate, successHandler as psPayuSuccess, failureHandler as psPayuFailure } from './api/poopsense-payu.js';
 
 const app = express();
 app.use(cors());
@@ -55,6 +56,9 @@ app.post('/api/payu-failure', wrap(payuFailure));
 app.get('/api/config', wrap(configHandler));
 app.post('/api/poopsense/ai', wrap(poopsenseAi));
 app.post('/api/poopsense/sync', wrap(poopsenseSync));
+app.post('/api/poopsense/payu-initiate', wrap(psPayuInitiate));
+app.post('/api/poopsense/payu-success', wrap(psPayuSuccess));
+app.post('/api/poopsense/payu-failure', wrap(psPayuFailure));
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
