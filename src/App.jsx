@@ -50,6 +50,7 @@ export default function App() {
         <Route path="/tools/natural-healing" element={<NaturalHealing />} />
         <Route path="/blog/:id" element={<BlogPost />} />
         <Route path="/cms" element={<CMS />} />
+        <Route path="/crm" element={<CMS />} />
 
         {/* Catch-all 404 Redirect */}
         <Route path="*" element={<Navigate to="/" replace />} />
