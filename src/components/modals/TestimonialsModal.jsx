@@ -128,29 +128,78 @@ const STATS = [
 // Separate component so video remounts (and autoplays) on each slide change
 function MainVideo({ src, bgColor }) {
   const ref = useRef(null);
+  const [loading, setLoading] = useState(true);
+
   useEffect(() => {
     const v = ref.current;
     if (!v) return;
+    setLoading(true);
     v.load();
-    v.play().catch(() => {});
+
+    const onCanPlay = () => {
+      setLoading(false);
+      v.play().catch(() => {});
+    };
+    // canplaythrough = enough buffered to play without stalling
+    v.addEventListener('canplaythrough', onCanPlay);
+    // fallback: if metadata loads but canplaythrough is slow, show video anyway
+    const onCanPlayThrough = () => {
+      setLoading(false);
+      v.play().catch(() => {});
+    };
+    v.addEventListener('canplay', onCanPlayThrough);
+
+    return () => {
+      v.removeEventListener('canplaythrough', onCanPlay);
+      v.removeEventListener('canplay', onCanPlayThrough);
+    };
   }, []);
 
   return (
-    <video
-      ref={ref}
-      src={src}
-      loop
-      muted
-      playsInline
-      preload="auto"
-      style={{
-        width: '100%',
-        height: '100%',
-        objectFit: 'contain',
-        display: 'block',
-        background: bgColor,
-      }}
-    />
+    <>
+      {loading && (
+        <div style={{
+          position: 'absolute', inset: 0,
+          background: '#1a1410',
+          display: 'flex', flexDirection: 'column',
+          alignItems: 'center', justifyContent: 'center',
+          gap: '14px', zIndex: 2,
+        }}>
+          {/* Spinner */}
+          <div style={{
+            width: '40px', height: '40px',
+            border: '3px solid rgba(255,255,255,.12)',
+            borderTopColor: '#C8956A',
+            borderRadius: '50%',
+            animation: 'tm-spin .8s linear infinite',
+          }} />
+          <span style={{
+            fontSize: '12px', fontWeight: 600,
+            color: 'rgba(255,255,255,.45)',
+            fontFamily: 'Poppins, sans-serif',
+            letterSpacing: '.04em',
+          }}>Loading video…</span>
+          <style>{`@keyframes tm-spin { to { transform: rotate(360deg); } }`}</style>
+        </div>
+      )}
+      <video
+        ref={ref}
+        src={src}
+        loop
+        muted
+        playsInline
+        preload="auto"
+        style={{
+          width: '100%',
+          height: '100%',
+          objectFit: 'contain',
+          display: 'block',
+          background: bgColor,
+          opacity: loading ? 0 : 1,
+          transition: 'opacity .3s ease',
+        }}
+      />
+    </>
   );
 }
 
