@@ -2,7 +2,6 @@
 // Supabase client for backend use — lazy-initialized so dotenv has time to load.
 
 import { createClient } from '@supabase/supabase-js';
-
 import WebSocket from 'ws';
 
 let _client = null;
@@ -19,7 +18,7 @@ function getClient() {
 
     _client = createClient(url, key, {
         auth: { persistSession: false },
-        realtime: { transport: WebSocket } // Needed for Node < 22 where native WebSocket is missing
+        realtime: { transport: WebSocket }
     });
     return _client;
 }

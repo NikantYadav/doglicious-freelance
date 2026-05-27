@@ -125,8 +125,7 @@ export default function Home() {
       await initiatePayU({ dogName, phone: normalizePhone(mobile), price, recipe, grams, address: deliveryAddress, city: deliveryCity, pincode: deliveryPin });
     } catch (err) {
       console.error('[PayU] initiation failed:', err);
-      setOrderDetails({ dogName, mobile: normalizePhone(mobile), recipe, grams, price, address: `${deliveryAddress}, ${deliveryCity} - ${deliveryPin}` });
-      openModal('confirm');
+      alert('Payment could not be initiated: ' + (err.message || 'Please try again.'));
     }
   };
 
