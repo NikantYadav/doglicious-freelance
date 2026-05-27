@@ -5,7 +5,7 @@ export default function GuaranteesBar() {
         <div className="gtee">
             <div className="wrap">
                 <div className="gtee-r">
-                    <div className="gi">🚚 Free delivery · Gurgaon &amp; Delhi NCR</div>
+                    <div className="gi">🚚 Free delivery · Gurugram &amp; Delhi NCR</div>
                     <div className="gi">🔬 NABL Lab Certified</div>
                     <div className="gi">🌿 Fresh Ingredients</div>
                     <div className="gi">🚫 Preservative Free</div>

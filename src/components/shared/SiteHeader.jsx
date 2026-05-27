@@ -36,7 +36,7 @@ export default function SiteHeader({ openModal }) {
       {/* TICKER */}
       <div className="ticker">
         <span className="ticker-t">
-          🐾 Vet Approved &amp; Internationally Acclaimed &nbsp;·&nbsp; Free same-day delivery · Gurgaon &amp; Delhi NCR &nbsp;·&nbsp; Freshly cooked every morning &nbsp;·&nbsp; NABL certified every batch &nbsp;·&nbsp; Book a sample for ₹99 — no subscription &nbsp;·&nbsp; 5,00,000 meals served since 2020 &nbsp;·&nbsp; Zero preservatives · Zero fillers &nbsp;·&nbsp; AI-Powered Dog Analysis — Free &nbsp;·&nbsp;&nbsp; 🐾 Vet Approved &amp; Internationally Acclaimed
+          🐾 Vet Approved &amp; Internationally Acclaimed &nbsp;·&nbsp; Free same-day delivery · Gurugram &amp; Delhi NCR &nbsp;·&nbsp; Freshly cooked every morning &nbsp;·&nbsp; NABL certified every batch &nbsp;·&nbsp; Book a sample for ₹99 — no subscription &nbsp;·&nbsp; 5,00,000 meals served since 2020 &nbsp;·&nbsp; Zero preservatives · Zero fillers &nbsp;·&nbsp; AI-Powered Dog Analysis — Free &nbsp;·&nbsp;&nbsp; 🐾 Vet Approved &amp; Internationally Acclaimed
         </span>
       </div>
 

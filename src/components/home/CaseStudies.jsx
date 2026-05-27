@@ -11,7 +11,7 @@ export default function CaseStudies() {
                 </div>
                 <div className="csg sg">
                     <div className="csc">
-                        <div className="csh"><div className="csav">🐕</div><div><div className="csn">Bruno</div><div className="csbt">4yr Labrador · Gurgaon</div></div></div>
+                        <div className="csh"><div className="csav">🐕</div><div><div className="csn">Bruno</div><div className="csbt">4yr Labrador · Gurugram</div></div></div>
                         <div className="csb">
                             <div className="csp"><strong>Challenge</strong>Chronic bloating, loose stools and low energy on kibble for 3 years.</div>
                             <div className="csr"><strong>Result</strong>Digestion normalised in 10 days. Energy improved. Coat became glossy.</div>

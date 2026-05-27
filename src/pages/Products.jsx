@@ -77,7 +77,7 @@ export default function Products() {
   const carTrackRef = useRef(null);
 
   const CAR_DATA = [
-    { n: "Ritu Sharma", d: "Bruno · 4yr Labrador, Gurgaon", q: "Bruno was on kibble 3 years. Within 2 weeks — shinier coat, more energy, and he gets excited at meal time now. The AI plan was spot-on for his breed.", v: "▶ Video" },
+    { n: "Ritu Sharma", d: "Bruno · 4yr Labrador, Gurugram", q: "Bruno was on kibble 3 years. Within 2 weeks — shinier coat, more energy, and he gets excited at meal time now. The AI plan was spot-on for his breed.", v: "▶ Video" },
     { n: "Aditya Kapoor", d: "Max · 2yr Beagle, South Delhi", q: "Max had terrible skin issues. Doglicious customised his plan to avoid chicken — he's allergic. The change in 3 weeks was incredible.", v: "▶ Video" },
     { n: "Priya Malhotra", d: "Zeus · 6yr German Shepherd, Noida", q: "The ₹99 sample changed my mind instantly. Zeus ate it within seconds — he's never done that with any food ever!", v: "▶ Video" },
     { n: "Neha Gupta", d: "Mia · 1yr Shih Tzu, DLF Cyber City", q: "The NABL reports give me complete peace of mind about what my baby is eating. Mia is thriving!", v: "▶ Video" },

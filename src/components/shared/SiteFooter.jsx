@@ -30,7 +30,7 @@ export default function SiteFooter() {
             <div className="f-contact">
               <a href="tel:+919889887980">📞 988 988 7980</a>
               <a href="mailto:woof@doglicious.in">✉️ woof@doglicious.in</a>
-              <span>Gurgaon &amp; Delhi NCR · 10AM–6PM daily</span>
+              <span>Gurugram &amp; Delhi NCR · 10AM–6PM daily</span>
             </div>
           </div>
 

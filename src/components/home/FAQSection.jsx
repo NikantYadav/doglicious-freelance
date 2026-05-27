@@ -15,9 +15,9 @@ export default function FAQSection({ openFaq, toggleFaq }) {
         {
             category: "Delivery & orders",
             items: [
-                { id: 'f6', q: "Where do you deliver?", a: "We currently deliver across Gurgaon and selected areas of Delhi NCR. We're expanding regularly. WhatsApp us to check your specific pin code." },
+                { id: 'f6', q: "Where do you deliver?", a: "We currently deliver across Gurugram and selected areas of Delhi NCR. We're expanding regularly. WhatsApp us to check your specific pin code." },
                 { id: 'f7', q: "How fresh is the food when it arrives?", a: "Cooked daily, delivered same day. From our kitchen to your dog's bowl in under 3 hours. No food sits overnight. No batches are prepared more than a day in advance. Your dog gets the freshest possible food — that's the entire point." },
-                { id: 'f8', q: "Is delivery free?", a: "Yes. Free delivery across our entire service area — Gurgaon and Delhi NCR. No minimum order requirement, no delivery fee. Including for the ₹99 sample." },
+                { id: 'f8', q: "Is delivery free?", a: "Yes. Free delivery across our entire service area — Gurugram and Delhi NCR. No minimum order requirement, no delivery fee. Including for the ₹99 sample." },
                 { id: 'f9', q: "What's the shelf life? How should I store it?", a: "Store in the refrigerator. Consume the same day of delivery. Warm gently before serving — room temperature or slightly warm food has better aroma and palatability, especially for senior dogs." },
                 { id: 'f10', q: "What if my dog doesn't like it?", a: "We offer a 30-day money-back guarantee. If your dog genuinely doesn't take to the food, we'll refund you. No hassle. That said — in our experience, the rare cases of initial hesitation are about palatant withdrawal from kibble, not a dislike of fresh food. Give it the 15-minute method for a few meals before giving up." }
             ]

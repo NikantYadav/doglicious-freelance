@@ -45,7 +45,7 @@ export default function Home() {
 
   useSEO({
     title: 'Doglicious.in — Fresh Food & AI Analysis for Dogs',
-    description: "Vet-approved, internationally acclaimed fresh dog food. Book a sample for ₹99. AI Dog Analysis — Vet Rx Scan + Poop Analyser. Free. Gurgaon & Delhi NCR.",
+    description: "Vet-approved, internationally acclaimed fresh dog food. Book a sample for ₹99. AI Dog Analysis — Vet Rx Scan + Poop Analyser. Free. Gurugram & Delhi NCR.",
     canonical: 'https://doglicious.in/'
   });
 
@@ -168,7 +168,7 @@ export default function Home() {
         {/* TICKER */}
         <div className="ticker">
           <span className="ticker-t">
-            🐾 Vet Approved &amp; Internationally Acclaimed &nbsp;·&nbsp; Free same-day delivery · Gurgaon &amp; Delhi NCR &nbsp;·&nbsp; Freshly cooked every morning &nbsp;·&nbsp; NABL certified every batch &nbsp;·&nbsp; Book a sample for ₹99 — no subscription &nbsp;·&nbsp; 5,00,000 meals served since 2020 &nbsp;·&nbsp; Zero preservatives · Zero fillers &nbsp;·&nbsp; AI-Powered Dog Analysis — Free &nbsp;·&nbsp;&nbsp; 🐾 Vet Approved &amp; Internationally Acclaimed
+            🐾 Vet Approved &amp; Internationally Acclaimed &nbsp;·&nbsp; Free same-day delivery · Gurugram &amp; Delhi NCR &nbsp;·&nbsp; Freshly cooked every morning &nbsp;·&nbsp; NABL certified every batch &nbsp;·&nbsp; Book a sample for ₹99 — no subscription &nbsp;·&nbsp; 5,00,000 meals served since 2020 &nbsp;·&nbsp; Zero preservatives · Zero fillers &nbsp;·&nbsp; AI-Powered Dog Analysis — Free &nbsp;·&nbsp;&nbsp; 🐾 Vet Approved &amp; Internationally Acclaimed
           </span>
         </div>
         {/* NAV */}
@@ -323,7 +323,7 @@ export default function Home() {
                   <span className="pc-item-em">🚚</span>
                   <div className="pc-item-body">
                     <div className="pc-item-name">Free Same-Day Delivery</div>
-                    <span className="pc-item-badge badge-brown">GURGAON &amp; DELHI NCR</span>
+                    <span className="pc-item-badge badge-brown">Gurugram &amp; DELHI NCR</span>
                     <div className="pc-item-desc">NABL certified · AAFCO aligned · 100% Money Back Guarantee. No question asked.</div>
                   </div>
                 </div>
@@ -446,7 +446,7 @@ export default function Home() {
             <div className="tc">
               <div className="tc-stars">{[...Array(5)].map((_, i) => <div key={i} className="star" />)}</div>
               <p className="tc-q">"Bruno was on kibble for 3 years. Within 2 weeks — shinier coat, more energy, and he gets <strong>excited at meal time</strong>. Never happened before."</p>
-              <div className="tc-by"><div className="tc-av">R</div><div><div className="tc-n">Ritu Sharma</div><div className="tc-d">Bruno · 4yr Labrador, Gurgaon</div></div></div>
+              <div className="tc-by"><div className="tc-av">R</div><div><div className="tc-n">Ritu Sharma</div><div className="tc-d">Bruno · 4yr Labrador, Gurugram</div></div></div>
             </div>
             <div className="tc" style={{ marginTop: '28px' }}>
               <div className="tc-stars">{[...Array(5)].map((_, i) => <div key={i} className="star" />)}</div>
@@ -544,7 +544,7 @@ export default function Home() {
               { q: 'What does "Vet Approved & Internationally Acclaimed" mean?', a: 'All our recipes are curated by internationally acclaimed veterinary nutritionists and are AAFCO-aligned. Every batch is NABL lab-certified. You receive the lab report with your order.' },
               { q: 'What is Vet Rx Scan?', a: "India's first AI dog health scanner. Upload a photo, describe symptoms, get an AI-powered first assessment with personalised nutrition recommendations — free for everyone." },
               { q: 'What is PoopSense AI?', a: 'Upload a photo of your dog\'s stool and our AI analyses colour, consistency, and form to flag potential gut health concerns and recommend dietary adjustments. Free to try.' },
-              { q: 'Where do you deliver?', a: 'We currently deliver across Gurgaon and selected areas of Delhi NCR. WhatsApp us at 988 988 7980 to check your specific pin code.' },
+              { q: 'Where do you deliver?', a: 'We currently deliver across Gurugram and selected areas of Delhi NCR. WhatsApp us at 988 988 7980 to check your specific pin code.' },
               { q: "What if my dog doesn't like it?", a: '5-day full money-back guarantee — no questions asked. Contact us at woof@doglicious.in within 5 days and we\'ll refund you completely.' },
             ].map((faq, i) => (
               <div key={i} className={`fq${faqOpen === i ? ' op' : ''}`}>
@@ -603,7 +603,7 @@ export default function Home() {
               <div className="f-contact">
                 <a href="tel:+919889887980">📞 988 988 7980</a>
                 <a href="mailto:woof@doglicious.in">✉️ woof@doglicious.in</a>
-                <span>Gurgaon &amp; Delhi NCR · 10AM–6PM daily</span>
+                <span>Gurugram &amp; Delhi NCR · 10AM–6PM daily</span>
               </div>
             </div>
             <div>

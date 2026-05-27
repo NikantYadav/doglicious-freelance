@@ -1,7 +1,7 @@
 import React from 'react';
 
 const VIDEOS = [
-    { n: 1, emoji: "🐕", bg: "linear-gradient(135deg,#2a1e00,#4a3010)", label: "30 sec · Bruno's story", title: "Bruno's Transformation", sub: "4yr Labrador · Gurgaon · Lost 4kg in 8 weeks", src: "https://www.w3schools.com/html/mov_bbb.mp4" },
+    { n: 1, emoji: "🐕", bg: "linear-gradient(135deg,#2a1e00,#4a3010)", label: "30 sec · Bruno's story", title: "Bruno's Transformation", sub: "4yr Labrador · Gurugram · Lost 4kg in 8 weeks", src: "https://www.w3schools.com/html/mov_bbb.mp4" },
     { n: 2, emoji: "🐩", bg: "linear-gradient(135deg,#1a2a1a,#2a4020)", label: "30 sec · Max's story",   title: "Max's Skin Recovery",    sub: "2yr Beagle · South Delhi · Itching stopped in 3 weeks", src: "https://www.w3schools.com/html/movie.mp4" },
     { n: 3, emoji: "🦮", bg: "linear-gradient(135deg,#1a1a2a,#20204a)", label: "30 sec · Zeus's story",  title: "Zeus's Weight Journey",  sub: "5yr GSD · Noida · Lost 3.2kg in 8 weeks", src: "https://www.w3schools.com/html/mov_bbb.mp4" },
     { n: 4, emoji: "🐾", bg: "linear-gradient(135deg,#2a1a1a,#4a2020)", label: "30 sec · Mia's story",   title: "Mia's First Year Fresh",  sub: "1yr Shih Tzu · DLF Phase 3 · Thriving on fresh", src: "https://www.w3schools.com/html/movie.mp4" },

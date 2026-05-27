@@ -28,7 +28,7 @@ export default function ShippingPolicy() {
       </header>
 
       <main className="page-body">
-        <div className="badge">🚚 Free delivery across Gurgaon &amp; Delhi NCR</div>
+        <div className="badge">🚚 Free delivery across Gurugram &amp; Delhi NCR</div>
 
         <nav className="toc-box" aria-label="Contents">
           <div className="toc-heading">Contents</div>
@@ -77,7 +77,7 @@ export default function ShippingPolicy() {
             <div className="info-grid">
               <div className="info-chip">
                 <div className="info-chip-label">Shipment Cost</div>
-                <div className="info-chip-value">Free in most areas in Gurgaon</div>
+                <div className="info-chip-value">Free in most areas in Gurugram</div>
               </div>
               <div className="info-chip">
                 <div className="info-chip-label">Estimated Delivery Time</div>
@@ -85,7 +85,7 @@ export default function ShippingPolicy() {
               </div>
               <div className="info-chip">
                 <div className="info-chip-label">Delivery Area</div>
-                <div className="info-chip-value">Gurgaon &amp; Delhi NCR</div>
+                <div className="info-chip-value">Gurugram &amp; Delhi NCR</div>
               </div>
               <div className="info-chip">
                 <div className="info-chip-label">Weekends &amp; Holidays</div>

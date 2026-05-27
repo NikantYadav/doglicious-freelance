@@ -11,7 +11,7 @@ export default function WhySection() {
                     <div className="fc"><div className="fi">🚫</div><div className="fc-t">Zero Preservatives</div><div className="fc-d">No artificial preservatives, colors or fillers. What goes in is exactly what it says — nothing more, nothing less.</div></div>
                     <div className="fc"><div className="fi">🔬</div><div className="fc-t">Science-Backed</div><div className="fc-d">AAFCO-aligned recipes developed with veterinary nutritionists. Every meal meets complete &amp; balanced standards.</div></div>
                     <div className="fc"><div className="fi">🏆</div><div className="fc-t">Human-Grade</div><div className="fc-d">If it's not good enough for your plate, it's not going in your dog's bowl. Same quality, every day.</div></div>
-                    <div className="fc"><div className="fi">🚚</div><div className="fc-t">Same-Day Delivery</div><div className="fc-d">Cooked morning, delivered same day. Free across Gurgaon &amp; Delhi NCR. 3 hours from kitchen to bowl.</div></div>
+                    <div className="fc"><div className="fi">🚚</div><div className="fc-t">Same-Day Delivery</div><div className="fc-d">Cooked morning, delivered same day. Free across Gurugram &amp; Delhi NCR. 3 hours from kitchen to bowl.</div></div>
                 </div>
             </div>
         </section>

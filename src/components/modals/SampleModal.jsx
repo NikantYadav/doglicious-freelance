@@ -108,7 +108,7 @@ export default function SampleModal({
                     </div>
                     <div className="fg2"><label className="ilab">Delivery Address</label><input className="ifield" value={deliveryAddress} onChange={(e) => setDeliveryAddress(e.target.value)} placeholder="House/Flat no, Street, Area" required /></div>
                     <div className="addr-row">
-                        <div className="fg2"><label className="ilab">City</label><input className="ifield" value={deliveryCity} onChange={(e) => setDeliveryCity(e.target.value)} placeholder="e.g. Gurgaon" required /></div>
+                        <div className="fg2"><label className="ilab">City</label><input className="ifield" value={deliveryCity} onChange={(e) => setDeliveryCity(e.target.value)} placeholder="e.g. Gurugram" required /></div>
                         <div className="fg2">
                             <label className="ilab">Pincode</label>
                             <input

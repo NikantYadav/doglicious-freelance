@@ -18,7 +18,7 @@ export default function HowItWorksSection({ openModal }) {
                             </div>
                         </div>
                     </div>
-                    <div className="st"><div className="sn">03</div><div><div className="st-t">Fresh food. Delivered.</div><div className="st-d">Freshly cooked each morning. Free delivery across Gurgaon &amp; Delhi NCR. 3 hours from kitchen to bowl.</div></div></div>
+                    <div className="st"><div className="sn">03</div><div><div className="st-t">Fresh food. Delivered.</div><div className="st-d">Freshly cooked each morning. Free delivery across Gurugram &amp; Delhi NCR. 3 hours from kitchen to bowl.</div></div></div>
                 </div>
                 <div style={{ textAlign: "center", marginTop: "40px" }} className="rv">
                     <button className="btn btn-primary" onClick={() => { openModal('sample') }}>Book a Sample — ₹99</button>
