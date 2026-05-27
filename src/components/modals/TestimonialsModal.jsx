@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 
+const SUPABASE_STORAGE = 'https://osftreewgvsuahncsbhx.supabase.co/storage/v1/object/public/doglicious-media';
+
 const TESTIMONIALS = [
   {
     id: 'badrish',
@@ -9,7 +11,7 @@ const TESTIMONIALS = [
     location: 'India',
     emoji: '🏅',
     bgColor: '#1a1410',
-    video: '/testimonials/Badrish Horizontal.mp4',
+    video: `${SUPABASE_STORAGE}/Badrish%20Horizontal.mp4`,
     quote: 'Real results, real food. My dog has never been happier.',
     stars: 5,
   },
@@ -21,7 +23,7 @@ const TESTIMONIALS = [
     location: 'India',
     emoji: '⭐',
     bgColor: '#1a1410',
-    video: '/testimonials/Deepa Horizontal.mp4',
+    video: `${SUPABASE_STORAGE}/Deepa%20Horizontal.mp4`,
     quote: 'Switched to Doglicious and never looked back.',
     stars: 5,
   },
@@ -33,7 +35,7 @@ const TESTIMONIALS = [
     location: 'India',
     emoji: '🔬',
     bgColor: '#1a1410',
-    video: '/testimonials/Expert Horizontal.mp4',
+    video: `${SUPABASE_STORAGE}/Expert%20Horizontal.mp4`,
     quote: 'Vet-approved, NABL certified — the gold standard in fresh dog food.',
     stars: 5,
   },
@@ -45,7 +47,7 @@ const TESTIMONIALS = [
     location: 'India',
     emoji: '🌟',
     bgColor: '#1a1410',
-    video: '/testimonials/Seerat Horizontal.mp4',
+    video: `${SUPABASE_STORAGE}/Seerat%20Horizontal.mp4`,
     quote: 'The difference in energy and coat quality was visible within days.',
     stars: 5,
   },
@@ -57,7 +59,7 @@ const TESTIMONIALS = [
     location: 'India',
     emoji: '🐾',
     bgColor: '#1a1410',
-    video: '/testimonials/Tarini Jain (a) Horizontal.mp4',
+    video: `${SUPABASE_STORAGE}/Tarini%20Jain%20(a)%20Horizontal.mp4`,
     quote: 'Fresh food made all the difference for my dog.',
     stars: 5,
     partLabel: 'Part 1',
@@ -70,7 +72,7 @@ const TESTIMONIALS = [
     location: 'India',
     emoji: '🐾',
     bgColor: '#1a1410',
-    video: '/testimonials/Tarini Jain (b) Horizontal.mp4',
+    video: `${SUPABASE_STORAGE}/Tarini%20Jain%20(b)%20Horizontal.mp4`,
     quote: 'I recommend Doglicious to every dog parent I know.',
     stars: 5,
     partLabel: 'Part 2',
@@ -83,7 +85,7 @@ const TESTIMONIALS = [
     location: 'India',
     emoji: '💫',
     bgColor: '#1a1410',
-    video: '/testimonials/Vishwa (a) Horizontal.mp4',
+    video: `${SUPABASE_STORAGE}/Vishwa%20(a)%20Horizontal.mp4`,
     quote: 'My dog went from picky eater to bowl-licker in one meal.',
     stars: 5,
     partLabel: 'Part 1',
@@ -96,7 +98,7 @@ const TESTIMONIALS = [
     location: 'India',
     emoji: '💫',
     bgColor: '#1a1410',
-    video: '/testimonials/Vishwa (b) Horizontal.mp4',
+    video: `${SUPABASE_STORAGE}/Vishwa%20(b)%20Horizontal.mp4`,
     quote: 'The quality and freshness is unmatched. Highly recommend.',
     stars: 5,
     partLabel: 'Part 2',
@@ -109,7 +111,7 @@ const TESTIMONIALS = [
     location: 'India',
     emoji: '🏆',
     bgColor: '#1a1410',
-    video: '/testimonials/Zenith Horizontal.mp4',
+    video: `${SUPABASE_STORAGE}/Zenith%20Horizontal.mp4`,
     quote: 'Best decision I made for my dog\'s health.',
     stars: 5,
   },
@@ -140,7 +142,7 @@ function MainVideo({ src, bgColor }) {
       loop
       muted
       playsInline
-      preload="metadata"
+      preload="auto"
       style={{
         width: '100%',
         height: '100%',
