@@ -28,11 +28,11 @@
     });
   </script>
 
-  <!-- Preload LCP Image for Mobile and Desktop -->
-  <link rel="preload" href="/happy-dog-720.webp" as="image" type="image/webp" media="(max-width: 768px)"
-    fetchpriority="high">
-  <link rel="preload" href="/happy-dog.webp" as="image" type="image/webp" media="(min-width: 769px)"
-    fetchpriority="high">
+  <!-- Preload LCP Image (desktop) — type omitted for Firefox compatibility -->
+  <!-- Mobile variant (happy-dog-720.webp) is NOT preloaded globally because
+       it triggers "preloaded but not used" warnings on non-home routes.
+       It is instead loaded eagerly via fetchpriority="high" in the Hero component. -->
+  <link rel="preload" href="/happy-dog.webp" as="image" fetchpriority="high">
 
   <!-- Google Fonts Optimization — async load via media=print trick -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
