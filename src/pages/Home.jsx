@@ -37,6 +37,7 @@ export default function Home() {
   const [quizStep, setQuizStep] = useState(0);
   const [quizName, setQuizName] = useState('');
   const [quizAnswers, setQuizAnswers] = useState({});
+  const [paymentConfirm, setPaymentConfirm] = useState(null); // { status, txnid, amount }
 
   useSEO({
     title: 'Doglicious.in — Fresh Food & AI Analysis for Dogs',
@@ -51,6 +52,24 @@ export default function Home() {
     const onScroll = () => setNavScrolled(window.scrollY > 20);
     window.addEventListener('scroll', onScroll, { passive: true });
     return () => window.removeEventListener('scroll', onScroll);
+  }, []);
+
+  // Detect PayU redirect back to homepage
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const status = params.get('payu_status');
+    if (!status) return;
+    // Clean URL immediately
+    window.history.replaceState({}, '', window.location.pathname);
+    if (status === 'payment_success') {
+      setPaymentConfirm({
+        success: true,
+        txnid: params.get('txnid') || '',
+        amount: params.get('amount') || '99',
+      });
+    } else {
+      setPaymentConfirm({ success: false });
+    }
   }, []);
 
   useEffect(() => {
@@ -693,6 +712,92 @@ export default function Home() {
           <p style={{ fontSize: '11px', color: 'var(--c1-50)', textAlign: 'center', marginTop: '12px' }}>Free for everyone · First scan complimentary · No sign-up needed</p>
         </div>
       </div>
+
+      {/* ── PAYMENT CONFIRMATION MODAL ── */}
+      {paymentConfirm && (
+        <div
+          style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,.6)', zIndex: 99999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px', backdropFilter: 'blur(4px)' }}
+          onClick={() => setPaymentConfirm(null)}
+        >
+          <div
+            style={{ background: '#fff', borderRadius: '20px', width: '100%', maxWidth: '400px', overflow: 'hidden', boxShadow: '0 24px 64px rgba(0,0,0,.3)', position: 'relative' }}
+            onClick={e => e.stopPropagation()}
+          >
+            {paymentConfirm.success ? (
+              <>
+                {/* Success header */}
+                <div style={{ background: 'linear-gradient(135deg,#195C30,#2a7a44)', padding: '32px 24px', textAlign: 'center' }}>
+                  <div style={{ fontSize: '52px', marginBottom: '12px' }}>🎉</div>
+                  <div style={{ fontSize: '20px', fontWeight: 800, color: '#fff', marginBottom: '4px' }}>Payment Successful!</div>
+                  <div style={{ fontSize: '12px', color: 'rgba(255,255,255,.7)' }}>Your sample order has been confirmed</div>
+                </div>
+                <div style={{ padding: '24px' }}>
+                  <div style={{ background: '#F0FBF4', border: '1px solid rgba(25,92,48,.15)', borderRadius: '12px', padding: '16px', marginBottom: '16px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
+                      <span style={{ fontSize: '12px', color: '#5C3F18', fontWeight: 600 }}>Order Status</span>
+                      <span style={{ fontSize: '12px', fontWeight: 700, color: '#195C30' }}>✓ Confirmed</span>
+                    </div>
+                    {paymentConfirm.txnid && (
+                      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
+                        <span style={{ fontSize: '12px', color: '#5C3F18', fontWeight: 600 }}>Transaction ID</span>
+                        <span style={{ fontSize: '11px', fontFamily: 'monospace', color: '#3A2700' }}>{paymentConfirm.txnid}</span>
+                      </div>
+                    )}
+                    <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                      <span style={{ fontSize: '12px', color: '#5C3F18', fontWeight: 600 }}>Amount Paid</span>
+                      <span style={{ fontSize: '13px', fontWeight: 800, color: '#3A2700' }}>₹99</span>
+                    </div>
+                  </div>
+                  <div style={{ fontSize: '12px', color: '#8B6B3D', lineHeight: 1.7, marginBottom: '20px', textAlign: 'center' }}>
+                    🚚 Your fresh food sample will be delivered <strong>same day</strong> if ordered before 10AM, or next morning.<br />
+                    We'll WhatsApp you the delivery update.
+                  </div>
+                  <button
+                    onClick={() => setPaymentConfirm(null)}
+                    style={{ width: '100%', padding: '14px', background: 'linear-gradient(135deg,#195C30,#2a7a44)', color: '#fff', border: 'none', borderRadius: '12px', fontSize: '14px', fontWeight: 700, cursor: 'pointer', fontFamily: 'Poppins, sans-serif' }}
+                  >
+                    Got it, thanks! 🐾
+                  </button>
+                </div>
+              </>
+            ) : (
+              <>
+                {/* Failure header */}
+                <div style={{ background: 'linear-gradient(135deg,#AD2218,#c8382c)', padding: '28px 24px', textAlign: 'center' }}>
+                  <div style={{ fontSize: '48px', marginBottom: '10px' }}>❌</div>
+                  <div style={{ fontSize: '18px', fontWeight: 800, color: '#fff', marginBottom: '4px' }}>Payment Not Completed</div>
+                  <div style={{ fontSize: '12px', color: 'rgba(255,255,255,.7)' }}>Your order was not placed</div>
+                </div>
+                <div style={{ padding: '24px' }}>
+                  <p style={{ fontSize: '13px', color: '#5C3F18', lineHeight: 1.7, marginBottom: '20px', textAlign: 'center' }}>
+                    No amount was charged. You can try again or contact us on WhatsApp if you need help.
+                  </p>
+                  <div style={{ display: 'flex', gap: '10px' }}>
+                    <button
+                      onClick={() => { setPaymentConfirm(null); openModal('sample'); }}
+                      style={{ flex: 1, padding: '13px', background: 'linear-gradient(135deg,#3A2700,#6B4100)', color: '#fff', border: 'none', borderRadius: '12px', fontSize: '13px', fontWeight: 700, cursor: 'pointer', fontFamily: 'Poppins, sans-serif' }}
+                    >
+                      Try Again
+                    </button>
+                    <a
+                      href="https://wa.me/919889887980"
+                      target="_blank"
+                      rel="noreferrer"
+                      style={{ flex: 1, padding: '13px', background: '#25D366', color: '#fff', border: 'none', borderRadius: '12px', fontSize: '13px', fontWeight: 700, cursor: 'pointer', fontFamily: 'Poppins, sans-serif', textDecoration: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                    >
+                      WhatsApp Us
+                    </a>
+                  </div>
+                </div>
+              </>
+            )}
+            <button
+              onClick={() => setPaymentConfirm(null)}
+              style={{ position: 'absolute', top: '12px', right: '12px', background: 'rgba(255,255,255,.2)', border: 'none', borderRadius: '50%', width: '28px', height: '28px', color: '#fff', fontSize: '14px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+            >✕</button>
+          </div>
+        </div>
+      )}
     </>
   );
 }
