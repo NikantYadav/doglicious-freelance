@@ -21,6 +21,7 @@ const FeedingCalculator = React.lazy(() => import('./pages/FeedingCalculator'))
 const HealthQuiz = React.lazy(() => import('./pages/HealthQuiz'))
 const NaturalHealing = React.lazy(() => import('./pages/NaturalHealing'))
 const BlogPost = React.lazy(() => import('./pages/BlogPost'))
+const CMS = React.lazy(() => import('./pages/CMS'))
 
 export default function App() {
   // Track page views on route changes
@@ -48,6 +49,7 @@ export default function App() {
         <Route path="/tools/health-quiz" element={<HealthQuiz />} />
         <Route path="/tools/natural-healing" element={<NaturalHealing />} />
         <Route path="/blog/:id" element={<BlogPost />} />
+        <Route path="/cms" element={<CMS />} />
 
         {/* Catch-all 404 Redirect */}
         <Route path="*" element={<Navigate to="/" replace />} />

@@ -23,6 +23,16 @@ import configHandler from './api/config.js';
 import poopsenseAi from './api/poopsense-ai.js';
 import poopsenseSync from './api/poopsense-sync.js';
 import { initiateHandler as psPayuInitiate, successHandler as psPayuSuccess, failureHandler as psPayuFailure } from './api/poopsense-payu.js';
+import cmsAuthHandler from './api/cms-auth.js';
+import { requireAuth } from './api/cms-auth.js';
+import { listPosts, getPost, createPost, updatePost, deletePost, toggleFeatured, getStats } from './api/cms-posts.js';
+import { listPublicPosts, getPublicPost, getHomePosts } from './api/cms-public.js';
+import {
+    listCategories, createCategory, updateCategory, deleteCategory,
+    listTags, deleteTag,
+    listComments, updateComment, deleteComment,
+    getAnalytics,
+} from './api/cms-manage.js';
 
 const app = express();
 app.use(cors());
@@ -57,6 +67,46 @@ app.post('/api/poopsense/sync', wrap(poopsenseSync));
 app.post('/api/poopsense/payu-initiate', wrap(psPayuInitiate));
 app.post('/api/poopsense/payu-success', wrap(psPayuSuccess));
 app.post('/api/poopsense/payu-failure', wrap(psPayuFailure));
+
+// ── Public Blog routes (no auth) ─────────────────────────────────────
+app.get('/api/blog/home',        wrap(getHomePosts));
+app.get('/api/blog/posts',       wrap(listPublicPosts));
+app.get('/api/blog/posts/:slug', wrap(getPublicPost));
+
+// ── CMS Auth routes ──────────────────────────────────────────────────
+app.post('/api/cms/register', (req, res) => { req.params = { action: 'register' }; return wrap(cmsAuthHandler)(req, res); });
+app.post('/api/cms/login',    (req, res) => { req.params = { action: 'login' };    return wrap(cmsAuthHandler)(req, res); });
+app.post('/api/cms/logout',   (req, res) => { req.params = { action: 'logout' };   return wrap(cmsAuthHandler)(req, res); });
+app.get('/api/cms/me',        (req, res) => { req.params = { action: 'me' };       return wrap(cmsAuthHandler)(req, res); });
+
+// ── CMS Posts routes (all protected) ────────────────────────────────
+const cmsAuth = async (req, res, next) => {
+    try { await requireAuth(req, res, next); }
+    catch (err) { if (!res.headersSent) res.status(500).json({ error: err.message }); }
+};
+
+app.get('/api/cms/stats',              cmsAuth, wrap(getStats));
+app.get('/api/cms/posts',              cmsAuth, wrap(listPosts));
+app.post('/api/cms/posts',             cmsAuth, wrap(createPost));
+app.get('/api/cms/posts/:id',          cmsAuth, wrap(getPost));
+app.put('/api/cms/posts/:id',          cmsAuth, wrap(updatePost));
+app.delete('/api/cms/posts/:id',       cmsAuth, wrap(deletePost));
+app.post('/api/cms/posts/:id/feature', cmsAuth, wrap(toggleFeatured));
+
+// ── CMS Manage routes ────────────────────────────────────────────────
+app.get('/api/cms/categories',         cmsAuth, wrap(listCategories));
+app.post('/api/cms/categories',        cmsAuth, wrap(createCategory));
+app.put('/api/cms/categories/:id',     cmsAuth, wrap(updateCategory));
+app.delete('/api/cms/categories/:id',  cmsAuth, wrap(deleteCategory));
+
+app.get('/api/cms/tags',               cmsAuth, wrap(listTags));
+app.delete('/api/cms/tags/:name',      cmsAuth, wrap(deleteTag));
+
+app.get('/api/cms/comments',           cmsAuth, wrap(listComments));
+app.put('/api/cms/comments/:id',       cmsAuth, wrap(updateComment));
+app.delete('/api/cms/comments/:id',    cmsAuth, wrap(deleteComment));
+
+app.get('/api/cms/analytics',          cmsAuth, wrap(getAnalytics));
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {

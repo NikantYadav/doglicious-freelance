@@ -3,6 +3,55 @@ import { supabase } from '../utils/supabase.js';
 
 const PAYU_SALT = () => process.env.PAYU_SALT;
 
+const WYLTO_BASE = 'https://server.wylto.com';
+const wyltoKey = () => process.env.WYLTO_API_KEY;
+
+/**
+ * Sends a WhatsApp order confirmation message via Wylto
+ * using the pre-approved 'confirmation' template.
+ */
+async function sendConfirmationWhatsApp({ phone, txnid }) {
+    const key = wyltoKey();
+    if (!key) {
+        console.warn('[payu-success] WYLTO_API_KEY not set — skipping confirmation WhatsApp');
+        return;
+    }
+
+    const body = {
+        to: phone,
+        message: {
+            type: 'template',
+            template: {
+                templateName: 'confirmation',
+                language: process.env.WYLTO_OTP_LANGUAGE || 'en',
+                category: 'MARKETING',
+            },
+        },
+    };
+
+    try {
+        const res = await fetch(`${WYLTO_BASE}/api/v1/wa/send?sync=true`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${key}`,
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(body),
+        });
+
+        const data = await res.json();
+
+        if (!res.ok || data.status === 'failed') {
+            console.error('[payu-success] Wylto confirmation failed:', data.error || JSON.stringify(data));
+        } else {
+            console.log(`[payu-success] Confirmation WhatsApp sent to ${phone} (txnid: ${txnid})`);
+        }
+    } catch (err) {
+        // Non-fatal — don't block the payment success flow
+        console.error('[payu-success] Wylto confirmation error (non-fatal):', err.message);
+    }
+}
+
 // Reverse hash: SHA512( salt|status||||||udf5|udf4|udf3|udf2|udf1|email|firstname|productinfo|amount|txnid|key )
 function verifyReverseHash(params, salt) {
     const { status, udf5 = '', udf4 = '', udf3 = '', udf2 = '', udf1 = '',
@@ -68,8 +117,13 @@ export default async function handler(req, res) {
                 .update({ status: 'COMPLETED' })
                 .eq('txnid', params.txnid);
 
-            if (bookingErr) console.error('[payu-success] sample_bookings update error:', bookingErr.message);
-            else console.log(`[payu-success] Booking marked COMPLETED for txnid ${params.txnid} (${phone})`);
+            if (bookingErr) {
+                console.error('[payu-success] sample_bookings update error:', bookingErr.message);
+            } else {
+                console.log(`[payu-success] Booking marked COMPLETED for txnid ${params.txnid} (${phone})`);
+                // Send WhatsApp order confirmation (non-blocking)
+                sendConfirmationWhatsApp({ phone, txnid: params.txnid });
+            }
         } catch (err) {
             console.error('[payu-success] Booking update failed (non-fatal):', err.message);
         }

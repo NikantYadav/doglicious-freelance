@@ -205,3 +205,48 @@
   .blogs-hero-title { font-size: 32px; }
   .blog-filter { padding-top: 32px; }
 }
+
+/* ── Loading skeleton ── */
+.blogs-loading {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+}
+@media (max-width: 900px) { .blogs-loading { grid-template-columns: repeat(2,1fr); } }
+@media (max-width: 560px) { .blogs-loading { grid-template-columns: 1fr; } }
+
+.bc-skeleton { pointer-events: none; }
+.bc-skel-vis {
+  background: linear-gradient(90deg, #ede8df 25%, #e4ddd3 50%, #ede8df 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.4s infinite;
+}
+.bc-skel-line {
+  height: 12px;
+  border-radius: 6px;
+  background: linear-gradient(90deg, #ede8df 25%, #e4ddd3 50%, #ede8df 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.4s infinite;
+  margin-bottom: 10px;
+}
+.bc-skel-short { width: 40%; }
+.bc-skel-med   { width: 70%; }
+
+@keyframes shimmer {
+  0%   { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+.blogs-error {
+  text-align: center;
+  padding: 48px 0;
+  color: var(--c1-50);
+  font-size: 15px;
+}
+.blogs-empty {
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: 48px 0;
+  color: var(--c1-50);
+  font-size: 15px;
+}

@@ -7,6 +7,7 @@ import { logoImg, RECIPES, GRAM_OPTS, GRAM_PRICES } from '../data/homeData';
 import { normalizePhone } from '../utils/phone';
 import { initiatePayU } from '../services/sampleBooking';
 
+import HomeBlogSection from '../components/HomeBlogSection';
 import VetRxModal from '../components/modals/VetRxModal';
 import SampleModal from '../components/modals/SampleModal';
 import PaymentModal from '../components/modals/PaymentModal';
@@ -269,7 +270,7 @@ export default function Home() {
               </div>
             </div>
             <div className="hero-image">
-              <img src="/happy-dog.webp" srcSet="/happy-dog-720.webp 720w, /happy-dog.webp 900w" sizes="(max-width:768px) 720px, 900px" alt="Happy dog with fresh food" width="900" height="600" fetchPriority="high" />
+              <img src="/happy-dog.webp" srcSet="/happy-dog-720.webp 720w, /happy-dog.webp 900w" sizes="(max-width:768px) 720px, 900px" alt="Happy dog with fresh food" width="900" height="600" fetchpriority="high" />
               <div className="hero-pill">
                 <div className="pill-dot" />
                 <div>
@@ -463,72 +464,7 @@ export default function Home() {
       </section>
 
       {/* ── BLOG ── */}
-      <section id="blog" className="blog-sec" style={{ padding: '96px 0' }}>
-        <div className="w">
-          <div className="blog-header rv">
-            <span className="blog-label">✦ Expert Knowledge</span>
-            <h2 className="blog-title">Dog Health &amp; <em>Nutrition</em> Blog</h2>
-            <p className="blog-subtitle">Vet-backed guides to help you raise a healthier, happier dog.</p>
-          </div>
-          {/* Featured — Blog ID 1 */}
-          <div className="blog-featured rv" onClick={() => navigate('/blog/1')}>
-            <div className="blog-feat-visual">🍗</div>
-            <div className="blog-feat-content">
-              <div className="blog-feat-cat">⭐ Featured · Nutrition · Fresh Food Science</div>
-              <h3 className="blog-feat-h">Why Ghar Ka Khana Is Finally Available for Your Dog</h3>
-              <p className="blog-feat-d">The science behind fresh food — why ultra-processed kibble falls short, and what your dog is really missing from their bowl every single day.</p>
-              <span className="blog-feat-link">Read full article →</span>
-              <div className="blog-feat-meta">9 min read</div>
-            </div>
-          </div>
-          {/* Grid — IDs 2–7, titles match homeData.js exactly */}
-          <div className="blog-grid sg">
-            {[
-              { bg: 'linear-gradient(145deg,#fff3e0,#ffe0b2)', em: '⚖️', cat: 'blog-cat-nutrition', catLabel: 'Nutrition', h: 'Kibble vs Fresh Dog Food — The Truth No Brand Will Tell You', d: 'What kibble is really made from, why "complete nutrition" labels mislead, and what the real comparison looks like.', meta: '9 min read · Nutrition', id: 2 },
-              { bg: 'linear-gradient(145deg,#fce4ec,#f8bbd0)', em: '🧴', cat: 'blog-cat-care', catLabel: 'Skin & Coat', h: "Is Your Dog's Coat Dull and Skin Itchy? Stop Blaming the Weather", d: 'Skin problems almost always trace back to food. The carb-yeast connection most vets never mention.', meta: '8 min read · Skin & Coat Health', id: 3 },
-              { bg: 'linear-gradient(145deg,#e8f5e9,#c8e6c9)', em: '🔄', cat: 'blog-cat-gut', catLabel: 'Transition Guide', h: 'How to Switch Your Dog to Fresh Food Without the Drama', d: 'The exact day-by-day transition plan, the palatant problem, and the one mistake that derails every switch.', meta: '7 min read · Transition Guide', id: 4 },
-              { bg: 'linear-gradient(145deg,#fff8e1,#ffecb3)', em: '🇮🇳', cat: 'blog-cat-nutrition', catLabel: 'Indian Dogs', h: "What Indian Dogs Actually Need to Eat — And Why We've Been Getting It Wrong", d: 'Indian dogs live in Indian conditions. Why imported western kibble formulas were never designed for them.', meta: '9 min read · Indian Dogs', id: 5 },
-              { bg: 'linear-gradient(145deg,#e8eaf6,#c5cae9)', em: '⚗️', cat: 'blog-cat-science', catLabel: 'Ingredients', h: 'The Preservative Problem in Indian Dog Food — Including the Aflatoxin Truth', d: 'BHA, BHT, ethoxyquin, aflatoxin — the chemicals in your dog\'s food and why India\'s warm climate makes it worse.', meta: '8 min read · Ingredients', id: 6 },
-              { bg: 'linear-gradient(145deg,#e0f2f1,#b2dfdb)', em: '🐶', cat: 'blog-cat-care', catLabel: 'Lifecycle · Puppy', h: "What to Feed Your Puppy in Their First Year — The Guide Most Indian Vets Don't Give You", d: 'The first year shapes everything. What to feed, when to feed it, and the calcium mistake large-breed owners make.', meta: '8 min read · Puppy Guide', id: 7 },
-            ].map(b => (
-              <div key={b.id} className="blog-card rv" onClick={() => navigate(`/blog/${b.id}`)}>
-                <div className="blog-card-top" style={{ background: b.bg }}>{b.em}</div>
-                <div className="blog-card-body">
-                  <div className={`blog-cat ${b.cat}`}>{b.catLabel}</div>
-                  <h3 className="blog-h">{b.h}</h3>
-                  <p className="blog-d">{b.d}</p>
-                  <span className="blog-link">Read more →</span>
-                  <div className="blog-meta">{b.meta}</div>
-                </div>
-              </div>
-            ))}
-          </div>
-          {/* Bottom wide cards — IDs 8 & 9 */}
-          <div className="blog-bottom sg">
-            <div className="blog-wide rv" onClick={() => navigate('/blog/8')}>
-              <div className="blog-wide-icon">🌟</div>
-              <div className="blog-wide-body">
-                <div className="blog-wide-cat">Lifecycle · Senior</div>
-                <h3 className="blog-wide-h">Your Senior Dog Is Eating Less — And the Answer Probably Isn't Another Vet Visit</h3>
-                <p className="blog-wide-d">Why older dogs stop eating, why their protein needs actually increase with age, and what really helps.</p>
-                <span className="blog-wide-link">Read more →</span>
-              </div>
-            </div>
-            <div className="blog-wide rv" onClick={() => navigate('/blog/9')}>
-              <div className="blog-wide-icon">🥦</div>
-              <div className="blog-wide-body">
-                <div className="blog-wide-cat">Indian Kitchen Guide</div>
-                <h3 className="blog-wide-h">The Indian Kitchen and Your Dog — What's Safe, What's a Myth, and What Could Kill Them</h3>
-                <p className="blog-wide-d">Onion, garlic, roti, grapes — what's dangerous, what's fine, and what Indian dog parents get wrong every day.</p>
-                <span className="blog-wide-link">Read more →</span>
-              </div>
-            </div>
-          </div>
-          <div className="blog-view-all rv">
-            <button className="btn-blog-all" onClick={() => navigate('/blogs')}>📚 View all articles →</button>
-          </div>
-        </div>
-      </section>
+      <HomeBlogSection />
 
       {/* ── FAQ ── */}
       <section id="faq" style={{ background: 'var(--c1-05)', borderTop: '1px solid var(--sep)' }}>
