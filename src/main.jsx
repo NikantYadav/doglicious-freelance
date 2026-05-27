@@ -22,15 +22,20 @@ ReactDOM.createRoot(document.getElementById('root')).render(
 const loadSW = () => {
   import(/* @vite-ignore */ 'virtual:pwa-register').then(({ registerSW }) => {
     registerSW({
-      onNeedRefresh(updateSW) {
-        updateSW(true)
+      onNeedRefresh() {
+        // Do NOT auto-reload — it causes a reload loop during development
+        // and disrupts the user mid-session in production.
+        // The updated SW will activate on the next natural page load.
+        console.log('🔄 New app version available — will update on next page load.')
       },
       onOfflineReady() {
         console.log('✅ App is ready to work offline')
       },
       onRegisteredSW(_swUrl, registration) {
         if (registration) {
-          setInterval(() => registration.update(), 60 * 1000)
+          // Check for updates every 60 minutes instead of every 60 seconds
+          // to avoid hammering the server and triggering frequent refresh cycles.
+          setInterval(() => registration.update(), 60 * 60 * 1000)
         }
       }
     })
