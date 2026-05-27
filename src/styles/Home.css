@@ -314,7 +314,7 @@ section{padding:96px 0}
 footer{background:var(--c1-05);border-top:1px solid var(--sep);padding:56px 0 0}
 .footer-top{display:grid;grid-template-columns:2fr 1fr 1fr;gap:48px;margin-bottom:40px}
 @media(max-width:767px){.footer-top{grid-template-columns:1fr;gap:28px}}
-.f-logo img{height:64px;filter:brightness(0);opacity:.8;margin-bottom:12px}
+.f-logo img{height:64px;margin-bottom:12px}
 .f-tagline{font-size:13px;color:var(--c1-70);line-height:1.68;max-width:220px;margin-bottom:14px}
 .f-contact{font-size:13px;color:var(--c1-70);display:flex;flex-direction:column;gap:4px}
 .f-contact a{color:var(--c1-70);transition:color .15s}

@@ -1,5 +1,6 @@
 import crypto from 'crypto';
 import { supabase } from '../utils/supabase.js';
+import { normalizePhone } from '../utils/phone.js';
 
 const PAYU_SALT = () => process.env.PAYU_SALT;
 
@@ -23,8 +24,8 @@ async function sendConfirmationWhatsApp({ phone, txnid }) {
             type: 'template',
             template: {
                 templateName: 'confirmation',
-                language: process.env.WYLTO_OTP_LANGUAGE || 'en',
-                category: 'MARKETING',
+                language: 'en_US',
+                category: 'UTILITY',
             },
         },
     };
@@ -98,7 +99,7 @@ export default async function handler(req, res) {
 
     // 3. Parse order data from udf fields
     // udf1 = phone, udf3 = price, udf4 = recipe|grams|dogName, udf5 = address|city|pincode
-    const phone = params.udf1 || '';
+    const phone = params.udf1 ? normalizePhone(params.udf1) : '';
     const price = params.udf3 || '';
     const udf4Parts = (params.udf4 || '').split('|');
     const udf5Parts = (params.udf5 || '').split('|');

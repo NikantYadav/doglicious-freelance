@@ -45,3 +45,4 @@ workbox-*.js
 
 *.json
 *.pem
+*.xlsx
