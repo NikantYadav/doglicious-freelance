@@ -120,10 +120,10 @@ export default function Home() {
     const grams = GRAM_OPTS[selectedGramIdx];
     const price = GRAM_PRICES[selectedGramIdx];
 
-    // Fire-and-forget: save booking to Supabase immediately when user taps Pay.
-    // This ensures data is always captured regardless of whether PayU's webhook
-    // callback can reach the server (e.g. localhost in dev, or network issues).
-    pushSampleToCRM({ dogName, phone: normalizePhone(mobile), price, recipe, grams, address: deliveryAddress, city: deliveryCity, pincode: deliveryPin });
+    // MUST await — initiatePayU calls form.submit() which navigates the page,
+    // cancelling any in-flight fetch requests. Awaiting here ensures the booking
+    // is saved to Supabase before the browser leaves the page.
+    await pushSampleToCRM({ dogName, phone: normalizePhone(mobile), price, recipe, grams, address: deliveryAddress, city: deliveryCity, pincode: deliveryPin });
 
     try {
       closeModal();
@@ -187,11 +187,11 @@ export default function Home() {
               <li>
                 <button>Free Tools <span className="nav-caret">▾</span></button>
                 <div className="dd-menu" style={{ minWidth: '260px', right: 0, left: 'auto' }}>
-                  {[['⚖️','Dog BMI Calculator','Is your dog at a healthy weight?',0],['🍽️','Feeding Calculator','How much should your dog eat?',1],['💰','Cost Calculator','Fresh vs kibble — real comparison',2],['📅','Age Calculator','Dog age in human years',3]].map(([ic,n,s,idx]) => (
+                  {[['⚖️', 'Dog BMI Calculator', 'Is your dog at a healthy weight?', 0], ['🍽️', 'Feeding Calculator', 'How much should your dog eat?', 1], ['💰', 'Cost Calculator', 'Fresh vs kibble — real comparison', 2], ['📅', 'Age Calculator', 'Dog age in human years', 3]].map(([ic, n, s, idx]) => (
                     <div key={n} className="dd-item" onClick={() => openTool(idx)}><div className="dd-icon">{ic}</div><div><div>{n}</div><div className="dd-sub">{s}</div></div></div>
                   ))}
                   <div className="dd-sep" />
-                  {[['🥦','Safe Vegetables Guide','What\'s safe for your dog?',4],['💊','Natural Healing Guide','Vet-reviewed remedies',5],['📋','AAFCO Meal Planner','Build a balanced meal plan',6],['🧠','Dog Health Quiz','Get your dog\'s health score',7]].map(([ic,n,s,idx]) => (
+                  {[['🥦', 'Safe Vegetables Guide', 'What\'s safe for your dog?', 4], ['💊', 'Natural Healing Guide', 'Vet-reviewed remedies', 5], ['📋', 'AAFCO Meal Planner', 'Build a balanced meal plan', 6], ['🧠', 'Dog Health Quiz', 'Get your dog\'s health score', 7]].map(([ic, n, s, idx]) => (
                     <div key={n} className="dd-item" onClick={() => openTool(idx)}><div className="dd-icon">{ic}</div><div><div>{n}</div><div className="dd-sub">{s}</div></div></div>
                   ))}
                 </div>
@@ -256,7 +256,7 @@ export default function Home() {
                 </button>
               </div>
               <div className="trust-chips">
-                {['Vet Approved','Internationally Acclaimed','NABL Certified','AAFCO Aligned','Zero Preservatives','5L+ Meals Served'].map(c => <span key={c} className="chip">{c}</span>)}
+                {['Vet Approved', 'Internationally Acclaimed', 'NABL Certified', 'AAFCO Aligned', 'Zero Preservatives', '5L+ Meals Served'].map(c => <span key={c} className="chip">{c}</span>)}
               </div>
             </div>
             <div className="hero-image">
@@ -277,9 +277,9 @@ export default function Home() {
       <div className="proof">
         <div className="w">
           <div className="proof-inner">
-            {['Vet Approved & Internationally Acclaimed','NABL Certified every batch','Free same-day delivery','100% Money Back Guarantee. No question asked.'].map(t => (
+            {['Vet Approved & Internationally Acclaimed', 'NABL Certified every batch', 'Free same-day delivery', '100% Money Back Guarantee. No question asked.'].map(t => (
               <div key={t} className="proof-i">
-                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" /><polyline points="22 4 12 14.01 9 11.01" /></svg>
                 {t}
               </div>
             ))}
@@ -396,7 +396,7 @@ export default function Home() {
           <div className="fresh-grid">
             <div className="rv">
               <div className="fstats">
-                {[['100%','Fresh whole-food ingredients'],['0','Preservatives, ever'],['3h','Kitchen to bowl'],['5L+','Meals served since 2020']].map(([n,l]) => (
+                {[['100%', 'Fresh whole-food ingredients'], ['0', 'Preservatives, ever'], ['3h', 'Kitchen to bowl'], ['5L+', 'Meals served since 2020']].map(([n, l]) => (
                   <div key={l} className="fstat"><div className="fstat-n">{n}</div><div className="fstat-l">{l}</div></div>
                 ))}
               </div>
@@ -435,17 +435,17 @@ export default function Home() {
           </div>
           <div className="testi-grid sg">
             <div className="tc">
-              <div className="tc-stars">{[...Array(5)].map((_,i) => <div key={i} className="star" />)}</div>
+              <div className="tc-stars">{[...Array(5)].map((_, i) => <div key={i} className="star" />)}</div>
               <p className="tc-q">"Bruno was on kibble for 3 years. Within 2 weeks — shinier coat, more energy, and he gets <strong>excited at meal time</strong>. Never happened before."</p>
               <div className="tc-by"><div className="tc-av">R</div><div><div className="tc-n">Ritu Sharma</div><div className="tc-d">Bruno · 4yr Labrador, Gurgaon</div></div></div>
             </div>
             <div className="tc" style={{ marginTop: '28px' }}>
-              <div className="tc-stars">{[...Array(5)].map((_,i) => <div key={i} className="star" />)}</div>
+              <div className="tc-stars">{[...Array(5)].map((_, i) => <div key={i} className="star" />)}</div>
               <p className="tc-q">"Max had terrible skin issues. Doglicious customised his plan via the Vet Rx Scan. <strong>The change in 3 weeks was incredible.</strong>"</p>
               <div className="tc-by"><div className="tc-av tc-av-2">A</div><div><div className="tc-n">Aditya Kapoor</div><div className="tc-d">Max · 2yr Beagle, South Delhi</div></div></div>
             </div>
             <div className="tc">
-              <div className="tc-stars">{[...Array(5)].map((_,i) => <div key={i} className="star" />)}</div>
+              <div className="tc-stars">{[...Array(5)].map((_, i) => <div key={i} className="star" />)}</div>
               <p className="tc-q">"The ₹99 sample changed my mind instantly. Zeus ate it in seconds. <strong>He has never done that with any food.</strong>"</p>
               <div className="tc-by"><div className="tc-av tc-av-3">P</div><div><div className="tc-n">Priya Malhotra</div><div className="tc-d">Zeus · 6yr German Shepherd, Noida</div></div></div>
             </div>
@@ -553,7 +553,7 @@ export default function Home() {
       {/* ── FINAL CTA ── */}
       <section className="cta-sec">
         <div className="cta-paws">
-          {[{t:'8%',l:'6%',fs:'42px',d:'0s'},{t:'20%',r:'8%',fs:'24px',d:'2s'},{b:'15%',l:'12%',fs:'32px',d:'4s'},{b:'25%',r:'14%',fs:'20px',d:'1s'},{t:'50%',l:'3%',fs:'18px',d:'6s'},{t:'40%',r:'4%',fs:'36px',d:'3s'}].map((p,i) => (
+          {[{ t: '8%', l: '6%', fs: '42px', d: '0s' }, { t: '20%', r: '8%', fs: '24px', d: '2s' }, { b: '15%', l: '12%', fs: '32px', d: '4s' }, { b: '25%', r: '14%', fs: '20px', d: '1s' }, { t: '50%', l: '3%', fs: '18px', d: '6s' }, { t: '40%', r: '4%', fs: '36px', d: '3s' }].map((p, i) => (
             <span key={i} className="cta-paw" style={{ top: p.t, bottom: p.b, left: p.l, right: p.r, fontSize: p.fs, animationDelay: p.d }}>🐾</span>
           ))}
         </div>
@@ -567,14 +567,14 @@ export default function Home() {
             <h2 className="sec-h" style={{ marginTop: '14px' }}>Give your dog the food<br />they <em>deserve.</em></h2>
             <p className="sec-p">Freshly cooked every morning. Delivered same day.<br />Vet-approved. Start with a ₹99 sample — no commitment, no subscription.</p>
             <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: '8px', marginBottom: '40px' }}>
-              {[['🏆','NABL Certified'],['🧬','Vet Approved'],['🚚','Free Same-Day Delivery'],['💯','100% Money Back']].map(([ic,l]) => (
+              {[['🏆', 'NABL Certified'], ['🧬', 'Vet Approved'], ['🚚', 'Free Same-Day Delivery'], ['💯', '100% Money Back']].map(([ic, l]) => (
                 <span key={l} style={{ fontSize: '11px', fontWeight: 600, color: 'rgba(254,253,249,.55)', background: 'rgba(254,253,249,.07)', border: '1px solid rgba(254,253,249,.10)', padding: '5px 14px', borderRadius: '999px' }}>{ic} {l}</span>
               ))}
             </div>
             <div className="cta-btns">
               <button className="btn-primary" onClick={() => openModal('sample')} style={{ fontSize: '16px', padding: '17px 36px', boxShadow: '0 8px 32px rgba(151,103,70,.45)', letterSpacing: '.01em' }}>🛒 Book ₹99 Sample</button>
               <a className="btn-outline" href="https://wa.me/919889887980" target="_blank" rel="noreferrer">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413z"/></svg>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413z" /></svg>
                 Chat on WhatsApp
               </a>
             </div>
