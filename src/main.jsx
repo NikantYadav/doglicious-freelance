@@ -6,9 +6,13 @@ import './index.css'
 
 // Render app immediately — do NOT import workbox-window eagerly as it
 // adds it to the critical JS chain and delays FCP/LCP.
+import { ToastProvider } from './components/common/Toast'
+
 ReactDOM.createRoot(document.getElementById('root')).render(
   <BrowserRouter>
-    <App />
+    <ToastProvider>
+      <App />
+    </ToastProvider>
   </BrowserRouter>
 )
 

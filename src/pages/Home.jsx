@@ -13,6 +13,8 @@ import PaymentModal from '../components/modals/PaymentModal';
 import ConfirmModal from '../components/modals/ConfirmModal';
 import ToolsModal from '../components/modals/ToolsModal';
 import QuizModal from '../components/modals/QuizModal';
+import { useToast } from '../components/common/Toast';
+import LoadingOverlay from '../components/common/LoadingOverlay';
 
 export default function Home() {
   const navigate = useNavigate();
@@ -38,6 +40,8 @@ export default function Home() {
   const [quizName, setQuizName] = useState('');
   const [quizAnswers, setQuizAnswers] = useState({});
   const [paymentConfirm, setPaymentConfirm] = useState(null); // { status, txnid, amount }
+  const [isProcessing, setIsProcessing] = useState(false);
+  const { toast } = useToast();
 
   useSEO({
     title: 'Doglicious.in — Fresh Food & AI Analysis for Dogs',
@@ -115,17 +119,30 @@ export default function Home() {
   };
 
   const proceedToPayment = async () => {
-    if (!mobile || !dogName || !deliveryAddress || !deliveryCity || !deliveryPin) { alert('Please fill all fields.'); return; }
+    if (!mobile || !dogName || !deliveryAddress || !deliveryCity || !deliveryPin) {
+      toast('Please fill all fields before proceeding.', 'error');
+      return;
+    }
+
     const recipe = RECIPES[selectedRecipe];
     const grams = GRAM_OPTS[selectedGramIdx];
     const price = GRAM_PRICES[selectedGramIdx];
 
     try {
+      setIsProcessing(true);
       closeModal();
+
+      // Save to Supabase first
+      await pushSampleToCRM({ dogName, phone: normalizePhone(mobile), price, recipe, grams, address: deliveryAddress, city: deliveryCity, pincode: deliveryPin });
+
+      // Then initiate PayU
       await initiatePayU({ dogName, phone: normalizePhone(mobile), price, recipe, grams, address: deliveryAddress, city: deliveryCity, pincode: deliveryPin });
+
+      // Note: Page will navigate away due to form.submit() in initiatePayU
     } catch (err) {
+      setIsProcessing(false);
       console.error('[PayU] initiation failed:', err);
-      alert('Payment could not be initiated: ' + (err.message || 'Please try again.'));
+      toast('Payment could not be initiated. Please try again.', 'error');
     }
   };
 
@@ -148,6 +165,7 @@ export default function Home() {
 
   return (
     <>
+      {isProcessing && <LoadingOverlay />}
       {/* ── STICKY HEADER ── */}
       <div className="site-header">
         {/* TICKER */}

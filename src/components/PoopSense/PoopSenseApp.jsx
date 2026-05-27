@@ -1,6 +1,6 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import { useApp } from './AppContext';
-import { useToastContext } from './ToastContext';
+import { useToast } from '../common/Toast';
 
 import { BottomNav } from './BottomNav';
 import { TrialBanner } from './TrialBanner';
@@ -35,7 +35,7 @@ import { downloadPoopSensePDF, downloadProgressPDF } from './psPdf';
 /* ─── MAIN APP ─── */
 const PoopSenseApp = () => {
   const { state, dispatch, addEntry, addDog, editDog, deleteDog, setVet, activateSub } = useApp();
-  const { toast } = useToastContext();
+  const { toast } = useToast();
 
   // ── Auth ──────────────────────────────────────────────────────────
   const [authReady, setAuthReady] = useState(false);
@@ -105,7 +105,7 @@ const PoopSenseApp = () => {
           setPaywallReason(null);
           dispatch({ type: 'ACTIVATE_SUB' });
           toast('🎉 Subscription activated! Unlimited scans unlocked.');
-        }).catch(() => {});
+        }).catch(() => { });
       }
     } else if (status === 'payment_failed') {
       toast('❌ Payment was not completed. Please try again.');
@@ -178,7 +178,7 @@ const PoopSenseApp = () => {
         const entry = {
           id: uid(),
           date: now.toISOString().slice(0, 10),
-          time: `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`,
+          time: `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`,
           ts: now.getTime(),
           dstr: now.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }),
           score: result.score ?? 70,
@@ -250,7 +250,7 @@ const PoopSenseApp = () => {
     setPayOpen(false);
     setPaywallReason(null);
     // Refresh quota from backend
-    if (phone) psGetQuota(phone).then(q => setQuota(q)).catch(() => {});
+    if (phone) psGetQuota(phone).then(q => setQuota(q)).catch(() => { });
     toast('Subscription activated! Thank you.');
   };
 
@@ -339,7 +339,7 @@ const PoopSenseApp = () => {
           {scanScreen === 's3' && (
             <SymptomScreen dog={dog} onBack={() => goToScreen('s1')} onAnalyse={handleAnalyse} />
           )}
-          {scanScreen === 's4' && <ScanningScreen onComplete={() => {}} />}
+          {scanScreen === 's4' && <ScanningScreen onComplete={() => { }} />}
           {scanScreen === 's5' && currentEntry && dog && (
             <ReportScreen
               entry={currentEntry} dog={dog} vet={state.vet} pdfLang={state.pdfLang}
