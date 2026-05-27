@@ -16,6 +16,7 @@ import ToolsModal from '../components/modals/ToolsModal';
 import QuizModal from '../components/modals/QuizModal';
 import { useToast } from '../components/common/Toast';
 import LoadingOverlay from '../components/common/LoadingOverlay';
+import TestimonialsModal from '../components/modals/TestimonialsModal';
 
 export default function Home() {
   const navigate = useNavigate();
@@ -23,6 +24,7 @@ export default function Home() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [activeModal, setActiveModal] = useState(null);
   const [faqOpen, setFaqOpen] = useState(null);
+  const [testimonialsOpen, setTestimonialsOpen] = useState(false);
 
   // Sample flow
   const [sampleStep, setSampleStep] = useState(1);
@@ -207,6 +209,7 @@ export default function Home() {
                 </div>
               </li>
               <li><a href="#faq">FAQs</a></li>
+              <li><button onClick={() => setTestimonialsOpen(true)}>Testimonials ⭐</button></li>
             </ul>
             <div className="nav-r">
               <button className="btn-nav-cta" onClick={() => openModal('sample')}>
@@ -233,6 +236,7 @@ export default function Home() {
         <button onClick={() => { setMobileMenuOpen(false); openTool(3); }}>📅 Age · 🥦 Vegetables · 🧠 Quiz</button>
         <span className="mob-section">Questions &amp; Answers</span>
         <a href="#faq" onClick={() => setMobileMenuOpen(false)}>See all FAQs →</a>
+        <button onClick={() => { setMobileMenuOpen(false); setTestimonialsOpen(true); }}>⭐ Testimonials — Real Stories</button>
         <button onClick={() => { setMobileMenuOpen(false); openModal('sample'); }}>Book a Sample for ₹99 →</button>
       </div>
 
@@ -662,6 +666,8 @@ export default function Home() {
           <p style={{ fontSize: '11px', color: 'var(--c1-50)', textAlign: 'center', marginTop: '12px' }}>Free for everyone · First scan complimentary · No sign-up needed</p>
         </div>
       </div>
+
+      <TestimonialsModal isOpen={testimonialsOpen} onClose={() => setTestimonialsOpen(false)} />
 
       {/* ── PAYMENT CONFIRMATION MODAL ── */}
       {paymentConfirm && (
