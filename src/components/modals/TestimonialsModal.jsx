@@ -186,7 +186,6 @@ function MainVideo({ src, bgColor }) {
         ref={ref}
         src={src}
         loop
-        muted
         playsInline
         preload="auto"
         style={{

@@ -209,7 +209,7 @@ export default function Home() {
                 </div>
               </li>
               <li><a href="#faq">FAQs</a></li>
-              <li><button onClick={() => setTestimonialsOpen(true)}>Testimonials ⭐</button></li>
+              <li><button onClick={() => setTestimonialsOpen(true)}>TESTIMONIALS</button></li>
             </ul>
             <div className="nav-r">
               <button className="btn-nav-cta" onClick={() => openModal('sample')}>
@@ -236,7 +236,7 @@ export default function Home() {
         <button onClick={() => { setMobileMenuOpen(false); openTool(3); }}>📅 Age · 🥦 Vegetables · 🧠 Quiz</button>
         <span className="mob-section">Questions &amp; Answers</span>
         <a href="#faq" onClick={() => setMobileMenuOpen(false)}>See all FAQs →</a>
-        <button onClick={() => { setMobileMenuOpen(false); setTestimonialsOpen(true); }}>⭐ Testimonials — Real Stories</button>
+        <button onClick={() => { setMobileMenuOpen(false); setTestimonialsOpen(true); }}>TESTIMONIALS</button>
         <button onClick={() => { setMobileMenuOpen(false); openModal('sample'); }}>Book a Sample for ₹99 →</button>
       </div>
 
