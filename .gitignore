@@ -37,8 +37,6 @@ logs/
 *.log
 
 # PWA
-sw.js
-sw.js.map
 workbox-*.js
 
 *.docx
