@@ -1,27 +1,34 @@
 import { useState, useEffect } from 'react';
 
+const VERSION_KEY = 'doglicious_version';
+
 /**
- * UpdateBanner
- *
- * Listens for SW_UPDATE_AVAILABLE messages from the service worker.
- * When a new deploy is detected, shows a small non-intrusive banner
- * at the top of the page. Clicking "Update" reloads the page — the
- * browser will then fetch the new index.html and all new hashed assets.
+ * On mount, fetches /version.json once and compares against the last-seen
+ * version stored in localStorage. If the version changed since the user's
+ * last visit, shows a non-intrusive "update available" banner.
+ * No service-worker messaging — the SW is not involved.
  */
 export default function UpdateBanner() {
   const [show, setShow] = useState(false);
 
   useEffect(() => {
-    if (!('serviceWorker' in navigator)) return;
+    const check = async () => {
+      try {
+        const res = await fetch('/version.json', { cache: 'no-store' });
+        if (!res.ok) return;
+        const { v } = await res.json();
+        if (!v) return;
 
-    const handler = (event) => {
-      if (event.data?.type === 'SW_UPDATE_AVAILABLE') {
-        setShow(true);
+        const stored = localStorage.getItem(VERSION_KEY);
+        // Always update stored version so banner only appears once per deploy.
+        localStorage.setItem(VERSION_KEY, v);
+        // Only show banner if there was a previous version and it changed.
+        if (stored && stored !== v) setShow(true);
+      } catch {
+        // Network unavailable — silently ignore.
       }
     };
-
-    navigator.serviceWorker.addEventListener('message', handler);
-    return () => navigator.serviceWorker.removeEventListener('message', handler);
+    check();
   }, []);
 
   if (!show) return null;
