@@ -206,7 +206,6 @@ export default function TestimonialsModal({ isOpen, onClose }) {
   const [active, setActive] = useState(0);
   const [slideDir, setSlideDir] = useState('next');
   const [animKey, setAnimKey] = useState(0);
-  const autoRef = useRef(null);
 
   const goTo = useCallback((idx, dir = 'next') => {
     setSlideDir(dir);
@@ -222,35 +221,21 @@ export default function TestimonialsModal({ isOpen, onClose }) {
     goTo((active + 1) % TESTIMONIALS.length, 'next');
   }, [active, goTo]);
 
-  const resetAuto = useCallback(() => {
-    clearInterval(autoRef.current);
-    autoRef.current = setInterval(() => {
-      setActive(a => {
-        const n = (a + 1) % TESTIMONIALS.length;
-        setSlideDir('next');
-        setAnimKey(k => k + 1);
-        return n;
-      });
-    }, 6000);
-  }, []);
-
   useEffect(() => {
-    if (!isOpen) { clearInterval(autoRef.current); return; }
+    if (!isOpen) return;
     setActive(0);
-    resetAuto();
-    return () => clearInterval(autoRef.current);
-  }, [isOpen, resetAuto]);
+  }, [isOpen]);
 
   useEffect(() => {
     if (!isOpen) return;
     const h = (e) => {
-      if (e.key === 'ArrowLeft')  { prev(); resetAuto(); }
-      if (e.key === 'ArrowRight') { next(); resetAuto(); }
+      if (e.key === 'ArrowLeft')  { prev(); }
+      if (e.key === 'ArrowRight') { next(); }
       if (e.key === 'Escape') onClose();
     };
     window.addEventListener('keydown', h);
     return () => window.removeEventListener('keydown', h);
-  }, [isOpen, prev, next, onClose, resetAuto]);
+  }, [isOpen, prev, next, onClose]);
 
   useEffect(() => {
     if (isOpen) document.body.style.overflow = 'hidden';
