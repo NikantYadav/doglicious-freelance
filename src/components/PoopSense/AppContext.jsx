@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useReducer, useEffect, useCallback } from 'react';
+import React, { createContext, useContext, useReducer, useEffect, useCallback, useRef } from 'react';
 import { loadState, persistState } from './storage';
 import { todayStr, uid } from './helpers';
 import { psSaveDogs, psSaveSettings, psSaveScan } from './psService';
@@ -95,9 +95,14 @@ export function AppProvider({ children }) {
     dispatch({ type: 'INIT', payload: saved });
   }, []);
 
-  // Persist to localStorage on every state change
+  // Persist to localStorage — debounced so rapid state changes don't thrash storage
+  const persistTimer = useRef(null);
   useEffect(() => {
-    persistState(state);
+    clearTimeout(persistTimer.current);
+    persistTimer.current = setTimeout(() => {
+      persistState(state);
+    }, 300);
+    return () => clearTimeout(persistTimer.current);
   }, [state]);
 
   // Sync dogs to Supabase whenever dogs array changes (debounced)

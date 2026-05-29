@@ -90,7 +90,7 @@ const PoopSenseApp = () => {
       .catch(e => console.warn('[PoopSenseApp] psGetQuota failed:', e.message));
   }, [phone]);
 
-  // Handle PayU redirect back (payu_status in URL)
+  // Handle PayU redirect back (payu_status in URL) — run once on mount only
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const status = params.get('payu_status');
@@ -98,9 +98,11 @@ const PoopSenseApp = () => {
     window.history.replaceState({}, '', window.location.pathname);
 
     if (status === 'payment_success') {
-      // Refresh quota from backend
-      if (phone) {
-        psGetQuota(phone).then(q => {
+      // Refresh quota from backend — read phone from session directly to avoid stale closure
+      const session = getPsSession();
+      const sessionPhone = session?.phone;
+      if (sessionPhone) {
+        psGetQuota(sessionPhone).then(q => {
           setQuota(q);
           setPaywallReason(null);
           dispatch({ type: 'ACTIVATE_SUB' });
@@ -110,7 +112,8 @@ const PoopSenseApp = () => {
     } else if (status === 'payment_failed') {
       toast('❌ Payment was not completed. Please try again.');
     }
-  }, [phone]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const [activeTab, setActiveTab] = useState('home');
   const [scanScreen, setScanScreen] = useState('s1');
@@ -222,7 +225,7 @@ const PoopSenseApp = () => {
 
     const timer = setTimeout(doScan, 2000);
     return () => clearTimeout(timer);
-  }, [scanRunning, pendingSymptoms, pendingImage, state.dogs, state.curDog, phone]);
+  }, [scanRunning, pendingSymptoms, pendingImage, state.dogs, state.curDog, phone, addEntry]);
 
   const handleShareVet = (vetName, vetNum, specificEntry) => {
     const dog = state.dogs[state.curDog] || null;

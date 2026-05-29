@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, lazy, Suspense } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useSEO } from '../hooks/useSEO';
 import '../styles/Home.css';
@@ -8,15 +8,15 @@ import { normalizePhone } from '../utils/phone';
 import { initiatePayU } from '../services/sampleBooking';
 
 import HomeBlogSection from '../components/HomeBlogSection';
-import VetRxModal from '../components/modals/VetRxModal';
-import SampleModal from '../components/modals/SampleModal';
-import PaymentModal from '../components/modals/PaymentModal';
-import ConfirmModal from '../components/modals/ConfirmModal';
-import ToolsModal from '../components/modals/ToolsModal';
-import QuizModal from '../components/modals/QuizModal';
+const VetRxModal = lazy(() => import('../components/modals/VetRxModal'));
+const SampleModal = lazy(() => import('../components/modals/SampleModal'));
+const PaymentModal = lazy(() => import('../components/modals/PaymentModal'));
+const ConfirmModal = lazy(() => import('../components/modals/ConfirmModal'));
+const ToolsModal = lazy(() => import('../components/modals/ToolsModal'));
+const QuizModal = lazy(() => import('../components/modals/QuizModal'));
 import { useToast } from '../components/common/Toast';
 import LoadingOverlay from '../components/common/LoadingOverlay';
-import TestimonialsModal from '../components/modals/TestimonialsModal';
+const TestimonialsModal = lazy(() => import('../components/modals/TestimonialsModal'));
 
 export default function Home() {
   const navigate = useNavigate();
@@ -80,7 +80,7 @@ export default function Home() {
   }, []);
 
   useEffect(() => {
-    const onKey = (e) => { if (e.key === 'Escape') closeModal(); };
+    const onKey = (e) => { if (e.key === 'Escape') setActiveModal(null); };
     document.addEventListener('keydown', onKey);
     return () => document.removeEventListener('keydown', onKey);
   }, []);
@@ -94,12 +94,13 @@ export default function Home() {
       { threshold: 0.08, rootMargin: '0px 0px -20px 0px' }
     );
     els.forEach((el) => obs.observe(el));
-    setTimeout(() => {
-      document.querySelectorAll('.hero .rv').forEach((el, i) => {
+    const outerTimer = setTimeout(() => {
+      const heroEls = document.querySelectorAll('.hero .rv');
+      heroEls.forEach((el, i) => {
         setTimeout(() => { el.style.opacity = '1'; el.style.transform = 'none'; }, i * 90);
       });
     }, 60);
-    return () => obs.disconnect();
+    return () => { obs.disconnect(); clearTimeout(outerTimer); };
   }, []);
 
   const handleMobileInput = (val) => {
@@ -607,37 +608,40 @@ export default function Home() {
       </div>
 
       {/* ── MODALS ── */}
-      <VetRxModal isOpen={activeModal === 'vet'} onClose={closeModal} />
-      <SampleModal
-        isOpen={activeModal === 'sample'} onClose={closeModal}
-        sampleStep={sampleStep} setSampleStep={setSampleStep}
-        selectedRecipe={selectedRecipe} setSelectedRecipe={setSelectedRecipe}
-        selectedGramIdx={selectedGramIdx} setSelectedGramIdx={setSelectedGramIdx}
-        dogName={dogName} setDogName={setDogName}
-        mobile={mobile} mobileValid={mobileValid} handleMobileInput={handleMobileInput}
-        deliveryAddress={deliveryAddress} setDeliveryAddress={setDeliveryAddress}
-        deliveryCity={deliveryCity} setDeliveryCity={setDeliveryCity}
-        deliveryPin={deliveryPin} handlePincodeInput={handlePincodeInput}
-        mapSrc={mapSrc} openMapVerify={openMapVerify}
-        proceedToPayment={proceedToPayment}
-        currentPrice={currentPrice} currentGrams={currentGrams}
-      />
-      <ConfirmModal
-        isOpen={activeModal === 'confirm'} onClose={closeModal}
-        dogName={orderDetails.dogName} mobile={orderDetails.mobile}
-        recipe={orderDetails.recipe} grams={orderDetails.grams}
-        price={orderDetails.price} address={orderDetails.address}
-      />
-      <ToolsModal isOpen={activeModal === 'tools'} onClose={closeModal} activeTool={activeTool} setActiveTool={setActiveTool} />
-      <QuizModal
-        isOpen={activeModal === 'quiz'} onClose={closeModal}
-        quizStep={quizStep} setQuizStep={setQuizStep}
-        quizName={quizName} setQuizName={setQuizName}
-        quizAnswers={quizAnswers} setQuizAnswers={setQuizAnswers}
-        openModal={openModal}
-      />
+      <Suspense fallback={null}>
+        <VetRxModal isOpen={activeModal === 'vet'} onClose={closeModal} />
+        <SampleModal
+          isOpen={activeModal === 'sample'} onClose={closeModal}
+          sampleStep={sampleStep} setSampleStep={setSampleStep}
+          selectedRecipe={selectedRecipe} setSelectedRecipe={setSelectedRecipe}
+          selectedGramIdx={selectedGramIdx} setSelectedGramIdx={setSelectedGramIdx}
+          dogName={dogName} setDogName={setDogName}
+          mobile={mobile} mobileValid={mobileValid} handleMobileInput={handleMobileInput}
+          deliveryAddress={deliveryAddress} setDeliveryAddress={setDeliveryAddress}
+          deliveryCity={deliveryCity} setDeliveryCity={setDeliveryCity}
+          deliveryPin={deliveryPin} handlePincodeInput={handlePincodeInput}
+          mapSrc={mapSrc} openMapVerify={openMapVerify}
+          proceedToPayment={proceedToPayment}
+          currentPrice={currentPrice} currentGrams={currentGrams}
+        />
+        <ConfirmModal
+          isOpen={activeModal === 'confirm'} onClose={closeModal}
+          dogName={orderDetails.dogName} mobile={orderDetails.mobile}
+          recipe={orderDetails.recipe} grams={orderDetails.grams}
+          price={orderDetails.price} address={orderDetails.address}
+        />
+        <ToolsModal isOpen={activeModal === 'tools'} onClose={closeModal} activeTool={activeTool} setActiveTool={setActiveTool} />
+        <QuizModal
+          isOpen={activeModal === 'quiz'} onClose={closeModal}
+          quizStep={quizStep} setQuizStep={setQuizStep}
+          quizName={quizName} setQuizName={setQuizName}
+          quizAnswers={quizAnswers} setQuizAnswers={setQuizAnswers}
+          openModal={openModal}
+        />
+        <TestimonialsModal isOpen={testimonialsOpen} onClose={() => setTestimonialsOpen(false)} />
+      </Suspense>
 
-      {/* Analysis Modal (inline) */}
+      {/* Analysis Modal (inline — no lazy needed, it's tiny) */}
       <div className={`mbk${activeModal === 'analysis' ? ' o' : ''}`} onClick={e => { if (e.target === e.currentTarget) closeModal(); }}>
         <div className="mbox" style={{ maxWidth: '480px' }}>
           <div className="mh">
@@ -666,8 +670,6 @@ export default function Home() {
           <p style={{ fontSize: '11px', color: 'var(--c1-50)', textAlign: 'center', marginTop: '12px' }}>Free for everyone · First scan complimentary · No sign-up needed</p>
         </div>
       </div>
-
-      <TestimonialsModal isOpen={testimonialsOpen} onClose={() => setTestimonialsOpen(false)} />
 
       {/* ── PAYMENT CONFIRMATION MODAL ── */}
       {paymentConfirm && (

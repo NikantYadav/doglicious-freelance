@@ -250,7 +250,7 @@ export default function CmsDashboard() {
         } catch { /* non-fatal */ }
     }, [authFetch]);
 
-    useEffect(() => { loadCounts(); }, [loadCounts, activeNav]);
+    useEffect(() => { loadCounts(); }, [loadCounts]);
 
     const PAGE_TITLES = {
         posts:      'All Posts',

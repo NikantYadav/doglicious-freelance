@@ -198,7 +198,7 @@
 
 /* ═══ SCAN ANIMATION ═══ */
 .ps-app .scan-screen { background:linear-gradient(160deg,#fff9f0,#f4ede1); align-items:center; justify-content:center; text-align:center; padding:clamp(24px,6vw,40px) 20px; }
-.ps-app .sorb { width:88px; height:88px; border-radius:50%; background:var(--alt); border:3px solid var(--a); margin:0 auto 18px; display:flex; align-items:center; justify-content:center; font-size:38px; animation:ps-breathe 1.6s ease-in-out infinite; }
+.ps-app .sorb { width:88px; height:88px; border-radius:50%; background:var(--alt); border:3px solid var(--a); margin:0 auto 18px; display:flex; align-items:center; justify-content:center; font-size:38px; animation:ps-breathe 1.6s ease-in-out infinite; will-change:transform; }
 .ps-app .sttl { font-size:clamp(17px,5vw,21px); font-weight:700; color:var(--brand); margin-bottom:4px; }
 .ps-app .ssub { font-size:11px; color:var(--t3); margin-bottom:20px; }
 .ps-app .slist { list-style:none; text-align:left; max-width:240px; margin:0 auto; }

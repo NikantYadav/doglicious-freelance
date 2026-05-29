@@ -15,9 +15,6 @@ export const usePageTracking = () => {
       window.gtag('config', 'G-P00SY4W1CL', {
         page_path: location.pathname + location.search + location.hash,
       });
-
-      // Optional: Log for debugging (remove in production if needed)
-      console.log('GA Page View:', location.pathname + location.search + location.hash);
     }
   }, [location]);
 };

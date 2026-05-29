@@ -1,7 +1,8 @@
 import React, { Suspense } from 'react'
 import { Routes, Route, Navigate } from 'react-router-dom'
 import { usePageTracking } from './hooks/usePageTracking'
-import Home from './pages/Home'
+
+const Home = React.lazy(() => import('./pages/Home'))
 
 const Products = React.lazy(() => import('./pages/Products'))
 const FreeTools = React.lazy(() => import('./pages/FreeTools'))

@@ -124,17 +124,14 @@ export default function HealthQuiz() {
   const resultRef = useRef(null);
   const cardRef = useRef(null);
 
-  useEffect(() => {
-  }, []);
-
   useEffect(() => { window.scrollTo(0, 0); }, []);
 
   // Animate ring + counter when result appears
   useEffect(() => {
     if (!result) return;
     const pct = result.score;
-    setTimeout(() => setRingOff(CIRC - (pct / 100) * CIRC), 100);
-    setTimeout(() => setBarsReady(true), 200);
+    const t1 = setTimeout(() => setRingOff(CIRC - (pct / 100) * CIRC), 100);
+    const t2 = setTimeout(() => setBarsReady(true), 200);
     let c = 0;
     const iv = setInterval(() => {
       c += 2;
@@ -142,7 +139,7 @@ export default function HealthQuiz() {
       setCounter(c);
     }, 20);
     if (resultRef.current) resultRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    return () => clearInterval(iv);
+    return () => { clearTimeout(t1); clearTimeout(t2); clearInterval(iv); };
   }, [result]);
 
   const scrollCard = () => {

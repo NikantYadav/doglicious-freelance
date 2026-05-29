@@ -94,7 +94,7 @@ export default function Products() {
   }, []);
 
   useEffect(() => {
-    const onKey = (e) => { if (e.key === 'Escape') closeModal(); };
+    const onKey = (e) => { if (e.key === 'Escape') setActiveModal(null); };
     document.addEventListener('keydown', onKey);
     return () => document.removeEventListener('keydown', onKey);
   }, []);
