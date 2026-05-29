@@ -20,9 +20,14 @@ const ASSETS_CACHE = 'doglicious-assets-v1';
 // The version this SW instance knows about (set on first fetch of version.json)
 let knownVersion = null;
 
-// ── Install: activate immediately, no pre-caching ────────────────────────────
-self.addEventListener('install', (event) => {
-  self.skipWaiting();
+// ── Install: no pre-caching, no skipWaiting ──────────────────────────────────
+// skipWaiting is intentionally omitted. If Cloudflare (or any CDN) transforms
+// sw.js in transit, the browser sees different bytes on every check and keeps
+// installing new SWs. With skipWaiting each new SW would immediately take over,
+// creating an infinite activate → redundant loop that crashes analysis tools.
+// Instead, new SWs wait until the user reloads; the version.json poller +
+// UpdateBanner handle prompting them to do so.
+self.addEventListener('install', () => {
   // Nothing to pre-cache — assets are fetched and cached on demand.
   // index.html is intentionally NOT cached here (Cloudflare modifies it).
 });
