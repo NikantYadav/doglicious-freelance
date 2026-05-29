@@ -24,17 +24,17 @@ export default async function handler(req, res) {
         const numFree = parseInt(process.env.NUM_FREE_SCAN || '1', 10);
 
         // Determine phone to look up user record
-        const phone = dogProfile && dogProfile.mobile ? normalizePhone(dogProfile.mobile) : (contactId || null);
+        const lookupPhone = dogProfile && dogProfile.mobile ? normalizePhone(dogProfile.mobile) : (contactId || null);
 
         // Fetch authoritative counts from DB (do not trust client-provided counts)
         let currentScanCount = 0;
         let currentPaidScans = 0;
-        if (phone) {
+        if (lookupPhone) {
             try {
                 const { data: user, error: userErr } = await supabase
                     .from('vetrx_users')
                     .select('scan_count, paid_scans')
-                    .eq('phone', phone)
+                    .eq('phone', lookupPhone)
                     .single();
                 if (!userErr && user) {
                     currentScanCount = parseInt(user.scan_count || 0, 10);
@@ -53,7 +53,7 @@ export default async function handler(req, res) {
         const r = report || {};
         const trunc = (str, len = 250) => str ? String(str).substring(0, len) : null;
 
-        const phone = dog.mobile ? normalizePhone(dog.mobile) : (contactId || null);
+        const phone = lookupPhone;
 
         // 1. Ensure user exists and update their counts atomically
         let userId = null;
