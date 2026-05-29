@@ -13,14 +13,14 @@ export const TOOL_TITLES = [
 ];
 
 export const TOOL_SRCS = [
-    '/tools/bmi-calculator.html',
-    '/tools/feeding-calculator.html',
-    '/tools/cost-calculator.html',
-    '/tools/age-calculator.html',
-    '/tools/best-vegetables.html',
-    '/tools/natural-healing.html',
-    '/tools/aafco-planner.html',
-    '/tools/health-quiz.html',
+    '/tools/bmi-calculator',
+    '/tools/feeding-calculator',
+    '/tools/cost-calculator',
+    '/tools/age-calculator',
+    '/tools/best-vegetables',
+    '/tools/natural-healing',
+    '/tools/aafco-planner',
+    '/tools/health-quiz',
 ];
 
 export const RECIPES = [
