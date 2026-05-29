@@ -1,6 +1,8 @@
 import React, { Suspense } from 'react'
 import { Routes, Route, Navigate } from 'react-router-dom'
 import { usePageTracking } from './hooks/usePageTracking'
+import { useServiceWorker } from './hooks/useServiceWorker'
+import UpdateBanner from './components/common/UpdateBanner'
 
 const Home = React.lazy(() => import('./pages/Home'))
 
@@ -27,35 +29,40 @@ const CMS = React.lazy(() => import('./pages/CMS'))
 export default function App() {
   // Track page views on route changes
   usePageTracking();
+  // Register service worker for auto-updates on deploy
+  useServiceWorker();
 
   return (
-    <Suspense fallback={<div style={{ height: '100vh', width: '100vw', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>Loading...</div>}>
-      <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/products" element={<Products />} />
-        <Route path="/tools" element={<FreeTools />} />
-        <Route path="/blogs" element={<Blogs />} />
-        <Route path="/privacy-policy" element={<PrivacyPolicy />} />
-        <Route path="/refund-policy" element={<RefundPolicy />} />
-        <Route path="/shipping-policy" element={<ShippingPolicy />} />
-        <Route path="/terms-of-service" element={<TermsOfService />} />
-        <Route path="/vetrxscan" element={<VetRxScan />} />
-        <Route path="/poopsense" element={<PoopSense />} />
-        <Route path="/tools/aafco-planner" element={<AafcoPlanner />} />
-        <Route path="/tools/age-calculator" element={<AgeCalculator />} />
-        <Route path="/tools/best-vegetables" element={<BestVegetables />} />
-        <Route path="/tools/bmi-calculator" element={<BmiCalculator />} />
-        <Route path="/tools/cost-calculator" element={<CostCalculator />} />
-        <Route path="/tools/feeding-calculator" element={<FeedingCalculator />} />
-        <Route path="/tools/health-quiz" element={<HealthQuiz />} />
-        <Route path="/tools/natural-healing" element={<NaturalHealing />} />
-        <Route path="/blog/:id" element={<BlogPost />} />
-        <Route path="/cms" element={<CMS />} />
-        <Route path="/crm" element={<CMS />} />
+    <>
+      <UpdateBanner />
+      <Suspense fallback={<div style={{ height: '100vh', width: '100vw', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>Loading...</div>}>
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/products" element={<Products />} />
+          <Route path="/tools" element={<FreeTools />} />
+          <Route path="/blogs" element={<Blogs />} />
+          <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+          <Route path="/refund-policy" element={<RefundPolicy />} />
+          <Route path="/shipping-policy" element={<ShippingPolicy />} />
+          <Route path="/terms-of-service" element={<TermsOfService />} />
+          <Route path="/vetrxscan" element={<VetRxScan />} />
+          <Route path="/poopsense" element={<PoopSense />} />
+          <Route path="/tools/aafco-planner" element={<AafcoPlanner />} />
+          <Route path="/tools/age-calculator" element={<AgeCalculator />} />
+          <Route path="/tools/best-vegetables" element={<BestVegetables />} />
+          <Route path="/tools/bmi-calculator" element={<BmiCalculator />} />
+          <Route path="/tools/cost-calculator" element={<CostCalculator />} />
+          <Route path="/tools/feeding-calculator" element={<FeedingCalculator />} />
+          <Route path="/tools/health-quiz" element={<HealthQuiz />} />
+          <Route path="/tools/natural-healing" element={<NaturalHealing />} />
+          <Route path="/blog/:id" element={<BlogPost />} />
+          <Route path="/cms" element={<CMS />} />
+          <Route path="/crm" element={<CMS />} />
 
-        {/* Catch-all 404 Redirect */}
-        <Route path="*" element={<Navigate to="/" replace />} />
-      </Routes>
-    </Suspense>
+          {/* Catch-all 404 Redirect */}
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </Suspense>
+    </>
   )
 }
