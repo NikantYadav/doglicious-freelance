@@ -33,7 +33,7 @@ COPY --from=builder /app/dist /usr/share/nginx/html
 # Ensure service worker is present at site root even if build tooling
 # places it elsewhere; copy explicitly from the builder's public folder
 # (this guarantees /sw.js exists in the final image).
-COPY --from=builder /app/public/sw.js /usr/share/nginx/html/sw.js
+COPY --from=builder /app/dist/sw.js /usr/share/nginx/html/sw.js
 
 # Copy nginx configuration
 COPY nginx.conf /etc/nginx/conf.d/default.conf
