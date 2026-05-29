@@ -1,7 +1,7 @@
 import React, { useRef } from 'react';
 import { LOGO_PLACEHOLDER } from './constants';
 
-const WelcomeScreen = ({ photo, onPhotoUploaded, onClearPhoto, onNext }) => {
+const WelcomeScreen = ({ photo, scansLeft = 0, onPhotoUploaded, onClearPhoto, onNext }) => {
     const fileInputRef = useRef(null);
 
     const handleFileChange = (e) => {
@@ -49,8 +49,23 @@ const WelcomeScreen = ({ photo, onPhotoUploaded, onClearPhoto, onNext }) => {
                 background: 'linear-gradient(180deg,#FBF6EC 0%,#E8DBC8 100%)',
                 padding: '24px 16px 40px',
                 alignItems: 'center',
+                position: 'relative',
             }}
         >
+            <div style={{ position: 'absolute', top: '16px', left: '16px', zIndex: 2 }}>
+                <div style={{
+                    background: 'rgba(61,43,0,0.92)',
+                    color: '#FBF6EC',
+                    borderRadius: '999px',
+                    padding: '8px 12px',
+                    fontSize: '12px',
+                    fontWeight: 800,
+                    boxShadow: '0 8px 24px rgba(0,0,0,0.12)'
+                }}>
+                    {scansLeft} scans left
+                </div>
+            </div>
+
             {/* Logo + title */}
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '6px', width: '100%', maxWidth: '420px' }}>
                 <div className="logo-wrap">

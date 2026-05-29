@@ -12,7 +12,7 @@ import FollowUpScreen from '../components/VetRxScan/FollowUp';
 import AuthGate from '../components/VetRxScan/AuthGate';
 import PaywallScreen from '../components/VetRxScan/PaywallScreen';
 
-import { getSession, saveSession, updateSessionScanCount, updateSessionPaidScans, getConfig } from '../services/auth';
+import { getSession, updateSessionScanCount, updateSessionPaidScans, getConfig } from '../services/auth';
 import { pushReport } from '../services/wylto';
 import { useSEO } from '../hooks/useSEO';
 
@@ -28,6 +28,7 @@ const VetRxScan = () => {
   // ── Auth state ──────────────────────────────────────────────────────
   const [authUser, setAuthUser] = useState(null);   // { phone, contactId, scanCount, paidScans, config }
   const [authReady, setAuthReady] = useState(false); // true once localStorage checked
+  const [configReady, setConfigReady] = useState(false); // true once backend config has loaded
   const [payuMessage, setPayuMessage] = useState(null); // feedback after PayU redirect
   const [config, setConfig] = useState({
     numFreeScans: 1,
@@ -40,10 +41,10 @@ const VetRxScan = () => {
       .then(data => {
         if (data) {
           setConfig(data);
-            // Always use backend-provided config. Do NOT persist config into local session.
         }
       })
-      .catch(err => console.error('[VetRxScan] Failed to fetch config:', err));
+      .catch(err => console.error('[VetRxScan] Failed to fetch config:', err))
+      .finally(() => setConfigReady(true));
 
     // Handle PayU callback params BEFORE restoring session so paidScans is already correct
     const urlParams = new URLSearchParams(window.location.search);
@@ -253,7 +254,9 @@ const VetRxScan = () => {
   // ── Render guards ────────────────────────────────────────────────────
 
   // Wait for localStorage check before rendering anything
-  if (!authReady) return null;
+  if (!authReady || !configReady) {
+    return <LoadingScreen status="Loading VetRx Scan" sub="Checking your scan access…" />;
+  }
 
   // Not logged in → show auth gate
   if (!authUser) {
@@ -265,6 +268,7 @@ const VetRxScan = () => {
   // - After free scans used, user needs paidScans > 0 to continue
   const numFree = config?.numFreeScans || 1;
   const numPaidPerPack = config?.numPaidScansPerPack || 5;
+  const scansLeft = Math.max(0, numFree - (authUser.scanCount || 0)) + (authUser.paidScans || 0);
 
   const usedFreeScan = authUser.scanCount >= numFree;
   const paidRemaining = authUser.paidScans ?? 0;
@@ -320,6 +324,7 @@ const VetRxScan = () => {
             {currentScreen === 'welcome' && (
               <WelcomeScreen
                 photo={photo}
+                scansLeft={scansLeft}
                 onPhotoUploaded={(p) => { setPhoto(p); setSelectedPart(''); setSelectedSymptoms([]); }}
                 onClearPhoto={() => setPhoto(null)}
                 onNext={() => goTo('symptoms')}

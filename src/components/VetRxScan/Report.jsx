@@ -193,6 +193,27 @@ const PayNowButton = ({ waUrl, report, dog }) => {
     const contactId = session?.contactId || '';
     const firstname = (session && session.firstname) || phone || 'Customer';
     const email = (session && session.email) || `${(phone || '').replace(/\D/g, '')}@no-reply.doglicious.in`;
+    const paidScansLeft = Math.max(0, session?.paidScans || 0);
+
+    if (paidScansLeft > 0) {
+        return (
+            <div style={{ display: 'flex', justifyContent: 'center', width: '100%' }}>
+                <div style={{
+                    minWidth: '180px',
+                    padding: '16px 20px',
+                    borderRadius: '18px',
+                    background: 'rgba(61,43,0,0.9)',
+                    color: '#FBF6EC',
+                    textAlign: 'center',
+                    fontSize: '18px',
+                    fontWeight: 900,
+                    boxShadow: '0 10px 24px rgba(0,0,0,0.18)'
+                }}>
+                    {paidScansLeft} scans left
+                </div>
+            </div>
+        );
+    }
 
     const handlePayNow = async () => {
         setLoading(true);
@@ -242,12 +263,12 @@ const PayNowButton = ({ waUrl, report, dog }) => {
     };
 
     return (
-        <div>
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
             <button
                 className="btn btn-primary"
                 onClick={handlePayNow}
                 disabled={loading}
-                style={{ marginBottom: '12px' }}
+                style={{ marginBottom: '12px', width: '100%', maxWidth: '320px' }}
             >
                 {loading ? '⏳ Redirecting to payment…' : '🔐 Pay ₹99 via PayU'}
             </button>
@@ -255,8 +276,8 @@ const PayNowButton = ({ waUrl, report, dog }) => {
                 <div style={{ color: '#991b1b', marginTop: 8, fontSize: 13 }}>{error}</div>
             )}
             {/* Keep WhatsApp fallback for support only */}
-            <div style={{ marginTop: 8 }}>
-                <a href={waUrl} target="_blank" rel="noreferrer" className="btn-whatsapp" style={{ display: 'inline-block' }}>
+            <div style={{ marginTop: 8, display: 'flex', justifyContent: 'center', width: '100%' }}>
+                <a href={waUrl} target="_blank" rel="noreferrer" className="btn-whatsapp" style={{ display: 'inline-flex', justifyContent: 'center', width: '100%', maxWidth: '320px' }}>
                     💬 Chat with Support
                 </a>
             </div>

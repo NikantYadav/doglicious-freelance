@@ -210,7 +210,7 @@ export default function Home() {
                 </div>
               </li>
               <li><a href="#faq">FAQs</a></li>
-              <li><button onClick={() => setTestimonialsOpen(true)}>Why Customers Choose Us?</button></li>
+              <li><button onClick={() => setTestimonialsOpen(true)}>WHY CUSTOMERS CHOOSE US?</button></li>
             </ul>
             <div className="nav-r">
               <button className="btn-nav-cta" onClick={() => openModal('sample')}>
