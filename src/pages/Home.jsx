@@ -7,7 +7,7 @@ import { logoImg, RECIPES, GRAM_OPTS, GRAM_PRICES } from '../data/homeData';
 import { normalizePhone } from '../utils/phone';
 import { initiatePayU } from '../services/sampleBooking';
 
-import HomeBlogSection from '../components/HomeBlogSection';
+const HomeBlogSection = lazy(() => import('../components/HomeBlogSection'));
 const VetRxModal = lazy(() => import('../components/modals/VetRxModal'));
 const SampleModal = lazy(() => import('../components/modals/SampleModal'));
 const PaymentModal = lazy(() => import('../components/modals/PaymentModal'));
@@ -469,7 +469,9 @@ export default function Home() {
       </section>
 
       {/* ── BLOG ── */}
-      <HomeBlogSection />
+      <Suspense fallback={<div style={{ padding: '40px', textAlign: 'center' }}>Loading articles...</div>}>
+        <HomeBlogSection />
+      </Suspense>
 
       {/* ── FAQ ── */}
       <section id="faq" style={{ background: 'var(--c1-05)', borderTop: '1px solid var(--sep)' }}>
@@ -510,7 +512,7 @@ export default function Home() {
         <div className="w" style={{ position: 'relative', zIndex: 2 }}>
           <div className="rv center">
             <div style={{ marginBottom: '32px' }}>
-              <img src={logoImg} style={{ maxWidth: '150px', height: 'auto', mixBlendMode: 'screen', opacity: .9, display: 'inline-block' }} alt="Doglicious" />
+              <img loading="lazy" src={logoImg} style={{ maxWidth: '150px', height: 'auto', mixBlendMode: 'screen', opacity: .9, display: 'inline-block' }} alt="Doglicious" />
             </div>
             <div style={{ width: '56px', height: '2px', background: 'var(--c2)', borderRadius: '2px', margin: '0 auto 28px', opacity: .7 }} />
             <span className="sec-label">✦ &nbsp;Ready to begin?&nbsp; ✦</span>
@@ -538,7 +540,7 @@ export default function Home() {
           <div className="footer-top">
             <div>
               <div className="f-logo">
-                <img src={logoImg} style={{ maxWidth: '140px', height: 'auto', display: 'block', borderRadius: 8 }} alt="Doglicious.in" />
+                <img loading="lazy" src={logoImg} style={{ maxWidth: '140px', height: 'auto', display: 'block', borderRadius: 8 }} alt="Doglicious.in" />
               </div>
               <p className="f-tagline">Fresh food for dogs. Personalised by AI. Vet approved &amp; internationally acclaimed. Cooked fresh daily.</p>
               <div className="f-contact">
@@ -573,7 +575,7 @@ export default function Home() {
           <div className="w">
             <div className="fbb-inner">
               <div style={{ display: 'flex', alignItems: 'center', gap: '14px', flexWrap: 'wrap' }}>
-                <img src={logoImg} style={{ maxWidth: '90px', height: 'auto', mixBlendMode: 'screen', opacity: .9 }} alt="Doglicious" />
+                <img loading="lazy" src={logoImg} style={{ maxWidth: '90px', height: 'auto', mixBlendMode: 'screen', opacity: .9 }} alt="Doglicious" />
                 <span className="f-cp">© 2025 Doglicious.in &nbsp;·&nbsp; Petlicious Superfoods India Private Limited</span>
               </div>
               <div className="f-leg">
