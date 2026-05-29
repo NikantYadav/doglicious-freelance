@@ -10,10 +10,19 @@ export function useServiceWorker() {
 
     // Register after the page has loaded so it doesn't compete with
     // critical resources during the initial paint.
-    const register = () => {
-      navigator.serviceWorker
-        .register('/sw.js', { scope: '/', updateViaCache: 'none' })
-        .then((reg) => {
+    const register = async () => {
+      try {
+        // Ensure the SW script exists before attempting registration. If
+        // the file is missing (404) or Cloudflare blocks it, skip register.
+        const res = await fetch('/sw.js', { method: 'GET', cache: 'no-store' });
+        if (!res.ok) {
+          console.warn('[SW] /sw.js not available (status=' + res.status + '), skipping registration');
+          return;
+        }
+
+        navigator.serviceWorker
+          .register('/sw.js', { scope: '/', updateViaCache: 'none' })
+          .then((reg) => {
           console.log('[SW] Registered:', reg);
 
           // Track installing worker state to get clearer errors
@@ -31,10 +40,13 @@ export function useServiceWorker() {
           if (reg.installing) trackInstalling(reg.installing);
           reg.addEventListener('updatefound', () => trackInstalling(reg.installing));
         })
-        .catch((err) => {
-          // Non-fatal — site works fine without SW, but log more detail
-          console.warn('[SW] Registration failed:', err);
-        });
+          .catch((err) => {
+            // Non-fatal — site works fine without SW, but log more detail
+            console.warn('[SW] Registration failed:', err);
+          });
+      } catch (err) {
+        console.warn('[SW] Error checking /sw.js before register:', err);
+      }
     };
 
     if (document.readyState === 'complete') {
