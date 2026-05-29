@@ -1,6 +1,8 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import dotenv from 'dotenv'
+import { writeFileSync } from 'fs'
+import { resolve } from 'path'
 
 /**
  * Inline the main entry CSS into the HTML at build time.
@@ -35,6 +37,29 @@ function inlineEntryCSSPlugin() {
   };
 }
 
+/**
+ * Emit a /version.json file into the build output on every build.
+ * The service worker fetches this tiny file (not index.html) to detect
+ * new deploys — this is reliable even behind Cloudflare which modifies HTML.
+ *
+ * Format: { "v": "<timestamp>-<random>" }
+ */
+function emitVersionPlugin() {
+  const version = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+  return {
+    name: 'vite-plugin-emit-version',
+    apply: 'build',
+    closeBundle() {
+      const outDir = resolve(process.cwd(), 'dist');
+      writeFileSync(
+        resolve(outDir, 'version.json'),
+        JSON.stringify({ v: version }),
+        'utf-8'
+      );
+    },
+  };
+}
+
 export default defineConfig(() => {
   // Explicitly load .env.frontend so Vite can see it
   dotenv.config({ path: '.env.frontend' });
@@ -43,6 +68,7 @@ export default defineConfig(() => {
     plugins: [
       react(),
       inlineEntryCSSPlugin(),
+      emitVersionPlugin(),
     ],
 
     build: {
