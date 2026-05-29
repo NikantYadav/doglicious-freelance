@@ -1,7 +1,6 @@
 import React, { Suspense } from 'react'
 import { Routes, Route, Navigate } from 'react-router-dom'
 import { usePageTracking } from './hooks/usePageTracking'
-import { useServiceWorker } from './hooks/useServiceWorker'
 import UpdateBanner from './components/common/UpdateBanner'
 
 const Home = React.lazy(() => import('./pages/Home'))
@@ -27,10 +26,7 @@ const BlogPost = React.lazy(() => import('./pages/BlogPost'))
 const CMS = React.lazy(() => import('./pages/CMS'))
 
 export default function App() {
-  // Track page views on route changes
   usePageTracking();
-  // Register service worker for auto-updates on deploy
-  useServiceWorker();
 
   return (
     <>
