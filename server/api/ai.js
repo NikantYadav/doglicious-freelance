@@ -41,6 +41,15 @@ function isClaudeBusyError(err) {
     );
 }
 
+function isClaudeRetryableStatus(err) {
+    const status = err?.status || err?.statusCode || err?.response?.status;
+    return status === 500 || status === 504 || status === 529;
+}
+
+function wait(ms) {
+    return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
 async function callClaude(prompt, imageB64, imageMime) {
     const content = [];
     if (imageB64 && imageMime) {
@@ -56,19 +65,29 @@ async function callClaude(prompt, imageB64, imageMime) {
     }
     content.push({ type: 'text', text: prompt });
 
-    try {
-        const response = await getAnthropic().messages.create({
-            model: MODEL_CLAUDE,
-            max_tokens: 4096,
-            system: "You are VetAI, an expert canine veterinary diagnostic AI. Response ONLY in valid JSON.",
-            messages: [{ role: 'user', content }]
-        });
+    const maxAttempts = 3;
 
-        const raw = response.content[0].text;
-        return JSON.parse(raw.replace(/```json\s*/gi, '').replace(/```\s*/g, '').trim());
-    } catch (err) {
-        // Rethrow with a flag so we know it came from THIS code
-        throw new Error(`[SDK-ERROR] ${err.message}`);
+    for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
+        try {
+            const response = await getAnthropic().messages.create({
+                model: MODEL_CLAUDE,
+                max_tokens: 4096,
+                system: "You are VetAI, an expert canine veterinary diagnostic AI. Response ONLY in valid JSON.",
+                messages: [{ role: 'user', content }]
+            });
+
+            const raw = response.content[0].text;
+            return JSON.parse(raw.replace(/```json\s*/gi, '').replace(/```\s*/g, '').trim());
+        } catch (err) {
+            if (isClaudeRetryableStatus(err) && attempt < maxAttempts) {
+                console.warn(`[VetAI] Claude busy on attempt ${attempt}/${maxAttempts}; retrying request.`);
+                await wait(750 * attempt);
+                continue;
+            }
+
+            // Rethrow with a flag so we know it came from THIS code
+            throw new Error(`[SDK-ERROR] ${err.message}`);
+        }
     }
 }
 
@@ -136,15 +155,14 @@ export default async function handler(req, res) {
 
         return res.status(200).json(result);
     } catch (err) {
+        console.error('[AI Handler Error]', err);
         if (isClaudeBusyError(err)) {
-            console.warn('[AI Handler Error] Claude is busy/overloaded:', err?.message || err);
             return res.status(503).json({
                 error: 'The AI service is temporarily unavailable. Please try again in a moment.',
                 code: 'claude_unavailable',
             });
         }
 
-        console.error('[AI Handler Error]', err);
         return res.status(500).json({ error: err.message });
     }
 }

@@ -80,9 +80,13 @@ export default function Home() {
   }, []);
 
   useEffect(() => {
-    const onKey = (e) => { if (e.key === 'Escape') setActiveModal(null); };
+    const onKey = (e) => { if (e.key === 'Escape') closeModal(); };
     document.addEventListener('keydown', onKey);
     return () => document.removeEventListener('keydown', onKey);
+  }, []);
+
+  useEffect(() => {
+    return () => { document.body.style.overflow = ''; };
   }, []);
 
   useEffect(() => {

@@ -48,6 +48,10 @@ export default function Products() {
     document.body.style.overflow = '';
   };
 
+  useEffect(() => {
+    return () => { document.body.style.overflow = ''; };
+  }, []);
+
   // ── Sample flow ──
   const [sampleStep, setSampleStep] = useState(1);
   const [selectedRecipe, setSelectedRecipe] = useState(0);
