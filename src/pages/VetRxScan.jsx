@@ -40,11 +40,7 @@ const VetRxScan = () => {
       .then(data => {
         if (data) {
           setConfig(data);
-          // If we have a session but it's missing config, update it
-          const session = getSession();
-          if (session && !session.config) {
-            saveSession({ ...session, config: data });
-          }
+            // Always use backend-provided config. Do NOT persist config into local session.
         }
       })
       .catch(err => console.error('[VetRxScan] Failed to fetch config:', err));
@@ -71,10 +67,8 @@ const VetRxScan = () => {
     // Restore session — if we just updated paidScans in localStorage, getSession() will return the fresh value
     const session = getSession();
     if (session) {
+      // Restore auth session (but ignore any stored config - backend is source of truth)
       setAuthUser(session);
-      if (session.config) {
-        setConfig(session.config);
-      }
     }
 
     setAuthReady(true);
@@ -139,9 +133,20 @@ const VetRxScan = () => {
     });
     if (!res.ok) {
       const err = await res.json().catch(() => ({}));
-      throw new Error(err.error || 'AI request failed');
+      const error = new Error(err.error || 'AI request failed');
+      error.code = err.code;
+      error.status = res.status;
+      throw error;
     }
     return res.json();
+  };
+
+  const getAnalysisErrorMessage = (err, fallbackPrefix) => {
+    if (err?.code === 'claude_unavailable' || /temporarily unavailable/i.test(err?.message || '')) {
+      return 'The AI service is temporarily unavailable. Please try again in a moment.';
+    }
+
+    return `${fallbackPrefix}: ${err?.message || 'AI request failed'}`;
   };
 
   // ── Initial analysis (after profile) ──
@@ -164,7 +169,7 @@ const VetRxScan = () => {
       goTo('questions');
     } catch (e) {
       setLoading({ active: false, msg: '', sub: '', progress: 0 });
-      setError('Analysis failed: ' + e.message);
+      setError(getAnalysisErrorMessage(e, 'Analysis failed'));
       goTo('profile');
     }
   };
@@ -202,7 +207,7 @@ const VetRxScan = () => {
       goTo('report');
     } catch (e) {
       setLoading({ active: false, msg: '', sub: '', progress: 0 });
-      setError('Diagnosis failed: ' + e.message);
+      setError(getAnalysisErrorMessage(e, 'Diagnosis failed'));
       goTo('questions');
     }
 

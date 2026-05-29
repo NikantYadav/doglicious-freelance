@@ -1,5 +1,6 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { LOGO_PLACEHOLDER } from './constants';
+import { getSession } from '../../services/auth';
 
 const ReportScreen = ({ report, dogProfile, photoUrl, onComplete, onReset }) => {
     if (!report) return null;
@@ -160,9 +161,8 @@ const ReportScreen = ({ report, dogProfile, photoUrl, onComplete, onReset }) => 
                             <span style={{ color: '#FFD700', fontSize: '28px', fontWeight: 900 }}>₹99</span>
                             <span style={{ background: 'rgba(255,215,0,0.2)', color: '#FFD700', fontSize: '11px', padding: '3px 8px', borderRadius: '99px' }}>TRIAL OFFER</span>
                         </div>
-                        <a href={waUrl} target="_blank" rel="noreferrer" className="btn-whatsapp">
-                            🟢 Order on WhatsApp — ₹99
-                        </a>
+                        {/* PayU Pay Now button (replaces WhatsApp order) */}
+                        <PayNowButton waUrl={waUrl} report={r} dog={dog} />
                         <p style={{ color: 'rgba(251,246,236,0.4)', fontSize: '11px', textAlign: 'center', margin: '8px 0 0' }}>
                             48hr dispatch · Cash on delivery available
                         </p>
@@ -179,6 +179,86 @@ const ReportScreen = ({ report, dogProfile, photoUrl, onComplete, onReset }) => 
                         ⚠️ VetRx Scan is an AI assistance tool. Consult a licensed veterinarian for medical decisions.
                     </p>
                 </div>
+            </div>
+        </div>
+    );
+};
+
+const PayNowButton = ({ waUrl, report, dog }) => {
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState(null);
+
+    const session = typeof window !== 'undefined' ? getSession() : null;
+    const phone = session?.phone || '';
+    const contactId = session?.contactId || '';
+    const firstname = (session && session.firstname) || phone || 'Customer';
+    const email = (session && session.email) || `${(phone || '').replace(/\D/g, '')}@no-reply.doglicious.in`;
+
+    const handlePayNow = async () => {
+        setLoading(true);
+        setError(null);
+        try {
+            const res = await fetch((import.meta.env.VITE_API_URL || '') + '/api/payu-initiate', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    phone,
+                    firstname,
+                    email,
+                    contactId,
+                    price: '99.00',
+                    dogName: dog?.name || undefined,
+                    returnPath: window.location.pathname,
+                }),
+            });
+
+            if (!res.ok) {
+                const err = await res.json().catch(() => ({}));
+                throw new Error(err.error || 'Could not initiate payment');
+            }
+
+            const { payuUrl, params } = await res.json();
+
+            // Build and auto-submit a hidden form to PayU hosted checkout
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = payuUrl;
+            form.style.display = 'none';
+
+            Object.entries(params).forEach(([key, value]) => {
+                const input = document.createElement('input');
+                input.type = 'hidden';
+                input.name = key;
+                input.value = value ?? '';
+                form.appendChild(input);
+            });
+
+            document.body.appendChild(form);
+            form.submit();
+        } catch (e) {
+            setError(e.message || 'Payment initialization failed');
+            setLoading(false);
+        }
+    };
+
+    return (
+        <div>
+            <button
+                className="btn btn-primary"
+                onClick={handlePayNow}
+                disabled={loading}
+                style={{ marginBottom: '12px' }}
+            >
+                {loading ? '⏳ Redirecting to payment…' : '🔐 Pay ₹99 via PayU'}
+            </button>
+            {error && (
+                <div style={{ color: '#991b1b', marginTop: 8, fontSize: 13 }}>{error}</div>
+            )}
+            {/* Keep WhatsApp fallback for support only */}
+            <div style={{ marginTop: 8 }}>
+                <a href={waUrl} target="_blank" rel="noreferrer" className="btn-whatsapp" style={{ display: 'inline-block' }}>
+                    💬 Chat with Support
+                </a>
             </div>
         </div>
     );

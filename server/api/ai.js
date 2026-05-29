@@ -20,6 +20,27 @@ const geminiKey = () => process.env.GEMINI_API_KEY;
 const MODEL_GEMINI = 'gemini-2.5-flash';
 const MODEL_CLAUDE = 'claude-sonnet-4-5-20250929';
 
+function isClaudeBusyError(err) {
+    const status = err?.status || err?.statusCode || err?.response?.status;
+    const message = [
+        err?.message,
+        err?.error?.message,
+        err?.body,
+        err?.response?.data?.error?.message,
+    ]
+        .filter(Boolean)
+        .join(' ')
+        .toLowerCase();
+
+    return (
+        status === 429 ||
+        status === 500 ||
+        status === 504 ||
+        status === 529 ||
+        /too much demand|overloaded|capacity|rate limit|api error|timeout error|please try again later/.test(message)
+    );
+}
+
 async function callClaude(prompt, imageB64, imageMime) {
     const content = [];
     if (imageB64 && imageMime) {
@@ -115,6 +136,14 @@ export default async function handler(req, res) {
 
         return res.status(200).json(result);
     } catch (err) {
+        if (isClaudeBusyError(err)) {
+            console.warn('[AI Handler Error] Claude is busy/overloaded:', err?.message || err);
+            return res.status(503).json({
+                error: 'The AI service is temporarily unavailable. Please try again in a moment.',
+                code: 'claude_unavailable',
+            });
+        }
+
         console.error('[AI Handler Error]', err);
         return res.status(500).json({ error: err.message });
     }

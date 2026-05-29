@@ -18,14 +18,32 @@ export default async function handler(req, res) {
         report,
         selectedPart,
         selectedSymptoms,
-        scanCount: prevCount,
-        paidScans: prevPaid,
     } = req.body || {};
 
     try {
         const numFree = parseInt(process.env.NUM_FREE_SCAN || '1', 10);
-        const currentScanCount = parseInt(prevCount || '0', 10);
-        const currentPaidScans = parseInt(prevPaid || '0', 10);
+
+        // Determine phone to look up user record
+        const phone = dogProfile && dogProfile.mobile ? normalizePhone(dogProfile.mobile) : (contactId || null);
+
+        // Fetch authoritative counts from DB (do not trust client-provided counts)
+        let currentScanCount = 0;
+        let currentPaidScans = 0;
+        if (phone) {
+            try {
+                const { data: user, error: userErr } = await supabase
+                    .from('vetrx_users')
+                    .select('scan_count, paid_scans')
+                    .eq('phone', phone)
+                    .single();
+                if (!userErr && user) {
+                    currentScanCount = parseInt(user.scan_count || 0, 10);
+                    currentPaidScans = parseInt(user.paid_scans || 0, 10);
+                }
+            } catch (e) {
+                console.warn('[db-report] Could not read existing user counts:', e.message || e);
+            }
+        }
 
         const newCount = currentScanCount + 1;
         const isPaidScan = currentScanCount >= numFree;
@@ -37,22 +55,26 @@ export default async function handler(req, res) {
 
         const phone = dog.mobile ? normalizePhone(dog.mobile) : (contactId || null);
 
-        // 1. Ensure user exists and get their id
+        // 1. Ensure user exists and update their counts atomically
         let userId = null;
         if (phone) {
-            const { data: user, error: upsertErr } = await supabase
-                .from('vetrx_users')
-                .upsert(
-                    { phone, name: dog.name || undefined, scan_count: newCount, paid_scans: newPaid },
-                    { onConflict: 'phone' }
-                )
-                .select('id')
-                .single();
+            try {
+                const { data: user, error: upsertErr } = await supabase
+                    .from('vetrx_users')
+                    .upsert(
+                        { phone, name: dog.name || undefined, scan_count: newCount, paid_scans: newPaid },
+                        { onConflict: 'phone' }
+                    )
+                    .select('id')
+                    .single();
 
-            if (upsertErr) {
-                console.error('[db-report] User upsert error:', upsertErr.message);
-            } else {
-                userId = user?.id;
+                if (upsertErr) {
+                    console.error('[db-report] User upsert error:', upsertErr.message);
+                } else {
+                    userId = user?.id;
+                }
+            } catch (e) {
+                console.error('[db-report] User upsert failed:', e.message || e);
             }
         }
 

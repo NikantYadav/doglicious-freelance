@@ -67,9 +67,9 @@ const AuthGate = ({ onAuthenticated }) => {
                 return;
             }
             const paidScans = result.paidScans ?? 0;
-            const config = result.config ?? null;
-            saveSession({ phone: normPhone, contactId: result.contactId, scanCount: result.scanCount, paidScans, config });
-            onAuthenticated({ phone: normPhone, contactId: result.contactId, scanCount: result.scanCount, paidScans, config });
+            // Do NOT store server config in local session. Always fetch authoritative config from backend.
+            saveSession({ phone: normPhone, contactId: result.contactId, scanCount: result.scanCount, paidScans });
+            onAuthenticated({ phone: normPhone, contactId: result.contactId, scanCount: result.scanCount, paidScans });
         } catch (err) {
             setError(err.message || 'Verification failed. Please try again.');
         } finally {

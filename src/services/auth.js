@@ -15,19 +15,24 @@ export function getSession() {
             localStorage.removeItem(SESSION_KEY);
             return null;
         }
+        // Strip any server config that may have been stored previously — backend is authoritative
+        if (s && typeof s === 'object' && s.config) {
+            delete s.config;
+            // write stripped session back to storage to avoid future tampering
+            localStorage.setItem(SESSION_KEY, JSON.stringify(s));
+        }
         return s;
     } catch {
         return null;
     }
 }
 
-export function saveSession({ phone, contactId, scanCount, paidScans = 0, config = null }) {
+export function saveSession({ phone, contactId, scanCount, paidScans = 0 }) {
     const session = {
         phone,
         contactId,
         scanCount,
         paidScans,
-        config,
         expiresAt: Date.now() + SESSION_TTL
     };
     localStorage.setItem(SESSION_KEY, JSON.stringify(session));
