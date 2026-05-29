@@ -52,7 +52,7 @@ const WelcomeScreen = ({ photo, scansLeft = 0, onPhotoUploaded, onClearPhoto, on
                 position: 'relative',
             }}
         >
-            <div style={{ position: 'absolute', top: '16px', left: '16px', zIndex: 2 }}>
+            <div style={{ position: 'absolute', top: '16px', right: '16px', zIndex: 2 }}>
                 <div style={{
                     background: 'rgba(61,43,0,0.92)',
                     color: '#FBF6EC',
