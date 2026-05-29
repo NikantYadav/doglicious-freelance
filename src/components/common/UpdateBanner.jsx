@@ -28,7 +28,14 @@ export default function UpdateBanner() {
         // Network unavailable — silently ignore.
       }
     };
-    check();
+
+    // Wait until the page has fully loaded before checking for updates,
+    // so the version fetch doesn't compete with critical resources.
+    if (document.readyState === 'complete') {
+      check();
+    } else {
+      window.addEventListener('load', check, { once: true });
+    }
   }, []);
 
   if (!show) return null;
