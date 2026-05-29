@@ -10,6 +10,7 @@ echo "Stopping existing containers..."
 docker compose down
 
 echo "Rebuilding and starting containers..."
-docker compose up -d --build
+docker compose build --no-cache
+docker compose up -d
 
 echo "Deployment complete!"
