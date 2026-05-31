@@ -2,9 +2,14 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 
-import { logoImg } from '../data/homeData';
+import { RECIPES, GRAM_OPTS, GRAM_PRICES } from '../data/homeData';
 import SiteHeader from '../components/shared/SiteHeader';
 import SiteFooter from '../components/shared/SiteFooter';
+import SampleModal from '../components/modals/SampleModal';
+import LoadingOverlay from '../components/common/LoadingOverlay';
+import { useToast } from '../components/common/Toast';
+import { normalizePhone } from '../utils/phone';
+import { initiatePayU } from '../services/sampleBooking';
 import { useSEO } from '../hooks/useSEO';
 import '../styles/Home.css';
 import '../styles/BestVegetables.css';
@@ -28,16 +33,100 @@ export default function BestVegetables() {
   });
 
   const navigate = useNavigate();
+  const { toast } = useToast();
+
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [isSampleModalOpen, setIsSampleModalOpen] = useState(false);
+  const [sampleStep, setSampleStep] = useState(1);
+  const [selectedRecipe, setSelectedRecipe] = useState(0);
+  const [selectedGramIdx, setSelectedGramIdx] = useState(0);
+  const [dogName, setDogName] = useState('');
+  const [mobile, setMobile] = useState('');
+  const [mobileValid, setMobileValid] = useState(false);
+  const [deliveryAddress, setDeliveryAddress] = useState('');
+  const [deliveryCity, setDeliveryCity] = useState('');
+  const [deliveryPin, setDeliveryPin] = useState('');
+  const [mapSrc, setMapSrc] = useState('');
 
   useEffect(() => {
   }, []);
 
   useEffect(() => { window.scrollTo(0, 0); }, []);
 
-  const openTool = (idx) => navigate('/', { state: { openTool: idx } });
+  const TOOL_ROUTES = [
+    '/tools/bmi-calculator',
+    '/tools/feeding-calculator',
+    '/tools/cost-calculator',
+    '/tools/age-calculator',
+    '/tools/best-vegetables',
+    '/tools/natural-healing',
+    '/tools/aafco-planner',
+    '/tools/health-quiz',
+  ];
+  const openTool = (idx) => {
+    if (TOOL_ROUTES[idx]) navigate(TOOL_ROUTES[idx]);
+  };
+  const openSampleModal = () => {
+    setSampleStep(1);
+    setIsSampleModalOpen(true);
+  };
+  const closeSampleModal = () => setIsSampleModalOpen(false);
+
+  const handleMobileInput = (val) => {
+    setMobile(val);
+    const digits = val.replace(/\D/g, '');
+    setMobileValid(digits.length === 10 || (digits.length === 12 && digits.startsWith('91')) || (val.startsWith('+') && digits.length >= 7));
+  };
+
+  const handlePincodeInput = (val) => {
+    setDeliveryPin(val);
+    if (val.length === 6) {
+      const q = encodeURIComponent(`${deliveryAddress} ${deliveryCity} ${val}`);
+      setMapSrc(`https://maps.google.com/maps?q=${q}&output=embed&z=15`);
+    }
+  };
+
+  const openMapVerify = () => {
+    const q = encodeURIComponent(`${deliveryAddress} ${deliveryCity} ${deliveryPin}`);
+    setMapSrc(`https://maps.google.com/maps?q=${q}&output=embed&z=15`);
+  };
+
+  const proceedToPayment = async () => {
+    if (!mobile || !dogName || !deliveryAddress || !deliveryCity || !deliveryPin) {
+      toast('Please fill all fields before proceeding.', 'error');
+      return;
+    }
+
+    const recipe = RECIPES[selectedRecipe];
+    const grams = GRAM_OPTS[selectedGramIdx];
+    const price = GRAM_PRICES[selectedGramIdx];
+
+    try {
+      setIsProcessing(true);
+      closeSampleModal();
+      await initiatePayU({
+        dogName,
+        phone: normalizePhone(mobile),
+        price,
+        recipe,
+        grams,
+        address: deliveryAddress,
+        city: deliveryCity,
+        pincode: deliveryPin,
+      });
+    } catch (err) {
+      setIsProcessing(false);
+      console.error('[PayU] initiation failed:', err);
+      toast('Payment could not be initiated. Please try again.', 'error');
+    }
+  };
+
+  const currentPrice = GRAM_PRICES[selectedGramIdx];
+  const currentGrams = GRAM_OPTS[selectedGramIdx];
 
   return (
     <>
+      {isProcessing && <LoadingOverlay />}
       <SiteHeader />
 
       {/* Breadcrumb */}
@@ -132,31 +221,9 @@ export default function BestVegetables() {
               Every Doglicious meal includes the right mix of vegetables, protein, and
               nutrients — no guesswork needed.
             </p>
-            <a href="/#booking" className="bv-cta-btn">
+            <button type="button" className="bv-cta-btn" onClick={openSampleModal}>
               Order Natural Dog Food Online — ₹99 Sample
-            </a>
-          </div>
-
-          {/* Related */}
-          <div className="bv-related">
-            <h3>📚 Related Guides</h3>
-            <div className="bv-related-grid">
-              {[
-                { emoji: '🍳', label: 'Cook AAFCO-Balanced Dog Food', tool: 6 },
-                { emoji: '🌿', label: 'Heal Your Dog Naturally', tool: 5 },
-                { emoji: '⚖️', label: 'Fresh Food vs Kibble', tool: null },
-                { emoji: '🐶', label: 'Puppy Feeding Guide', tool: null },
-              ].map(({ emoji, label, tool }) => (
-                <button
-                  key={label}
-                  className="bv-related-card"
-                  onClick={() => tool !== null ? openTool(tool) : navigate('/')}
-                >
-                  <span className="bv-rc-emoji">{emoji}</span>
-                  <span className="bv-rc-text">{label}</span>
-                </button>
-              ))}
-            </div>
+            </button>
           </div>
 
         </div>
@@ -188,6 +255,33 @@ export default function BestVegetables() {
           ))}
         </div>
       </section>
+
+      <SampleModal
+        isOpen={isSampleModalOpen}
+        onClose={closeSampleModal}
+        sampleStep={sampleStep}
+        setSampleStep={setSampleStep}
+        selectedRecipe={selectedRecipe}
+        setSelectedRecipe={setSelectedRecipe}
+        selectedGramIdx={selectedGramIdx}
+        setSelectedGramIdx={setSelectedGramIdx}
+        dogName={dogName}
+        setDogName={setDogName}
+        mobile={mobile}
+        mobileValid={mobileValid}
+        handleMobileInput={handleMobileInput}
+        deliveryAddress={deliveryAddress}
+        setDeliveryAddress={setDeliveryAddress}
+        deliveryCity={deliveryCity}
+        setDeliveryCity={setDeliveryCity}
+        deliveryPin={deliveryPin}
+        handlePincodeInput={handlePincodeInput}
+        mapSrc={mapSrc}
+        openMapVerify={openMapVerify}
+        proceedToPayment={proceedToPayment}
+        currentPrice={currentPrice}
+        currentGrams={currentGrams}
+      />
 
       <SiteFooter />
     </>

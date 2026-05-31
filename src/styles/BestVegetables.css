@@ -184,10 +184,13 @@
   display: inline-block;
   background: var(--bv-brand);
   color: #fff;
+  border: 0;
   border-radius: 8px;
   padding: 13px 28px;
   font-weight: 700;
   font-size: 14px;
+  font-family: inherit;
+  cursor: pointer;
   text-decoration: none;
   transition: background 0.2s, transform 0.2s;
 }
