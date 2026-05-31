@@ -1,7 +1,7 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import dotenv from 'dotenv'
-import { writeFileSync } from 'fs'
+import { writeFileSync, mkdirSync } from 'fs'
 import { resolve } from 'path'
 
 /**
@@ -51,6 +51,7 @@ function emitVersionPlugin() {
     apply: 'build',
     closeBundle() {
       const outDir = resolve(process.cwd(), 'dist');
+      mkdirSync(outDir, { recursive: true });
       writeFileSync(
         resolve(outDir, 'version.json'),
         JSON.stringify({ v: version }),
