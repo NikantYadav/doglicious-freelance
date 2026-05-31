@@ -6,7 +6,7 @@ import '../styles/Home.css';
 import { logoImg, RECIPES, GRAM_OPTS, GRAM_PRICES } from '../data/homeData';
 import { normalizePhone } from '../utils/phone';
 import { initiatePayU } from '../services/sampleBooking';
-import { lockScroll, unlockScroll } from '../utils/scrollLock';
+import { getScrollLockDebugState, lockScroll, unlockScroll } from '../utils/scrollLock';
 
 const HomeBlogSection = lazy(() => import('../components/HomeBlogSection'));
 const VetRxModal = lazy(() => import('../components/modals/VetRxModal'));
@@ -45,7 +45,9 @@ export default function Home() {
   const [quizAnswers, setQuizAnswers] = useState({});
   const [paymentConfirm, setPaymentConfirm] = useState(null); // { status, txnid, amount }
   const [isProcessing, setIsProcessing] = useState(false);
+  const [debugInfo, setDebugInfo] = useState(null);
   const { toast } = useToast();
+  const debugScrollEnabled = new URLSearchParams(window.location.search).has('debugScroll');
 
   useSEO({
     title: 'Doglicious.in — Fresh Food & AI Analysis for Dogs',
@@ -61,6 +63,46 @@ export default function Home() {
     window.addEventListener('scroll', onScroll, { passive: true });
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
+
+  useEffect(() => {
+    if (!debugScrollEnabled) return;
+
+    const updateDebugInfo = () => {
+      const bodyStyle = document.body.style;
+      const computedBody = window.getComputedStyle(document.body);
+      const computedHtml = window.getComputedStyle(document.documentElement);
+      const scrollLockState = getScrollLockDebugState();
+
+      setDebugInfo({
+        bodyCssText: bodyStyle.cssText || '(empty)',
+        bodyPosition: computedBody.position,
+        bodyTop: computedBody.top,
+        bodyOverflowY: computedBody.overflowY,
+        htmlOverflowY: computedHtml.overflowY,
+        scrollY: String(window.scrollY),
+        innerHeight: String(window.innerHeight),
+        visualViewportHeight: String(window.visualViewport?.height || ''),
+        mobileMenuOpen: String(mobileMenuOpen),
+        activeModal: String(activeModal),
+        testimonialsOpen: String(testimonialsOpen),
+        lockCount: String(scrollLockState.lockCount),
+        savedScrollY: String(scrollLockState.savedScrollY),
+      });
+    };
+
+    updateDebugInfo();
+    const timer = window.setInterval(updateDebugInfo, 500);
+    window.addEventListener('scroll', updateDebugInfo, { passive: true });
+    window.addEventListener('resize', updateDebugInfo);
+    window.visualViewport?.addEventListener('resize', updateDebugInfo);
+
+    return () => {
+      window.clearInterval(timer);
+      window.removeEventListener('scroll', updateDebugInfo);
+      window.removeEventListener('resize', updateDebugInfo);
+      window.visualViewport?.removeEventListener('resize', updateDebugInfo);
+    };
+  }, [debugScrollEnabled, mobileMenuOpen, activeModal, testimonialsOpen]);
 
   // Detect PayU redirect back to homepage
   useEffect(() => {
@@ -653,6 +695,49 @@ export default function Home() {
         />
         <TestimonialsModal isOpen={testimonialsOpen} onClose={() => setTestimonialsOpen(false)} />
       </Suspense>
+
+      {debugScrollEnabled && debugInfo && (
+        <div
+          style={{
+            position: 'fixed',
+            left: '12px',
+            right: '12px',
+            bottom: '12px',
+            zIndex: 999999,
+            maxHeight: '42vh',
+            overflow: 'auto',
+            background: 'rgba(17, 13, 10, 0.92)',
+            color: '#fff',
+            border: '1px solid rgba(255,255,255,.18)',
+            borderRadius: '14px',
+            padding: '12px 14px',
+            fontSize: '11px',
+            lineHeight: 1.45,
+            fontFamily: 'monospace',
+            boxShadow: '0 18px 40px rgba(0,0,0,.35)',
+            pointerEvents: 'none',
+          }}
+        >
+          <div style={{ fontWeight: 700, marginBottom: '8px', fontFamily: 'Poppins, sans-serif' }}>
+            Scroll debug active
+          </div>
+          <div>scrollY: {debugInfo.scrollY}</div>
+          <div>innerHeight: {debugInfo.innerHeight}</div>
+          <div>visualViewport.height: {debugInfo.visualViewportHeight || 'n/a'}</div>
+          <div>html overflowY: {debugInfo.htmlOverflowY}</div>
+          <div>body position: {debugInfo.bodyPosition}</div>
+          <div>body top: {debugInfo.bodyTop}</div>
+          <div>body overflowY: {debugInfo.bodyOverflowY}</div>
+          <div>lockCount: {debugInfo.lockCount}</div>
+          <div>savedScrollY: {debugInfo.savedScrollY}</div>
+          <div>mobileMenuOpen: {debugInfo.mobileMenuOpen}</div>
+          <div>activeModal: {debugInfo.activeModal}</div>
+          <div>testimonialsOpen: {debugInfo.testimonialsOpen}</div>
+          <div style={{ marginTop: '8px', whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
+            body css: {debugInfo.bodyCssText}
+          </div>
+        </div>
+      )}
 
       {/* Analysis Modal (inline — no lazy needed, it's tiny) */}
       <div className={`mbk${activeModal === 'analysis' ? ' o' : ''}`} onClick={e => { if (e.target === e.currentTarget) closeModal(); }}>

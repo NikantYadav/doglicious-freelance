@@ -1,6 +1,13 @@
 let lockCount = 0;
 let savedScrollY = 0;
 
+export function getScrollLockDebugState() {
+  return {
+    lockCount,
+    savedScrollY,
+  };
+}
+
 export function lockScroll() {
   if (lockCount === 0) {
     savedScrollY = window.scrollY;
