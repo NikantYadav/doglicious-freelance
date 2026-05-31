@@ -44,7 +44,7 @@ export default function Products() {
   };
   const closeModal = () => {
     setActiveModal(null);
-  }, []);
+  };
 
   // ── Sample flow ──
   const [sampleStep, setSampleStep] = useState(1);

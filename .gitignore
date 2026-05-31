@@ -21,6 +21,7 @@ out/
 .env.frontend
 # IDEs
 .vscode/
+.claude/
 .idea/
 *.swp
 *.swo
