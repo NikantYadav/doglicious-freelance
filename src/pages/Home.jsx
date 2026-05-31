@@ -67,11 +67,21 @@ export default function Home() {
   useEffect(() => {
     if (!debugScrollEnabled) return;
 
+    const describeElement = (el) => {
+      if (!el) return 'none';
+      const tag = el.tagName?.toLowerCase?.() || 'unknown';
+      const className = typeof el.className === 'string' ? el.className.trim().replace(/\s+/g, ' ') : '';
+      return className ? `${tag}.${className}` : tag;
+    };
+
     const updateDebugInfo = () => {
       const bodyStyle = document.body.style;
       const computedBody = window.getComputedStyle(document.body);
       const computedHtml = window.getComputedStyle(document.documentElement);
       const scrollLockState = getScrollLockDebugState();
+      const centerX = Math.max(0, Math.round(window.innerWidth / 2));
+      const centerY = Math.max(0, Math.round(window.innerHeight / 2));
+      const lowerY = Math.max(0, Math.round(window.innerHeight * 0.78));
 
       setDebugInfo({
         bodyCssText: bodyStyle.cssText || '(empty)',
@@ -87,6 +97,8 @@ export default function Home() {
         testimonialsOpen: String(testimonialsOpen),
         lockCount: String(scrollLockState.lockCount),
         savedScrollY: String(scrollLockState.savedScrollY),
+        centerProbe: describeElement(document.elementFromPoint(centerX, centerY)),
+        lowerProbe: describeElement(document.elementFromPoint(centerX, lowerY)),
       });
     };
 
@@ -733,6 +745,8 @@ export default function Home() {
           <div>mobileMenuOpen: {debugInfo.mobileMenuOpen}</div>
           <div>activeModal: {debugInfo.activeModal}</div>
           <div>testimonialsOpen: {debugInfo.testimonialsOpen}</div>
+          <div>center probe: {debugInfo.centerProbe}</div>
+          <div>lower probe: {debugInfo.lowerProbe}</div>
           <div style={{ marginTop: '8px', whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
             body css: {debugInfo.bodyCssText}
           </div>
