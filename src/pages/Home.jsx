@@ -6,7 +6,6 @@ import '../styles/Home.css';
 import { logoImg, RECIPES, GRAM_OPTS, GRAM_PRICES } from '../data/homeData';
 import { normalizePhone } from '../utils/phone';
 import { initiatePayU } from '../services/sampleBooking';
-import { getScrollLockDebugState } from '../utils/scrollLock';
 
 const HomeBlogSection = lazy(() => import('../components/HomeBlogSection'));
 const VetRxModal = lazy(() => import('../components/modals/VetRxModal'));
@@ -78,7 +77,6 @@ export default function Home() {
       const bodyStyle = document.body.style;
       const computedBody = window.getComputedStyle(document.body);
       const computedHtml = window.getComputedStyle(document.documentElement);
-      const scrollLockState = getScrollLockDebugState();
       const centerX = Math.max(0, Math.round(window.innerWidth / 2));
       const centerY = Math.max(0, Math.round(window.innerHeight / 2));
       const lowerY = Math.max(0, Math.round(window.innerHeight * 0.78));
@@ -95,8 +93,6 @@ export default function Home() {
         mobileMenuOpen: String(mobileMenuOpen),
         activeModal: String(activeModal),
         testimonialsOpen: String(testimonialsOpen),
-        lockCount: String(scrollLockState.lockCount),
-        savedScrollY: String(scrollLockState.savedScrollY),
         centerProbe: describeElement(document.elementFromPoint(centerX, centerY)),
         lowerProbe: describeElement(document.elementFromPoint(centerX, lowerY)),
       });
@@ -778,8 +774,6 @@ export default function Home() {
           <div>body position: {debugInfo.bodyPosition}</div>
           <div>body top: {debugInfo.bodyTop}</div>
           <div>body overflowY: {debugInfo.bodyOverflowY}</div>
-          <div>lockCount: {debugInfo.lockCount}</div>
-          <div>savedScrollY: {debugInfo.savedScrollY}</div>
           <div>mobileMenuOpen: {debugInfo.mobileMenuOpen}</div>
           <div>activeModal: {debugInfo.activeModal}</div>
           <div>testimonialsOpen: {debugInfo.testimonialsOpen}</div>
