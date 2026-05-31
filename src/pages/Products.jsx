@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import '../styles/Home.css';
 import '../styles/Products.css';
+import { lockScroll, unlockScroll } from '../utils/scrollLock';
 
 // Home Components
 import SiteHeader from '../components/shared/SiteHeader';
@@ -41,15 +42,15 @@ export default function Products() {
   const [activeModal, setActiveModal] = useState(null);
   const openModal = (id) => {
     setActiveModal(id);
-    document.body.style.overflow = 'hidden';
+    lockScroll();
   };
   const closeModal = () => {
     setActiveModal(null);
-    document.body.style.overflow = '';
+    unlockScroll();
   };
 
   useEffect(() => {
-    return () => { document.body.style.overflow = ''; };
+    return () => unlockScroll();
   }, []);
 
   // ── Sample flow ──
