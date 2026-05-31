@@ -46,6 +46,7 @@ export default function Home() {
   const [paymentConfirm, setPaymentConfirm] = useState(null); // { status, txnid, amount }
   const [isProcessing, setIsProcessing] = useState(false);
   const [debugInfo, setDebugInfo] = useState(null);
+  const [copiedDebug, setCopiedDebug] = useState(false);
   const { toast } = useToast();
   const debugScrollEnabled = new URLSearchParams(window.location.search).has('debugScroll');
 
@@ -115,6 +116,36 @@ export default function Home() {
       window.visualViewport?.removeEventListener('resize', updateDebugInfo);
     };
   }, [debugScrollEnabled, mobileMenuOpen, activeModal, testimonialsOpen]);
+
+  const copyDebugInfo = async () => {
+    if (!debugInfo) return;
+
+    const snapshot = [
+      `scrollY: ${debugInfo.scrollY}`,
+      `innerHeight: ${debugInfo.innerHeight}`,
+      `visualViewport.height: ${debugInfo.visualViewportHeight || 'n/a'}`,
+      `html overflowY: ${debugInfo.htmlOverflowY}`,
+      `body position: ${debugInfo.bodyPosition}`,
+      `body top: ${debugInfo.bodyTop}`,
+      `body overflowY: ${debugInfo.bodyOverflowY}`,
+      `lockCount: ${debugInfo.lockCount}`,
+      `savedScrollY: ${debugInfo.savedScrollY}`,
+      `mobileMenuOpen: ${debugInfo.mobileMenuOpen}`,
+      `activeModal: ${debugInfo.activeModal}`,
+      `testimonialsOpen: ${debugInfo.testimonialsOpen}`,
+      `center probe: ${debugInfo.centerProbe}`,
+      `lower probe: ${debugInfo.lowerProbe}`,
+      `body css: ${debugInfo.bodyCssText}`,
+    ].join('\n');
+
+    try {
+      await navigator.clipboard.writeText(snapshot);
+      setCopiedDebug(true);
+      window.setTimeout(() => setCopiedDebug(false), 1200);
+    } catch (err) {
+      console.error('Failed to copy debug snapshot:', err);
+    }
+  };
 
   // Detect PayU redirect back to homepage
   useEffect(() => {
@@ -727,11 +758,29 @@ export default function Home() {
             lineHeight: 1.45,
             fontFamily: 'monospace',
             boxShadow: '0 18px 40px rgba(0,0,0,.35)',
-            pointerEvents: 'none',
+            pointerEvents: 'auto',
           }}
         >
-          <div style={{ fontWeight: 700, marginBottom: '8px', fontFamily: 'Poppins, sans-serif' }}>
-            Scroll debug active
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '10px', marginBottom: '8px' }}>
+            <div style={{ fontWeight: 700, fontFamily: 'Poppins, sans-serif' }}>
+              Scroll debug active
+            </div>
+            <button
+              type="button"
+              onClick={copyDebugInfo}
+              style={{
+                border: '1px solid rgba(255,255,255,.22)',
+                background: 'rgba(255,255,255,.08)',
+                color: '#fff',
+                borderRadius: '999px',
+                padding: '7px 11px',
+                fontSize: '11px',
+                fontFamily: 'Poppins, sans-serif',
+                cursor: 'pointer',
+              }}
+            >
+              {copiedDebug ? 'Copied' : 'Copy snapshot'}
+            </button>
           </div>
           <div>scrollY: {debugInfo.scrollY}</div>
           <div>innerHeight: {debugInfo.innerHeight}</div>
