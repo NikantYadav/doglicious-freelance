@@ -13,7 +13,6 @@ const VetRxModal = lazy(() => import('../components/modals/VetRxModal'));
 const SampleModal = lazy(() => import('../components/modals/SampleModal'));
 const PaymentModal = lazy(() => import('../components/modals/PaymentModal'));
 const ConfirmModal = lazy(() => import('../components/modals/ConfirmModal'));
-const ToolsModal = lazy(() => import('../components/modals/ToolsModal'));
 const QuizModal = lazy(() => import('../components/modals/QuizModal'));
 import { useToast } from '../components/common/Toast';
 import LoadingOverlay from '../components/common/LoadingOverlay';
@@ -39,7 +38,7 @@ export default function Home() {
   const [deliveryPin, setDeliveryPin] = useState('');
   const [mapSrc, setMapSrc] = useState('');
   const [orderDetails, setOrderDetails] = useState({});
-  const [activeTool, setActiveTool] = useState(0);
+
   const [quizStep, setQuizStep] = useState(0);
   const [quizName, setQuizName] = useState('');
   const [quizAnswers, setQuizAnswers] = useState({});
@@ -233,17 +232,17 @@ export default function Home() {
     }
   };
 
-  const openTool = (idx) => {
-    if (idx === 0) { navigate('/tools/bmi-calculator'); return; }
-    if (idx === 1) { navigate('/tools/feeding-calculator'); return; }
-    if (idx === 2) { navigate('/tools/cost-calculator'); return; }
-    if (idx === 3) { navigate('/tools/age-calculator'); return; }
-    if (idx === 4) { navigate('/tools/best-vegetables'); return; }
-    if (idx === 5) { navigate('/tools/natural-healing'); return; }
-    if (idx === 6) { navigate('/tools/aafco-planner'); return; }
-    if (idx === 7) { navigate('/tools/health-quiz'); return; }
-    setActiveTool(idx); openModal('tools');
-  };
+  const TOOL_ROUTES = [
+    '/tools/bmi-calculator',
+    '/tools/feeding-calculator',
+    '/tools/cost-calculator',
+    '/tools/age-calculator',
+    '/tools/best-vegetables',
+    '/tools/natural-healing',
+    '/tools/aafco-planner',
+    '/tools/health-quiz',
+  ];
+  const openTool = (idx) => { if (TOOL_ROUTES[idx]) navigate(TOOL_ROUTES[idx]); };
 
   const toggleFaq = (i) => setFaqOpen(faqOpen === i ? null : i);
 
@@ -718,7 +717,7 @@ export default function Home() {
           recipe={orderDetails.recipe} grams={orderDetails.grams}
           price={orderDetails.price} address={orderDetails.address}
         />
-        <ToolsModal isOpen={activeModal === 'tools'} onClose={closeModal} activeTool={activeTool} setActiveTool={setActiveTool} />
+
         <QuizModal
           isOpen={activeModal === 'quiz'} onClose={closeModal}
           quizStep={quizStep} setQuizStep={setQuizStep}

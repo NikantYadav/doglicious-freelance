@@ -44,8 +44,8 @@
 }
 
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-html{scroll-behavior:smooth;-webkit-text-size-adjust:100%;font-size:16px;overflow-x:hidden;overscroll-behavior-y:contain}
-body{font-family:var(--sans);background:var(--c3);color:var(--c1);line-height:1.5;overflow-x:hidden;overscroll-behavior-y:contain;-webkit-font-smoothing:antialiased}
+html{scroll-behavior:smooth;-webkit-text-size-adjust:100%;font-size:16px;overflow-x:hidden}
+body{font-family:var(--sans);background:var(--c3);color:var(--c1);line-height:1.5;overflow-x:hidden;-webkit-font-smoothing:antialiased}
 @media(max-width:767px){body{padding-bottom:76px}}
 img{display:block;max-width:100%}
 button{font-family:var(--sans);cursor:pointer}
@@ -349,9 +349,9 @@ footer{background:var(--c1-05);border-top:1px solid var(--sep);padding:56px 0 0}
 .msb-book:hover{background:var(--c2h)}
 
 /* MODALS */
-.mbk{position:fixed;inset:0;z-index:800;background:rgba(34,28,21,.55);backdrop-filter:blur(14px) saturate(140%);display:flex;align-items:center;justify-content:center;padding:16px;opacity:0;pointer-events:none;transition:opacity .22s}
-.mbk.o{opacity:1;pointer-events:all}
-.mbox{background:var(--c3);border:1px solid var(--sep);border-radius:var(--r-2xl);padding:28px;max-width:500px;width:100%;transform:scale(.96) translateY(8px);transition:transform .3s cubic-bezier(.25,1,.5,1);max-height:92vh;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;box-shadow:var(--shadow-l)}
+.mbk{position:fixed;inset:0;z-index:800;background:rgba(34,28,21,.55);backdrop-filter:blur(14px) saturate(140%);display:flex;align-items:center;justify-content:center;padding:16px;opacity:0;pointer-events:none;visibility:hidden;transition:opacity .22s,visibility 0s linear .22s}
+.mbk.o{opacity:1;pointer-events:all;visibility:visible;transition:opacity .22s}
+.mbox{background:var(--c3);border:1px solid var(--sep);border-radius:var(--r-2xl);padding:28px;max-width:500px;width:100%;transform:scale(.96) translateY(8px);transition:transform .3s cubic-bezier(.25,1,.5,1);max-height:92vh;overflow-y:auto;box-shadow:var(--shadow-l)}
 .mbk.o .mbox{transform:scale(1) translateY(0)}
 .mh{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:20px}
 .mh-t{font-size:18px;font-weight:700;color:var(--c1)}
