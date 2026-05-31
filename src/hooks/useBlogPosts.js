@@ -42,8 +42,9 @@ export function useBlogPost(slugOrId) {
         if (!slugOrId) return;
         setLoading(true);
         setPost(null);
+        setError(null);
 
-        fetch(`${API}/api/blog/posts/${slugOrId}`)
+        fetch(`${API}/api/blog/posts/${encodeURIComponent(slugOrId)}`)
             .then(r => r.json())
             .then(data => {
                 if (data.ok) setPost(data.post);

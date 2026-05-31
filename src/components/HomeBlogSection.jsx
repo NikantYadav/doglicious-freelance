@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { slugifyBlogIdentifier } from '../utils/blogSlug';
 
 const API = import.meta.env.VITE_API_URL || '';
 
@@ -59,7 +60,11 @@ export default function HomeBlogSection() {
             .finally(() => setLoading(false));
     }, []);
 
-    const go = (post) => navigate(`/blog/${post.slug}`);
+    const go = (post) => {
+        const slug = post.slug || slugifyBlogIdentifier(post.title);
+        if (!slug) return;
+        navigate(`/blog/${slug}`);
+    };
 
     return (
         <section id="blog" className="blog-sec" style={{ padding: '96px 0' }} ref={sectionRef}>

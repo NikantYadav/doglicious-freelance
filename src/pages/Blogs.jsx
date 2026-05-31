@@ -5,6 +5,7 @@ import SiteHeader from '../components/shared/SiteHeader';
 import SiteFooter from '../components/shared/SiteFooter';
 import { useSEO } from '../hooks/useSEO';
 import { useBlogPosts } from '../hooks/useBlogPosts';
+import { slugifyBlogIdentifier } from '../utils/blogSlug';
 
 // Map CMS categories → filter keys used in the UI
 const CATEGORY_MAP = {
@@ -65,7 +66,9 @@ export default function Blogs() {
         });
 
     const handleBlogClick = (post) => {
-        window.open(`/blog/${post.slug}`, '_blank', 'noopener,noreferrer');
+        const slug = post.slug || slugifyBlogIdentifier(post.title);
+        if (!slug) return;
+        window.open(`/blog/${slug}`, '_blank', 'noopener,noreferrer');
     };
 
     return (

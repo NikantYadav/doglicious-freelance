@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useCms } from '../CmsContext';
+import { slugifyBlogIdentifier } from '../../../utils/blogSlug';
 
 const STATUS_STYLES = {
     pending:  { bg: 'rgba(234,179,8,0.10)',  color: '#a16207' },
@@ -93,7 +94,7 @@ export default function CmsCommentsPanel({ showToast }) {
                             <div style={s.body}>{c.body}</div>
                             {c.blog_posts && (
                                 <div style={s.postRef}>
-                                    On: <a href={`/blog/${c.blog_posts.slug}`} target="_blank" rel="noreferrer" style={s.postLink}>{c.blog_posts.title}</a>
+                                    On: <a href={`/blog/${c.blog_posts.slug || slugifyBlogIdentifier(c.blog_posts.title)}`} target="_blank" rel="noreferrer" style={s.postLink}>{c.blog_posts.title}</a>
                                 </div>
                             )}
                             <div style={s.cardMeta}>{fmtDate(c.created_at)}</div>

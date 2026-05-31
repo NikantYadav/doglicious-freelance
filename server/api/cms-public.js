@@ -6,6 +6,16 @@
 
 import { supabase } from '../utils/supabase.js';
 
+function slugify(title) {
+    return String(title || '')
+        .toLowerCase()
+        .replace(/[^a-z0-9\s-]/g, '')
+        .trim()
+        .replace(/\s+/g, '-')
+        .replace(/-+/g, '-')
+        .slice(0, 80);
+}
+
 const SELECT_LIST = 'id, emoji, title, slug, excerpt, category, status, views, author, read_time, featured, tags, published_at, created_at';
 const SELECT_FULL = '*';
 
@@ -88,10 +98,30 @@ export async function getPublicPost(req, res) {
         : query.eq('slug', slug)
     ).maybeSingle();
 
-    if (error || !data) return res.status(404).json({ error: 'Post not found' });
+    if (!error && data) {
+        Promise.resolve(supabase.rpc('increment_post_views', { post_id: data.id })).catch(() => {});
+        return res.status(200).json({ ok: true, post: data });
+    }
+
+    const { data: fallbackPosts, error: fallbackError } = await supabase
+        .from('blog_posts')
+        .select(SELECT_FULL)
+        .eq('status', 'published');
+
+    if (fallbackError) {
+        console.error('[cms-public] post fallback error:', fallbackError);
+        return res.status(404).json({ error: 'Post not found' });
+    }
+
+    const normalized = slugify(slug);
+    const fallbackPost = (fallbackPosts || []).find(post =>
+        post.slug === slug || slugify(post.title) === normalized
+    );
+
+    if (!fallbackPost) return res.status(404).json({ error: 'Post not found' });
 
     // Atomic view increment via DB function — no race condition
-    supabase.rpc('increment_post_views', { post_id: data.id }).catch(() => {});
+    Promise.resolve(supabase.rpc('increment_post_views', { post_id: fallbackPost.id })).catch(() => {});
 
-    return res.status(200).json({ ok: true, post: data });
+    return res.status(200).json({ ok: true, post: fallbackPost });
 }

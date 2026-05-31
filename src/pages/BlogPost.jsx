@@ -4,6 +4,7 @@ import { useSEO } from '../hooks/useSEO';
 import SiteHeader from '../components/shared/SiteHeader';
 import SiteFooter from '../components/shared/SiteFooter';
 import { useBlogPost } from '../hooks/useBlogPosts';
+import { slugifyBlogIdentifier } from '../utils/blogSlug';
 import '../styles/Home.css';
 import '../styles/BlogPost.css';
 
@@ -27,11 +28,12 @@ export default function BlogPost() {
 
     const slug = LEGACY_SLUG_MAP[id] || id;
     const { post, loading, error } = useBlogPost(slug);
+    const canonicalSlug = post?.slug || slugifyBlogIdentifier(post?.title) || slug;
 
     useSEO({
         title: post ? `${post.title} | Doglicious` : 'Article | Doglicious',
         description: post ? post.excerpt : '',
-        canonical: `https://doglicious.in/blog/${id}`,
+        canonical: `https://doglicious.in/blog/${canonicalSlug}`,
     });
 
     React.useEffect(() => { window.scrollTo(0, 0); }, [id]);
