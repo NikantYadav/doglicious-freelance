@@ -6,7 +6,7 @@ import '../styles/Home.css';
 import { logoImg, RECIPES, GRAM_OPTS, GRAM_PRICES } from '../data/homeData';
 import { normalizePhone } from '../utils/phone';
 import { initiatePayU } from '../services/sampleBooking';
-import { getScrollLockDebugState, lockScroll, unlockScroll } from '../utils/scrollLock';
+import { getScrollLockDebugState } from '../utils/scrollLock';
 
 const HomeBlogSection = lazy(() => import('../components/HomeBlogSection'));
 const VetRxModal = lazy(() => import('../components/modals/VetRxModal'));
@@ -56,8 +56,8 @@ export default function Home() {
     canonical: 'https://doglicious.in/'
   });
 
-  const openModal = (id) => { setActiveModal(id); lockScroll(); };
-  const closeModal = () => { setActiveModal(null); unlockScroll(); };
+  const openModal = (id) => { setActiveModal(id); };
+  const closeModal = () => { setActiveModal(null); };
 
   useEffect(() => {
     const onScroll = () => setNavScrolled(window.scrollY > 20);
@@ -170,16 +170,6 @@ export default function Home() {
     document.addEventListener('keydown', onKey);
     return () => document.removeEventListener('keydown', onKey);
   }, []);
-
-  useEffect(() => {
-    return () => unlockScroll();
-  }, []);
-
-  useEffect(() => {
-    if (!mobileMenuOpen) return;
-    lockScroll();
-    return () => unlockScroll();
-  }, [mobileMenuOpen]);
 
   useEffect(() => {
     const els = document.querySelectorAll('.rv, .sg');

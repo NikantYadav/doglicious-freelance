@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { lockScroll, unlockScroll } from '../../utils/scrollLock';
 
 const SUPABASE_STORAGE = 'https://osftreewgvsuahncsbhx.supabase.co/storage/v1/object/public/doglicious-media';
 
@@ -238,12 +237,6 @@ export default function TestimonialsModal({ isOpen, onClose }) {
     return () => window.removeEventListener('keydown', h);
   }, [isOpen, prev, next, onClose]);
 
-  useEffect(() => {
-    if (!isOpen) return;
-    lockScroll();
-    return () => unlockScroll();
-  }, [isOpen]);
-
   if (!isOpen) return null;
 
   const t = TESTIMONIALS[active];
@@ -277,6 +270,7 @@ export default function TestimonialsModal({ isOpen, onClose }) {
           max-width: 640px;
           max-height: 92svh;
           overflow: hidden;
+          overscroll-behavior: contain;
           display: flex;
           flex-direction: column;
           box-shadow: 0 40px 100px rgba(0,0,0,.5);
