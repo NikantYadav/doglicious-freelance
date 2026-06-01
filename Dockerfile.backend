@@ -1,19 +1,25 @@
 # Backend Dockerfile
-FROM node:18-alpine
+FROM node:22-alpine
+
+# Alpine's own Chromium build (compiled for musl — works on Alpine unlike Google's binary)
+RUN apk add --no-cache \
+    chromium \
+    nss \
+    freetype \
+    harfbuzz \
+    ca-certificates \
+    ttf-freefont
+
+# Point Puppeteer at the system Chromium and skip downloading its own copy
+ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
+ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium-browser
 
 WORKDIR /app
 
-# Copy backend package files
 COPY server/package*.json ./
-
-# Install dependencies
 RUN npm ci --only=production
 
-# Copy backend source code
 COPY server/ ./
 
-# Expose port 5000
 EXPOSE 5000
-
-# Start the server
 CMD ["node", "index.js"]

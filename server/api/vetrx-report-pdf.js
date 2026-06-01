@@ -365,7 +365,10 @@ async function getBrowser() {
     }
     _browser = await puppeteer.launch({
         headless: true,
-        args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage'],
+        // Use system Chromium in Docker (set via PUPPETEER_EXECUTABLE_PATH env var).
+        // Falls back to Puppeteer's bundled Chrome in local dev where the env var is unset.
+        executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || undefined,
+        args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage', '--disable-gpu'],
     });
     return _browser;
 }
