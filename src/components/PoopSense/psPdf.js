@@ -1,743 +1,627 @@
-// PoopSense AI — PDF generator using Canvas API (no external deps)
-// Renders at 3x resolution for crisp, non-blurry output.
+// src/utils/generatePoopSenseReport.js
+// Generates single reports and progress history reports entirely client-side using pdfMake.
+import pdfMake from 'pdfmake/build/pdfmake';
+import pdfFonts from 'pdfmake/build/vfs_fonts';
 
-const SCALE = 3; // render at 3x, display at 1x → sharp on all screens
+// Initialize pdfMake fonts
+pdfMake.vfs = pdfFonts.pdfMake ? pdfFonts.pdfMake.vfs : pdfFonts.vfs;
 
-const BRAND = '#3A2700';
-const AMBER = '#C47808';
-const GREEN = '#195C30';
-const RED   = '#AD2218';
-const LIGHT = '#F9F5EF';
-const WHITE = '#FFFFFF';
-const GREY  = '#9C7D52';
+// ── Palette Configuration ─────────────────────────────────────────────
+const C = {
+  brand:        '#3A2700',
+  amber:        '#C47808',
+  green:        '#195C30',
+  red:          '#AD2218',
+  light:        '#F9F5EF', // Background tint for document
+  white:        '#FFFFFF',
+  grey:         '#9C7D52',
+  border:       '#3a27001a',
+  borderLight:  '#3a270012',
+  
+  // Risk Config Maps
+  bgG:          '#E7F4EC',
+  bgW:          '#FFF6E8',
+  bgC:          '#FCECEA',
+  
+  // Specific Callouts
+  bgSimple:     '#E8F4FD',
+  borderSimple: '#3498db4d',
+  textSimpleT:  '#1A5276',
+  textSimpleB:  '#1A3550',
+};
 
-const RISK_COLOR = { g: GREEN, w: AMBER, c: RED };
-const RISK_LABEL = { g: 'Low Risk ✓', w: 'Monitor ⚠', c: 'Urgent ✕' };
-const RISK_BG    = { g: '#E7F4EC', w: '#FFF6E8', c: '#FCECEA' };
+const RISK_MAP = {
+  g: { color: C.green, label: 'Low Risk ✓', bg: C.bgG },
+  w: { color: C.amber, label: 'Monitor ⚠', bg: C.bgW },
+  c: { color: C.red,   label: 'Urgent ✕',  bg: C.bgC }
+};
 
-// ── Helpers ───────────────────────────────────────────────────────────
+// ── Shared Layout Helpers ─────────────────────────────────────────────
 
-function roundRect(ctx, x, y, w, h, r, fill, stroke) {
-  if (w <= 0 || h <= 0) return;
-  r = Math.min(r, w / 2, h / 2);
-  ctx.beginPath();
-  ctx.moveTo(x + r, y);
-  ctx.lineTo(x + w - r, y);
-  ctx.quadraticCurveTo(x + w, y, x + w, y + r);
-  ctx.lineTo(x + w, y + h - r);
-  ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
-  ctx.lineTo(x + r, y + h);
-  ctx.quadraticCurveTo(x, y + h, x, y + h - r);
-  ctx.lineTo(x, y + r);
-  ctx.quadraticCurveTo(x, y, x + r, y);
-  ctx.closePath();
-  if (fill)   { ctx.fillStyle = fill;     ctx.fill(); }
-  if (stroke) { ctx.strokeStyle = stroke; ctx.lineWidth = 1; ctx.stroke(); }
+function sectionHeader(title) {
+  return {
+    stack: [
+      { text: title.toUpperCase(), style: 'sectionTitle' },
+      { 
+        canvas: [{ type: 'line', x1: 0, y1: 0, x2: 515, y2: 0, lineWidth: 1, lineColor: C.brand, strokeOpacity: 0.15 }], 
+        margin: [0, 4, 0, 10] 
+      }
+    ],
+    unbreakable: true
+  };
 }
 
-// Wrap text and return new y position
-function wrapText(ctx, text, x, y, maxWidth, lineHeight) {
-  if (!text) return y;
-  const words = String(text).split(' ');
-  let line = '';
-  for (const word of words) {
-    const test = line ? `${line} ${word}` : word;
-    if (ctx.measureText(test).width > maxWidth && line) {
-      ctx.fillText(line, x, y);
-      line = word;
-      y += lineHeight;
-    } else {
-      line = test;
-    }
-  }
-  if (line) { ctx.fillText(line, x, y); y += lineHeight; }
-  return y;
+function coloredBox(title, contentBlock, bgColor, borderColor, titleColor) {
+  return {
+    table: {
+      widths: ['*'],
+      body: [[
+        {
+          stack: [
+            { text: title.toUpperCase(), color: titleColor, bold: true, fontSize: 8.5, margin: [0, 0, 0, 6] },
+            contentBlock
+          ]
+        }
+      ]]
+    },
+    layout: {
+      fillColor: bgColor,
+      hLineWidth: () => 1, vLineWidth: () => 1,
+      hLineColor: () => borderColor, vLineColor: () => borderColor,
+      paddingLeft: () => 12, paddingRight: () => 12, paddingTop: () => 12, paddingBottom: () => 12
+    },
+    margin: [0, 0, 0, 12],
+    unbreakable: true
+  };
 }
 
-// Measure how many lines text will take
-function measureLines(ctx, text, maxWidth) {
-  if (!text) return 0;
-  const words = String(text).split(' ');
-  let line = '', lines = 0;
-  for (const word of words) {
-    const test = line ? `${line} ${word}` : word;
-    if (ctx.measureText(test).width > maxWidth && line) {
-      lines++;
-      line = word;
-    } else {
-      line = test;
-    }
-  }
-  if (line) lines++;
-  return lines;
-}
-
-// ── Main PDF builder ──────────────────────────────────────────────────
-
-export async function buildPoopSensePDF(entry, dog) {
-  const W   = 595;
-  const PAD = 28;
-  const INNER = W - PAD * 2;
-  const rk = entry.risk || 'w';
-
-  // ── Pre-load image so we know its dimensions ──────────────────────
-  let loadedImg = null;
-  if (entry.imgB64) {
-    await new Promise(resolve => {
-      const img = new Image();
-      img.onload = () => { loadedImg = img; resolve(); };
-      img.onerror = resolve;
-      img.src = `data:image/jpeg;base64,${entry.imgB64}`;
-    });
-  }
-
-  // ── Measure pass — calculate total height needed ──────────────────
-  // Use an offscreen canvas just for measurement
-  const measure = document.createElement('canvas');
-  measure.width = W; measure.height = 10;
-  const mCtx = measure.getContext('2d');
-
-  function calcHeight() {
-    let h = 88; // header
-
-    // Dog info
-    if (dog) h += 56;
-
-    // Score band
-    h += 76;
-
-    // Characteristics grid — 2 rows of cells, each cell needs to fit text
-    // Calculate max cell height needed
-    const cw = (INNER - 8) / 2;
-    const cellValues = [
-      entry.color || 'N/A',
-      entry.consistency || 'N/A',
-      `Type ${entry.bristolScore || '?'}/7`,
-      entry.stoolType || 'N/A',
-    ];
-    let maxCellH = 42;
-    mCtx.font = 'bold 10px Arial, sans-serif';
-    cellValues.forEach(v => {
-      const lines = measureLines(mCtx, v, cw - 20);
-      const needed = 18 + lines * 13 + 6;
-      if (needed > maxCellH) maxCellH = needed;
-    });
-    h += 2 * (maxCellH + 6) + 12;
-
-    // Score params
-    if (entry.params) h += 122;
-
-    // Clinical summary
-    if (entry.sum) {
-      mCtx.font = '10px Arial, sans-serif';
-      const lines = measureLines(mCtx, entry.sum, INNER - 20);
-      h += Math.max(50, lines * 14 + 30) + 10;
-    }
-
-    // Simple terms
-    if (entry.simpleEn) {
-      mCtx.font = '10px Arial, sans-serif';
-      const lines = measureLines(mCtx, entry.simpleEn, INNER - 20);
-      h += Math.max(54, lines * 14 + 34) + 10;
-    }
-
-    // Recommendations
-    if (entry.recommendations?.length) {
-      mCtx.font = '9px Arial, sans-serif';
-      let recH = 28;
-      entry.recommendations.forEach(rec => {
-        const lines = Math.max(1, measureLines(mCtx, rec, INNER - 50));
-        recH += lines * 14 + 6;
-      });
-      h += recH + 10;
-    }
-
-    // Possible conditions
-    if (entry.possibleConditions?.length) {
-      mCtx.font = '10px Arial, sans-serif';
-      let condH = 28;
-      entry.possibleConditions.forEach(c => {
-        const lines = Math.max(1, measureLines(mCtx, c, INNER - 40));
-        condH += lines * 14 + 6;
-      });
-      h += condH + 10;
-    }
-
-    // Image
-    if (loadedImg) {
-      const imgH = 160;
-      h += imgH + 40;
-    }
-
-    // Footer
-    h += 40;
-
-    return h + 40; // extra padding
-  }
-
-  const totalH = calcHeight();
-
-  // ── Draw pass ─────────────────────────────────────────────────────
-  const canvas = document.createElement('canvas');
-  canvas.width  = W * SCALE;
-  canvas.height = totalH * SCALE;
-  const ctx = canvas.getContext('2d');
-  ctx.scale(SCALE, SCALE); // all drawing coords stay in logical pixels
-
-  ctx.fillStyle = LIGHT;
-  ctx.fillRect(0, 0, W, totalH);
-
-  let y = 0;
-
-  // ── HEADER ───────────────────────────────────────────────────────
-  ctx.fillStyle = BRAND;
-  ctx.fillRect(0, 0, W, 72);
-
-  ctx.fillStyle = WHITE;
-  ctx.font = 'bold 18px Arial, sans-serif';
-  ctx.fillText('PoopSense AI', PAD, 28);
-
-  ctx.font = '10px Arial, sans-serif';
-  ctx.fillStyle = 'rgba(255,255,255,0.65)';
-  ctx.fillText('by Doglicious.in  ·  AI Stool Health Analysis', PAD, 44);
-  ctx.fillText(`${entry.date}  ·  ${entry.time}`, PAD, 60);
-
-  ctx.font = '9px monospace';
-  ctx.fillStyle = 'rgba(255,255,255,0.55)';
-  ctx.textAlign = 'right';
-  ctx.fillText(`#${entry.id}`, W - PAD, 28);
-  ctx.textAlign = 'left';
-
-  y = 88;
-
-  // ── DOG INFO ─────────────────────────────────────────────────────
-  if (dog) {
-    roundRect(ctx, PAD, y, INNER, 44, 8, WHITE, 'rgba(58,39,0,0.1)');
-    ctx.font = 'bold 13px Arial, sans-serif';
-    ctx.fillStyle = BRAND;
-    ctx.fillText(`${dog.name}`, PAD + 12, y + 17);
-    ctx.font = '10px Arial, sans-serif';
-    ctx.fillStyle = GREY;
-    ctx.fillText(`${dog.breed || ''}  ·  ${dog.age || '?'}yr  ·  ${dog.wt || '?'}kg  ·  ${dog.diet || ''}`, PAD + 12, y + 33);
-    y += 56;
-  }
-
-  // ── SCORE BAND ───────────────────────────────────────────────────
-  roundRect(ctx, PAD, y, INNER, 64, 10, RISK_BG[rk], RISK_COLOR[rk] + '44');
-
-  ctx.beginPath();
-  ctx.arc(PAD + 40, y + 32, 26, 0, Math.PI * 2);
-  ctx.fillStyle = RISK_COLOR[rk];
-  ctx.fill();
-  ctx.font = 'bold 18px Arial, sans-serif';
-  ctx.fillStyle = WHITE;
-  ctx.textAlign = 'center';
-  ctx.fillText(String(entry.score ?? 0), PAD + 40, y + 38);
-  ctx.textAlign = 'left';
-
-  ctx.font = 'bold 14px Arial, sans-serif';
-  ctx.fillStyle = RISK_COLOR[rk];
-  ctx.fillText(RISK_LABEL[rk], PAD + 76, y + 24);
-
-  ctx.font = '10px Arial, sans-serif';
-  ctx.fillStyle = BRAND;
-  ctx.fillText(entry.stoolType || '', PAD + 76, y + 40);
-
-  ctx.font = '9px Arial, sans-serif';
-  ctx.fillStyle = GREY;
-  ctx.fillText(`Bristol Scale: Type ${entry.bristolScore || '?'}/7`, PAD + 76, y + 54);
-
-  y += 76;
-
-  // ── CHARACTERISTICS GRID ─────────────────────────────────────────
-  const cw = (INNER - 8) / 2;
-  const cells = [
-    { l: 'COLOUR',      v: entry.color       || 'N/A' },
-    { l: 'CONSISTENCY', v: entry.consistency || 'N/A' },
-    { l: 'BRISTOL',     v: `Type ${entry.bristolScore || '?'}/7` },
-    { l: 'TYPE',        v: entry.stoolType   || 'N/A' },
-  ];
-
-  // Calculate cell height based on longest text
-  ctx.font = 'bold 10px Arial, sans-serif';
-  let maxCellH = 42;
-  cells.forEach(({ v }) => {
-    const lines = measureLines(ctx, v, cw - 20);
-    const needed = 18 + lines * 13 + 8;
-    if (needed > maxCellH) maxCellH = needed;
-  });
-
-  cells.forEach(({ l, v }, i) => {
-    const cx = PAD + (i % 2) * (cw + 8);
-    const cy = y + Math.floor(i / 2) * (maxCellH + 6);
-    roundRect(ctx, cx, cy, cw, maxCellH, 7, WHITE, 'rgba(58,39,0,0.08)');
-    ctx.font = '8px Arial, sans-serif';
-    ctx.fillStyle = GREY;
-    ctx.fillText(l, cx + 10, cy + 13);
-    ctx.font = 'bold 10px Arial, sans-serif';
-    ctx.fillStyle = BRAND;
-    wrapText(ctx, v, cx + 10, cy + 27, cw - 20, 13);
-  });
-  y += 2 * (maxCellH + 6) + 12;
-
-  // ── SCORE PARAMS ─────────────────────────────────────────────────
-  if (entry.params) {
-    roundRect(ctx, PAD, y, INNER, 110, 8, WHITE, 'rgba(58,39,0,0.08)');
-    ctx.font = 'bold 9px Arial, sans-serif';
-    ctx.fillStyle = GREY;
-    ctx.fillText('SCORE BREAKDOWN', PAD + 10, y + 16);
-
-    const params = [
-      { k: 'color',       l: 'Colour',       max: 20 },
-      { k: 'consistency', l: 'Consistency',  max: 25 },
-      { k: 'shape',       l: 'Shape',        max: 15 },
-      { k: 'contents',    l: 'Contents',     max: 20 },
-      { k: 'riskPattern', l: 'Risk Pattern', max: 20 },
-    ];
-    const barX = PAD + 90;
-    const barW = INNER - 90 - 36;
-    params.forEach(({ k, l, max }, i) => {
-      const py = y + 28 + i * 16;
-      const val = entry.params[k] ?? 0;
-      const pct = val / max;
-      ctx.font = '9px Arial, sans-serif';
-      ctx.fillStyle = BRAND;
-      ctx.fillText(l, PAD + 10, py + 8);
-      roundRect(ctx, barX, py, barW, 8, 4, '#EAE0D0');
-      roundRect(ctx, barX, py, Math.max(4, barW * pct), 8, 4, RISK_COLOR[rk]);
-      ctx.font = '8px Arial, sans-serif';
-      ctx.fillStyle = GREY;
-      ctx.textAlign = 'right';
-      ctx.fillText(`${val}/${max}`, PAD + INNER - 4, py + 8);
-      ctx.textAlign = 'left';
-    });
-    y += 122;
-  }
-
-  // ── CLINICAL SUMMARY ─────────────────────────────────────────────
-  if (entry.sum) {
-    ctx.font = '10px Arial, sans-serif';
-    const lines = measureLines(ctx, entry.sum, INNER - 20);
-    const boxH = Math.max(50, lines * 14 + 30);
-    roundRect(ctx, PAD, y, INNER, boxH, 6, '#FFF6E8', AMBER + '44');
-    ctx.font = 'bold 9px Arial, sans-serif';
-    ctx.fillStyle = BRAND;
-    ctx.fillText('CLINICAL SUMMARY', PAD + 10, y + 14);
-    ctx.font = '10px Arial, sans-serif';
-    ctx.fillStyle = '#5C3F18';
-    wrapText(ctx, entry.sum, PAD + 10, y + 28, INNER - 20, 14);
-    y += boxH + 10;
-  }
-
-  // ── SIMPLE TERMS ─────────────────────────────────────────────────
-  if (entry.simpleEn) {
-    ctx.font = '10px Arial, sans-serif';
-    const lines = measureLines(ctx, entry.simpleEn, INNER - 20);
-    const boxH = Math.max(54, lines * 14 + 34);
-    roundRect(ctx, PAD, y, INNER, boxH, 6, '#E8F4FD', 'rgba(52,152,219,0.3)');
-    ctx.font = 'bold 9px Arial, sans-serif';
-    ctx.fillStyle = '#1A5276';
-    ctx.fillText('IN SIMPLE TERMS', PAD + 10, y + 14);
-    ctx.font = '10px Arial, sans-serif';
-    ctx.fillStyle = '#1A3550';
-    wrapText(ctx, entry.simpleEn, PAD + 10, y + 28, INNER - 20, 14);
-    y += boxH + 10;
-  }
-
-  // ── RECOMMENDATIONS ──────────────────────────────────────────────
-  if (entry.recommendations?.length) {
-    // Measure total height first
-    ctx.font = '9px Arial, sans-serif';
-    let recH = 28;
-    const recLineData = entry.recommendations.map(rec => {
-      const lines = Math.max(1, measureLines(ctx, rec, INNER - 50));
-      const h = lines * 14 + 6;
-      recH += h;
-      return { rec, lines, h };
-    });
-
-    roundRect(ctx, PAD, y, INNER, recH, 6, '#EEF6F1', 'rgba(25,92,48,0.2)');
-    ctx.font = 'bold 9px Arial, sans-serif';
-    ctx.fillStyle = GREEN;
-    ctx.fillText('AI ACTION PLAN', PAD + 10, y + 14);
-
-    let ry = y + 26;
-    recLineData.forEach(({ rec, lines }, i) => {
-      // Number circle
-      ctx.beginPath();
-      ctx.arc(PAD + 18, ry + 7, 7, 0, Math.PI * 2);
-      ctx.fillStyle = GREEN;
-      ctx.fill();
-      ctx.font = 'bold 8px Arial, sans-serif';
-      ctx.fillStyle = WHITE;
-      ctx.textAlign = 'center';
-      ctx.fillText(String(i + 1), PAD + 18, ry + 10);
-      ctx.textAlign = 'left';
-      ctx.font = '9px Arial, sans-serif';
-      ctx.fillStyle = '#5C3F18';
-      wrapText(ctx, rec, PAD + 32, ry + 10, INNER - 50, 14);
-      ry += lines * 14 + 6;
-    });
-    y += recH + 10;
-  }
-
-  // ── POSSIBLE CONDITIONS ──────────────────────────────────────────
-  if (entry.possibleConditions?.length) {
-    ctx.font = '10px Arial, sans-serif';
-    let condH = 28;
-    const condLineData = entry.possibleConditions.map(c => {
-      const lines = Math.max(1, measureLines(ctx, c, INNER - 40));
-      const h = lines * 14 + 6;
-      condH += h;
-      return { c, lines, h };
-    });
-
-    roundRect(ctx, PAD, y, INNER, condH, 6, WHITE, 'rgba(58,39,0,0.08)');
-    ctx.font = 'bold 9px Arial, sans-serif';
-    ctx.fillStyle = GREY;
-    ctx.fillText('POSSIBLE CONDITIONS (NON-DIAGNOSTIC)', PAD + 10, y + 14);
-
-    let cy2 = y + 26;
-    condLineData.forEach(({ c, lines }) => {
-      // Bullet dot
-      ctx.beginPath();
-      ctx.arc(PAD + 14, cy2 + 6, 3, 0, Math.PI * 2);
-      ctx.fillStyle = AMBER;
-      ctx.fill();
-      ctx.font = '10px Arial, sans-serif';
-      ctx.fillStyle = BRAND;
-      wrapText(ctx, c, PAD + 24, cy2 + 10, INNER - 40, 14);
-      cy2 += lines * 14 + 6;
-    });
-    y += condH + 10;
-  }
-
-  // ── SCAN IMAGE ───────────────────────────────────────────────────
-  if (loadedImg) {
-    const imgH = 160;
-    const aspect = loadedImg.width / loadedImg.height;
-    const imgW = Math.min(INNER - 20, aspect * imgH);
-    roundRect(ctx, PAD, y, INNER, imgH + 30, 8, WHITE, 'rgba(58,39,0,0.08)');
-    ctx.font = 'bold 9px Arial, sans-serif';
-    ctx.fillStyle = GREY;
-    ctx.fillText('SCAN PHOTO', PAD + 10, y + 14);
-    ctx.drawImage(loadedImg, PAD + (INNER - imgW) / 2, y + 20, imgW, imgH);
-    y += imgH + 42;
-  }
-
-  // ── FOOTER ───────────────────────────────────────────────────────
-  y += 8;
-  ctx.fillStyle = 'rgba(58,39,0,0.12)';
-  ctx.fillRect(PAD, y, INNER, 1);
-  y += 12;
-  ctx.font = '8px Arial, sans-serif';
-  ctx.fillStyle = GREY;
-  ctx.fillText('PoopSense AI by Doglicious.in  ·  AI analysis only — not a substitute for veterinary diagnosis', PAD, y + 8);
-  ctx.textAlign = 'right';
-  ctx.fillText(`Report ID: ${entry.id}`, W - PAD, y + 8);
-  ctx.textAlign = 'left';
-  y += 24;
-
-  // ── TRIM to actual content ────────────────────────────────────────
-  const finalH = Math.min(y + 10, totalH);
-  const final = document.createElement('canvas');
-  final.width  = W * SCALE;
-  final.height = finalH * SCALE;
-  final.getContext('2d').drawImage(canvas, 0, 0);
-  // Store logical dimensions for print window
-  final._logicalWidth  = W;
-  final._logicalHeight = finalH;
-  return final;
-}
-
-export async function downloadPoopSensePDF(entry, dog) {
-  const canvas = await buildPoopSensePDF(entry, dog);
-  const dogName = dog?.name || 'Dog';
-  const filename = `PoopSense_${dogName}_${entry.date}_${entry.id}.pdf`;
-  const imgData = canvas.toDataURL('image/png', 1.0);
-  const logicalW = canvas._logicalWidth || 595;
-  const logicalH = canvas._logicalHeight || canvas.height / SCALE;
-
-  const win = window.open('', '_blank');
-  if (!win) {
-    const a = document.createElement('a');
-    a.href = imgData;
-    a.download = filename.replace('.pdf', '.png');
-    a.click();
-    return;
-  }
-
-  win.document.write(`<!DOCTYPE html>
-<html>
-<head>
-  <title>${filename}</title>
-  <style>
-    * { margin:0; padding:0; box-sizing:border-box; }
-    body { background:#fff; }
-    img { display:block; width:${logicalW}px; height:${logicalH}px; max-width:100%; margin:0 auto; image-rendering:crisp-edges; }
-    @media print {
-      body { margin:0; }
-      img { width:${logicalW}px; height:${logicalH}px; max-width:100%; }
-      @page { margin:0; size:A4; }
-    }
-  </style>
-</head>
-<body>
-  <img src="${imgData}" width="${logicalW}" height="${logicalH}" />
-  <script>window.onload=function(){setTimeout(function(){window.print();},400);};</script>
-</body>
-</html>`);
-  win.document.close();
-}
-
-
-// ─── PROGRESS / HISTORY REPORT PDF ───────────────────────────────────────────
-
-function filterByDays(history, days) {
-  const cutoff = new Date();
-  cutoff.setDate(cutoff.getDate() - days);
-  const cutStr = cutoff.toISOString().slice(0, 10);
-  return [...history]
-    .filter(e => e.date >= cutStr)
-    .sort((a, b) => (b.ts || 0) - (a.ts || 0));
+function dogInfoCard(dog) {
+  if (!dog) return null;
+  return {
+    table: {
+      widths: ['*'],
+      body: [[
+        {
+          stack: [
+            { text: dog.name, fontSize: 13, bold: true, color: C.brand },
+            { text: `${dog.breed || 'Unknown Breed'}  ·  ${dog.age || '?'}yr  ·  ${dog.wt || '?'}kg  ·  ${dog.diet || 'N/A'}`, fontSize: 10, color: C.grey, margin: [0, 2, 0, 0] }
+          ]
+        }
+      ]]
+    },
+    layout: {
+      fillColor: C.white,
+      hLineWidth: () => 1, vLineWidth: () => 1,
+      hLineColor: () => C.border, vLineColor: () => C.border,
+      paddingLeft: () => 12, paddingRight: () => 12, paddingTop: () => 10, paddingBottom: () => 10
+    },
+    margin: [0, 0, 0, 16]
+  };
 }
 
 function fmtDateShortLocal(dateStr) {
   if (!dateStr) return '';
-  const [y, m, d] = dateStr.split('-');
+  const parts = dateStr.split('-');
+  if (parts.length !== 3) return dateStr;
+  const [y, m, d] = parts;
   const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-  return `${d} ${months[parseInt(m,10)-1]} ${y}`;
+  return `${parseInt(d, 10)} ${months[parseInt(m, 10) - 1]} ${y}`;
 }
 
-export async function buildProgressPDF(history, dog, days) {
-  const entries = filterByDays(history, days);
-  const W = 595;
-  const PAD = 28;
-  const INNER = W - PAD * 2;
+// ── Report Type 1: Single Stool Analysis Report ───────────────────────
 
-  // Estimate height dynamically
-  const rowH = 52;
-  const estimatedH = 260 + (entries.length > 0 ? 120 + entries.length * (rowH + 5) : 80) + 60;
+export async function downloadPoopSensePDF(entry, dog) {
+  const rk = entry.risk || 'w';
+  const risk = RISK_MAP[rk] || RISK_MAP.w;
+  const content = [];
 
-  const canvas = document.createElement('canvas');
-  canvas.width = W * SCALE;
-  canvas.height = Math.max(800, estimatedH) * SCALE;
-  const ctx = canvas.getContext('2d');
-  ctx.scale(SCALE, SCALE);
+  // 1. Full-bleed Header Banner (Fixed Edge Clearance)
+  content.push({
+    margin: [-40, -40, -40, 20],
+    table: {
+      widths: ['*'],
+      body: [[
+        {
+          fillColor: C.brand,
+          border: [false, false, false, false],
+          columns: [
+            {
+              stack: [
+                { text: 'PoopSense AI', color: C.white, fontSize: 18, bold: true },
+                { text: 'by Doglicious.in  ·  AI Stool Health Analysis', color: '#D9D9D9', fontSize: 10, margin: [0, 4, 0, 2] },
+                { text: `${entry.date || ''}  ·  ${entry.time || ''}`, color: '#D9D9D9', fontSize: 10 }
+              ],
+              margin: [40, 25, 0, 20] 
+            },
+            {
+              text: `#${entry.id || '0000'}`,
+              color: '#ffffff73',
+              font: 'Roboto',
+              fontSize: 9.5,
+              alignment: 'right',
+              margin: [0, 28, 40, 0]
+            }
+          ]
+        }
+      ]]
+    },
+    layout: 'noBorders'
+  });
 
-  ctx.fillStyle = LIGHT;
-  ctx.fillRect(0, 0, W, Math.max(800, estimatedH));
+  // 2. Dog Information Card
+  if (dog) content.push(dogInfoCard(dog));
 
-  let y = 0;
+  // 3. Score Summary Band Card
+  // 3. Score Summary Band Card
+  content.push({
+    table: {
+      widths: ['auto', '*'],
+      body: [[
+        {
+          table: {
+            widths: [48],
+            body: [[{
+              text: String(entry.score ?? 0),
+              color: risk.color, bold: true, fontSize: 16,
+              alignment: 'center', margin: [0, 10, 0, 10]
+            }]]
+          },
+          layout: {
+            fillColor: risk.color,
+            hLineWidth: () => 0, vLineWidth: () => 0,
+            paddingLeft: () => 0, paddingRight: () => 0, paddingTop: () => 0, paddingBottom: () => 0
+          }
+        },
+        {
+          stack: [
+            { text: risk.label, color: risk.color, bold: true, fontSize: 14 },
+            { text: entry.stoolType || 'Stool Analysis', fontSize: 10, color: C.brand, margin: [0, 2, 0, 2] },
+            { text: `Bristol Scale: Type ${entry.bristolScore || '?'}/7`, fontSize: 9, color: C.grey }
+          ],
+          margin: [12, 2, 0, 0]
+        }
+      ]]
+    },
+    layout: {
+      fillColor: risk.bg,
+      hLineWidth: () => 1, vLineWidth: () => 1,
+      hLineColor: () => `${risk.color}33`, vLineColor: () => `${risk.color}33`,
+      paddingLeft: () => 16, paddingRight: () => 16, paddingTop: () => 12, paddingBottom: () => 12
+    },
+    margin: [0, 0, 0, 16],
+    unbreakable: true
+  });
 
-  // ── HEADER ───────────────────────────────────────────────────────
-  ctx.fillStyle = BRAND;
-  ctx.fillRect(0, 0, W, 72);
+  // 4. Characteristics Grid Layout
+  const cellData = [
+    { label: 'COLOUR', val: entry.color || 'N/A' },
+    { label: 'CONSISTENCY', val: entry.consistency || 'N/A' },
+    { label: 'BRISTOL', val: `Type ${entry.bristolScore || '?'}/7` },
+    { label: 'TYPE', val: entry.stoolType || 'N/A' }
+  ];
 
-  ctx.fillStyle = WHITE;
-  ctx.font = 'bold 18px Arial, sans-serif';
-  ctx.fillText('PoopSense AI', PAD, 28);
-  ctx.font = '10px Arial, sans-serif';
-  ctx.fillStyle = 'rgba(255,255,255,0.65)';
-  ctx.fillText(`${days}-Day Progress Report  ·  by Doglicious.in`, PAD, 44);
+  const gridBody = [
+    [
+      { stack: [{ text: cellData[0].label, style: 'gridLabel' }, { text: cellData[0].val, style: 'gridValue' }], style: 'gridCell' },
+      { stack: [{ text: cellData[1].label, style: 'gridLabel' }, { text: cellData[1].val, style: 'gridValue' }], style: 'gridCell' }
+    ],
+    [
+      { stack: [{ text: cellData[2].label, style: 'gridLabel' }, { text: cellData[2].val, style: 'gridValue' }], style: 'gridCell' },
+      { stack: [{ text: cellData[3].label, style: 'gridLabel' }, { text: cellData[3].val, style: 'gridValue' }], style: 'gridCell' }
+    ]
+  ];
 
-  const now = new Date();
-  ctx.font = '9px Arial, sans-serif';
-  ctx.fillStyle = 'rgba(255,255,255,0.55)';
-  ctx.fillText(`Generated: ${fmtDateShortLocal(now.toISOString().slice(0,10))}`, PAD, 60);
+  content.push({
+    table: {
+      widths: ['*', '*'],
+      body: gridBody
+    },
+    layout: {
+      fillColor: () => C.white,
+      hLineWidth: () => 1, vLineWidth: () => 1,
+      hLineColor: () => C.borderLight, vLineColor: () => C.borderLight,
+      paddingLeft: () => 12, paddingRight: () => 12, paddingTop: () => 10, paddingBottom: () => 10
+    },
+    margin: [0, 0, 0, 16],
+    unbreakable: true
+  });
 
-  ctx.textAlign = 'right';
-  ctx.font = '9px monospace';
-  ctx.fillStyle = 'rgba(255,255,255,0.45)';
-  ctx.fillText(`${entries.length} scan${entries.length !== 1 ? 's' : ''}`, W - PAD, 44);
-  ctx.textAlign = 'left';
-
-  y = 88;
-
-  // ── DOG INFO ─────────────────────────────────────────────────────
-  if (dog) {
-    roundRect(ctx, PAD, y, INNER, 44, 8, WHITE, 'rgba(58,39,0,0.1)');
-    ctx.font = 'bold 13px Arial, sans-serif';
-    ctx.fillStyle = BRAND;
-    ctx.fillText(dog.name, PAD + 12, y + 17);
-    ctx.font = '10px Arial, sans-serif';
-    ctx.fillStyle = GREY;
-    ctx.fillText(`${dog.breed || ''}  ·  ${dog.age || '?'}yr  ·  ${dog.wt || '?'}kg`, PAD + 12, y + 33);
-    y += 56;
-  }
-
-  // ── SUMMARY STATS ────────────────────────────────────────────────
-  if (entries.length === 0) {
-    roundRect(ctx, PAD, y, INNER, 60, 8, WHITE, 'rgba(58,39,0,0.08)');
-    ctx.font = 'bold 13px Arial, sans-serif';
-    ctx.fillStyle = GREY;
-    ctx.textAlign = 'center';
-    ctx.fillText(`No scans in the last ${days} days`, W / 2, y + 36);
-    ctx.textAlign = 'left';
-    y += 72;
-  } else {
-    const avg  = Math.round(entries.reduce((s, e) => s + (e.score || 0), 0) / entries.length);
-    const good = entries.filter(e => e.score >= 75).length;
-    const warn = entries.filter(e => e.score >= 50 && e.score < 75).length;
-    const urg  = entries.filter(e => e.score < 50).length;
-
-    const statCells = [
-      { label: 'Total Scans', value: String(entries.length), color: BRAND },
-      { label: 'Avg Score',   value: String(avg),            color: avg >= 75 ? GREEN : avg >= 50 ? AMBER : RED },
-      { label: 'Healthy',     value: String(good),           color: GREEN },
-      { label: 'Monitor',     value: String(warn),           color: AMBER },
-      { label: 'Urgent',      value: String(urg),            color: RED },
+  // 5. Score Parameters Breakdown Section
+  if (entry.params) {
+    const paramsConfig = [
+      { key: 'color', label: 'Colour', max: 20 },
+      { key: 'consistency', label: 'Consistency', max: 25 },
+      { key: 'shape', label: 'Shape', max: 15 },
+      { key: 'contents', label: 'Contents', max: 20 },
+      { key: 'riskPattern', label: 'Risk Pattern', max: 20 }
     ];
-    const scw = (INNER - 16) / statCells.length;
-    statCells.forEach(({ label, value, color }, i) => {
-      const cx = PAD + i * (scw + 4);
-      roundRect(ctx, cx, y, scw, 52, 7, WHITE, 'rgba(58,39,0,0.08)');
-      ctx.font = 'bold 18px Arial, sans-serif';
-      ctx.fillStyle = color;
-      ctx.textAlign = 'center';
-      ctx.fillText(value, cx + scw / 2, y + 28);
-      ctx.font = '8px Arial, sans-serif';
-      ctx.fillStyle = GREY;
-      ctx.fillText(label, cx + scw / 2, y + 42);
-      ctx.textAlign = 'left';
-    });
-    y += 64;
 
-    // ── SCORE BAR CHART ─────────────────────────────────────────────
-    roundRect(ctx, PAD, y, INNER, 90, 8, WHITE, 'rgba(58,39,0,0.08)');
-    ctx.font = 'bold 9px Arial, sans-serif';
-    ctx.fillStyle = GREY;
-    ctx.fillText('SCORE TREND', PAD + 10, y + 14);
+    const targetWidth = 360; 
+    const breakdownStack = [{ text: 'SCORE BREAKDOWN', style: 'gridLabel', margin: [0, 0, 0, 12] }];
 
-    const chartEntries = [...entries].reverse().slice(-60);
-    const barW = Math.max(3, (INNER - 20) / chartEntries.length - 1);
-    const chartH = 60;
-    const chartY = y + 22;
-
-    chartEntries.forEach((e, i) => {
-      const h = Math.max(3, ((e.score || 0) / 100) * chartH);
-      const bx = PAD + 10 + i * ((INNER - 20) / chartEntries.length);
-      const by = chartY + chartH - h;
-      ctx.fillStyle = e.risk === 'g' ? GREEN : e.risk === 'w' ? AMBER : RED;
-      ctx.beginPath();
-      ctx.rect(bx, by, barW, h);
-      ctx.fill();
+    paramsConfig.forEach(p => {
+      const value = entry.params[p.key] ?? 0;
+      const progressRatio = Math.min(1, value / p.max);
+      breakdownStack.push({
+        margin: [0, 0, 0, 8],
+        columns: [
+          { text: p.label, fontSize: 9.5, color: C.brand, width: 85 },
+          {
+            width: targetWidth,
+            canvas: [
+              { type: 'rect', x: 0, y: 2, w: targetWidth, h: 7, r: 3.5, color: '#EAE0D0' },
+              { type: 'rect', x: 0, y: 2, w: Math.max(5, targetWidth * progressRatio), h: 7, r: 3.5, color: risk.color }
+            ]
+          },
+          { text: `${value}/${p.max}`, fontSize: 9, color: C.grey, alignment: 'right', width: '*' }
+        ]
+      });
     });
 
-    ctx.fillStyle = 'rgba(58,39,0,0.12)';
-    ctx.fillRect(PAD + 10, chartY + chartH, INNER - 20, 1);
-    y += 102;
+    content.push({
+      table: { widths: ['*'], body: [[{ stack: breakdownStack }]] },
+      layout: {
+        fillColor: C.white,
+        hLineWidth: () => 1, vLineWidth: () => 1,
+        hLineColor: () => C.borderLight, vLineColor: () => C.borderLight,
+        paddingLeft: () => 12, paddingRight: () => 12, paddingTop: () => 12, paddingBottom: () => 10
+      },
+      margin: [0, 0, 0, 16],
+      unbreakable: true
+    });
   }
 
-  // ── SCAN LIST ────────────────────────────────────────────────────
-  if (entries.length > 0) {
-    ctx.font = 'bold 9px Arial, sans-serif';
-    ctx.fillStyle = GREY;
-    ctx.fillText('SCAN HISTORY', PAD, y + 10);
-    y += 18;
-
-    for (const entry of entries) {
-      const rk = entry.risk || 'w';
-
-      roundRect(ctx, PAD, y, INNER, rowH, 7, WHITE, 'rgba(58,39,0,0.07)');
-
-      // Score circle
-      ctx.beginPath();
-      ctx.arc(PAD + 22, y + rowH / 2, 16, 0, Math.PI * 2);
-      ctx.fillStyle = RISK_COLOR[rk];
-      ctx.fill();
-      ctx.font = 'bold 11px Arial, sans-serif';
-      ctx.fillStyle = WHITE;
-      ctx.textAlign = 'center';
-      ctx.fillText(String(entry.score ?? 0), PAD + 22, y + rowH / 2 + 4);
-      ctx.textAlign = 'left';
-
-      // Type + date
-      ctx.font = 'bold 10px Arial, sans-serif';
-      ctx.fillStyle = BRAND;
-      // Truncate stool type if too long
-      const typeText = (entry.stoolType || 'Unknown').slice(0, 40);
-      ctx.fillText(typeText, PAD + 46, y + 16);
-
-      ctx.font = '8.5px Arial, sans-serif';
-      ctx.fillStyle = GREY;
-      ctx.fillText(`${fmtDateShortLocal(entry.date)}  ·  ${entry.time || ''}  ·  Bristol ${entry.bristolScore || '?'}/7`, PAD + 46, y + 28);
-
-      // Risk label
-      ctx.font = 'bold 8px Arial, sans-serif';
-      ctx.fillStyle = RISK_COLOR[rk];
-      ctx.textAlign = 'right';
-      ctx.fillText(RISK_LABEL[rk], W - PAD - 6, y + 20);
-      ctx.textAlign = 'left';
-
-      // Summary snippet — truncated to fit
-      if (entry.sum) {
-        ctx.font = '8px Arial, sans-serif';
-        ctx.fillStyle = '#8B6B3D';
-        const snippet = entry.sum.length > 85 ? entry.sum.slice(0, 85) + '…' : entry.sum;
-        ctx.fillText(snippet, PAD + 46, y + 42);
-      }
-
-      y += rowH + 5;
-    }
+  // 6. Clinical Summary Box
+  if (entry.sum) {
+    content.push(coloredBox('CLINICAL SUMMARY', { text: entry.sum, fontSize: 10, color: '#5C3F18', lineHeight: 1.35 }, C.bgW, C.amber + '44', C.brand));
   }
 
-  // ── FOOTER ───────────────────────────────────────────────────────
-  y += 10;
-  ctx.fillStyle = 'rgba(58,39,0,0.12)';
-  ctx.fillRect(PAD, y, INNER, 1);
-  y += 12;
-  ctx.font = '8px Arial, sans-serif';
-  ctx.fillStyle = GREY;
-  ctx.fillText('PoopSense AI by Doglicious.in  ·  AI analysis only — not a substitute for veterinary diagnosis', PAD, y + 8);
-  y += 24;
+  // 7. Simple Terms Callout Box
+  if (entry.simpleEn) {
+    content.push(coloredBox('IN SIMPLE TERMS', { text: entry.simpleEn, fontSize: 10, color: C.textSimpleB, lineHeight: 1.35 }, C.bgSimple, C.borderSimple, C.textSimpleT));
+  }
 
-  // Trim
-  const finalH2 = Math.min(y + 10, Math.max(800, estimatedH));
-  const final = document.createElement('canvas');
-  final.width  = W * SCALE;
-  final.height = finalH2 * SCALE;
-  final.getContext('2d').drawImage(canvas, 0, 0);
-  final._logicalWidth  = W;
-  final._logicalHeight = finalH2;
-  return final;
+  // 8. Action Plan Steps Block
+  if (entry.recommendations?.length) {
+    const stepsStack = entry.recommendations.map((rec, i) => ({
+      columns: [
+        {
+          width: 18,
+          table: {
+            widths: [14],
+            body: [[{ text: String(i + 1), color: C.white, fontSize: 7.5, bold: true, alignment: 'center', margin: [0, 2, 0, 2] }]]
+          },
+          layout: {
+            fillColor: C.green,
+            hLineWidth: () => 0, vLineWidth: () => 0,
+            paddingLeft: () => 0, paddingRight: () => 0, paddingTop: () => 0, paddingBottom: () => 0
+          }
+        },
+        { text: rec, width: '*', fontSize: 9.5, color: '#5C3F18', lineHeight: 1.3, margin: [4, 0, 0, 0] }
+      ],
+      margin: [0, 0, 0, 6],
+      unbreakable: true
+    }));
+
+    content.push(coloredBox('AI ACTION PLAN', { stack: stepsStack, margin: [0, 4, 0, 0] }, '#EEF6F1', '#195c3033', C.green));
+  }
+
+  // 9. Possible Conditions Block
+  if (entry.possibleConditions?.length) {
+    const conditionsStack = entry.possibleConditions.map(cond => ({
+      columns: [
+        { text: '•', width: 10, color: C.amber, bold: true, fontSize: 12 },
+        { text: cond, width: '*', fontSize: 9.5, color: C.brand }
+      ],
+      margin: [0, 0, 0, 5],
+      unbreakable: true
+    }));
+    content.push(coloredBox('POSSIBLE CONDITIONS (NON-DIAGNOSTIC)', { stack: conditionsStack, margin: [0, 4, 0, 0] }, C.white, C.borderLight, C.grey));
+  }
+
+  // 10. Scan Image Render
+  if (entry.imgB64) {
+    content.push(sectionHeader('Scan Photo'));
+    content.push({
+      image: `data:image/jpeg;base64,${entry.imgB64}`,
+      width: 220,
+      alignment: 'center',
+      margin: [0, 4, 0, 16],
+      unbreakable: true
+    });
+  }
+
+  const dogName = (dog?.name || 'Dog').replace(/\s+/g, '-');
+  const filename = `PoopSense-${dogName}-${entry.id || 'report'}.pdf`;
+  
+  await generateAndDownload(content, filename, entry.id);
 }
+
+
+// ── Report Type 2: Multi-Day Progress/History Report ─────────────────
 
 export async function downloadProgressPDF(history, dog, days) {
-  const canvas = await buildProgressPDF(history, dog, days);
-  const dogName = dog?.name || 'Dog';
-  const filename = `PoopSense_Progress_${dogName}_${days}days.pdf`;
-  const imgData = canvas.toDataURL('image/png', 1.0);
-  const logicalW = canvas._logicalWidth || 595;
-  const logicalH = canvas._logicalHeight || canvas.height / SCALE;
+  const cutoff = new Date();
+  cutoff.setDate(cutoff.getDate() - days);
+  const cutStr = cutoff.toISOString().slice(0, 10);
+  
+  const entries = [...history]
+    .filter(e => e.date >= cutStr)
+    .sort((a, b) => (b.ts || 0) - (a.ts || 0));
 
-  const win = window.open('', '_blank');
-  if (!win) {
-    const a = document.createElement('a');
-    a.href = imgData;
-    a.download = filename.replace('.pdf', '.png');
-    a.click();
-    return;
+  const content = [];
+
+  // 1. Full-bleed Progress Header Banner
+  content.push({
+    margin: [-40, -40, -40, 20],
+    table: {
+      widths: ['*'],
+      body: [[
+        {
+          fillColor: C.brand,
+          border: [false, false, false, false],
+          columns: [
+            {
+              stack: [
+                { text: 'PoopSense AI', color: C.white, fontSize: 18, bold: true },
+                { text: `${days}-Day Progress Report  ·  by Doglicious.in`, color: '#ffffffa6', fontSize: 10, margin: [0, 4, 0, 2] },
+                { text: `Generated: ${fmtDateShortLocal(new Date().toISOString().slice(0,10))}`, color: '#ffffff8c', fontSize: 9 }
+              ],
+              margin: [40, 25, 0, 20] 
+            },
+            {
+              text: `${entries.length} scan${entries.length !== 1 ? 's' : ''}`,
+              color: '#ffffff73',
+              font: 'Roboto',
+              fontSize: 10,
+              alignment: 'right',
+              margin: [0, 28, 40, 0]
+            }
+          ]
+        }
+      ]]
+    },
+    layout: 'noBorders'
+  });
+
+  // 2. Dog Info
+  if (dog) content.push(dogInfoCard(dog));
+
+  // 3. Conditional Content: Empty State vs Aggregated Analytics Statistics
+  if (entries.length === 0) {
+    content.push({
+      table: {
+        widths: ['*'],
+        body: [[{ text: `No scans recorded in the last ${days} days.`, fontSize: 12, alignment: 'center', color: C.grey, margin: [0, 20, 0, 20] }]]
+      },
+      layout: { fillColor: C.white, hLineColor: () => C.borderLight, vLineColor: () => C.borderLight },
+      margin: [0, 0, 0, 16]
+    });
+  } else {
+    const avgScore = Math.round(entries.reduce((sum, e) => sum + (e.score || 0), 0) / entries.length);
+    const healthyCount = entries.filter(e => e.score >= 75).length;
+    const monitorCount = entries.filter(e => e.score >= 50 && e.score < 75).length;
+    const urgentCount = entries.filter(e => e.score < 50).length;
+
+    const statsGrid = [
+      { label: 'Total Scans', val: entries.length, col: C.brand },
+      { label: 'Avg Score', val: avgScore, col: avgScore >= 75 ? C.green : avgScore >= 50 ? C.amber : C.red },
+      { label: 'Healthy', val: healthyCount, col: C.green },
+      { label: 'Monitor', val: monitorCount, col: C.amber },
+      { label: 'Urgent', val: urgentCount, col: C.red }
+    ];
+
+    content.push({
+      columns: statsGrid.map(s => ({
+        width: '*',
+        table: {
+          widths: ['*'],
+          body: [[
+            {
+              stack: [
+                { text: String(s.val), fontSize: 16, bold: true, color: s.col, alignment: 'center' },
+                { text: s.label, fontSize: 7.5, color: C.grey, alignment: 'center', margin: [0, 2, 0, 0] }
+              ]
+            }
+          ]]
+        },
+        layout: {
+          fillColor: C.white,
+          hLineWidth: () => 1, vLineWidth: () => 1,
+          hLineColor: () => C.borderLight, vLineColor: () => C.borderLight,
+          paddingTop: () => 8, paddingBottom: () => 8
+        },
+        margin: [0, 0, 4, 0]
+      })),
+      margin: [0, 0, -4, 16]
+    });
+
+    // 4. Native Vector-Based Score Trend Chart
+    const chartEntries = [...entries].reverse().slice(-25); // Cap to last 25 items horizontally
+    const chartCanvasWidth = 490;
+    const chartCanvasHeight = 60;
+    const itemSpacing = chartCanvasWidth / (chartEntries.length || 1);
+    const barWidth = Math.max(5, itemSpacing - 4);
+
+    const vectorChartElements = chartEntries.map((e, index) => {
+      const score = e.score || 0;
+      const barHeight = Math.max(4, (score / 100) * chartCanvasHeight);
+      const startX = 5 + (index * itemSpacing);
+      const startY = chartCanvasHeight - barHeight;
+      
+      const rKey = e.risk || 'w';
+      const rColor = RISK_MAP[rKey]?.color || C.amber;
+
+      return {
+        type: 'rect',
+        x: startX,
+        y: startY,
+        w: barWidth,
+        h: barHeight,
+        color: rColor
+      };
+    });
+
+    // Add baseline bar to chart canvas
+    vectorChartElements.push({ type: 'line', x1: 0, y1: chartCanvasHeight, x2: chartCanvasWidth, y2: chartCanvasHeight, lineWidth: 1, lineColor: '#EDE8DC' });
+
+    content.push({
+      table: {
+        widths: ['*'],
+        body: [[
+          {
+            stack: [
+              { text: 'SCORE TREND', style: 'gridLabel', margin: [0, 0, 0, 10] },
+              { canvas: vectorChartElements, margin: [0, 4, 0, 4] }
+            ]
+          }
+        ]]
+      },
+      layout: {
+        fillColor: C.white,
+        hLineWidth: () => 1, vLineWidth: () => 1,
+        hLineColor: () => C.borderLight, vLineColor: () => C.borderLight,
+        paddingLeft: () => 12, paddingRight: () => 12, paddingTop: () => 10, paddingBottom: () => 10
+      },
+      margin: [0, 0, 0, 20],
+      unbreakable: true
+    });
   }
 
-  win.document.write(`<!DOCTYPE html>
-<html>
-<head>
-  <title>${filename}</title>
-  <style>
-    * { margin:0; padding:0; box-sizing:border-box; }
-    body { background:#fff; }
-    img { display:block; width:${logicalW}px; height:${logicalH}px; max-width:100%; margin:0 auto; image-rendering:crisp-edges; }
-    @media print {
-      img { width:${logicalW}px; height:${logicalH}px; max-width:100%; }
-      @page { margin:0; size:A4; }
+  // 5. Historical Analysis Timeline Rows
+  if (entries.length > 0) {
+    content.push(sectionHeader('Scan History'));
+
+    entries.forEach(entry => {
+      const rk = entry.risk || 'w';
+      const risk = RISK_MAP[rk] || RISK_MAP.w;
+      const snippetText = entry.sum && entry.sum.length > 90 ? `${entry.sum.slice(0, 90)}...` : entry.sum || '';
+
+      content.push({
+        table: {
+          widths: ['auto', '*', 'auto'],
+          body: [[
+          // Score cell
+            {
+              table: {
+                widths: [30],
+                body: [[{ text: String(entry.score ?? 0), color: C.white, bold: true, fontSize: 10, alignment: 'center', margin: [0, 5, 0, 5] }]]
+              },
+              layout: {
+                fillColor: risk.color,
+                hLineWidth: () => 0, vLineWidth: () => 0,
+                paddingLeft: () => 0, paddingRight: () => 0, paddingTop: () => 0, paddingBottom: () => 0
+              },
+              width: 30,
+              margin: [0, 2, 0, 0]
+            },
+            // Content Block Descriptor
+            {
+              stack: [
+                { text: (entry.stoolType || 'Unknown Status').toUpperCase(), fontSize: 10, bold: true, color: C.brand },
+                { text: `${fmtDateShortLocal(entry.date)}  ·  ${entry.time || ''}  ·  Bristol ${entry.bristolScore || '?'}/7`, fontSize: 8.5, color: C.grey, margin: [0, 2, 0, 3] },
+                snippetText ? { text: snippetText, fontSize: 8.5, color: '#8B6B3D', italic: true } : null
+              ].filter(Boolean),
+              margin: [12, 0, 0, 0]
+            },
+            // Urgency/Severity Text
+            {
+              text: risk.label,
+              fontSize: 8.5,
+              bold: true,
+              color: risk.color,
+              alignment: 'right',
+              margin: [0, 2, 0, 0]
+            }
+          ]]
+        },
+        layout: {
+          fillColor: C.white,
+          hLineWidth: () => 1, vLineWidth: () => 1,
+          hLineColor: () => C.borderLight, vLineColor: () => C.borderLight,
+          paddingLeft: () => 12, paddingRight: () => 12, paddingTop: () => 10, paddingBottom: () => 10
+        },
+        margin: [0, 0, 0, 8],
+        unbreakable: true
+      });
+    });
+  }
+
+  const dogName = (dog?.name || 'Dog').replace(/\s+/g, '-');
+  const filename = `PoopSense-Progress-${dogName}-${days}days.pdf`;
+
+  await generateAndDownload(content, filename, null);
+}
+
+// ── Shared Orchestration Compiles Engine ──────────────────────────────
+
+// ── Shared Orchestration Compiles Engine ──────────────────────────────
+
+async function generateAndDownload(content, filename, reportId) {
+  const docDefinition = {
+    pageSize: 'A4',
+    pageMargins: [40, 40, 40, 60],
+    // FIXED: Properly draw a canvas rectangle to fill the background
+    background: function(currentPage, pageSize) {
+      return {
+        canvas: [
+          {
+            type: 'rect',
+            x: 0,
+            y: 0,
+            w: pageSize.width,
+            h: pageSize.height,
+            color: C.light
+          }
+        ]
+      };
+    },
+    content: content,
+    footer: function(currentPage, pageCount) {
+      return {
+        margin: [40, 10, 40, 0],
+        stack: [
+          { canvas: [{ type: 'line', x1: 0, y1: 0, x2: 515, y2: 0, lineWidth: 1, lineColor: C.brand, strokeOpacity: 0.1 }], margin: [0, 0, 0, 8] },
+          {
+            columns: [
+              { text: 'PoopSense AI by Doglicious.in  ·  AI analysis only — not a substitute for veterinary diagnosis.', color: C.grey, fontSize: 7.5 },
+              { 
+                text: reportId ? `Report ID: ${reportId}  |  Page ${currentPage} of ${pageCount}` : `Page ${currentPage} of ${pageCount}`, 
+                color: C.grey, 
+                fontSize: 7.5, 
+                alignment: 'right' 
+              }
+            ]
+          }
+        ]
+      };
+    },
+    styles: {
+      sectionTitle: {
+        fontSize: 8.5,
+        bold: true,
+        color: C.grey,
+        letterSpacing: 0.5
+      },
+      gridLabel: {
+        fontSize: 8,
+        bold: true,
+        color: C.grey,
+        margin: [0, 0, 0, 2]
+      },
+      gridValue: {
+        fontSize: 10.5,
+        bold: true,
+        color: C.brand
+      },
+      gridCell: {
+        margin: [2, 2, 2, 2]
+      }
+    },
+    defaultStyle: {
+      font: 'Roboto'
     }
-  </style>
-</head>
-<body>
-  <img src="${imgData}" width="${logicalW}" height="${logicalH}" />
-  <script>window.onload=function(){setTimeout(function(){window.print();},400);};</script>
-</body>
-</html>`);
-  win.document.close();
+  };
+
+  pdfMake.createPdf(docDefinition).download(filename);
 }
