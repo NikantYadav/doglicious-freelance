@@ -27,15 +27,26 @@ export function getSession() {
     }
 }
 
-export function saveSession({ phone, contactId, scanCount, paidScans = 0 }) {
+export function saveSession({ phone, contactId, name = null, scanCount, paidScans = 0 }) {
     const session = {
         phone,
         contactId,
+        name,
         scanCount,
         paidScans,
         expiresAt: Date.now() + SESSION_TTL
     };
     localStorage.setItem(SESSION_KEY, JSON.stringify(session));
+}
+
+export function updateSessionName(name) {
+    try {
+        const raw = localStorage.getItem(SESSION_KEY);
+        if (!raw) return;
+        const s = JSON.parse(raw);
+        s.name = name;
+        localStorage.setItem(SESSION_KEY, JSON.stringify(s));
+    } catch { /* ignore */ }
 }
 
 export function clearSession() {
@@ -91,4 +102,23 @@ export async function getConfig() {
     const res = await fetch(`${API}/api/config`);
     if (!res.ok) throw new Error('Failed to fetch config');
     return await res.json(); // { numFreeScans, numPaidScansPerPack, ... }
+}
+
+export async function updateUserName(phone, name) {
+    const res = await fetch(`${API}/api/vetrx/profile`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phone, name }),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Failed to update name');
+    return data; // { ok, user }
+}
+
+export async function getScanHistory(phone) {
+    const encoded = encodeURIComponent(phone);
+    const res = await fetch(`${API}/api/vetrx/profile?phone=${encoded}`);
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Failed to fetch history');
+    return data; // { user, scans }
 }

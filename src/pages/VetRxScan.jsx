@@ -26,7 +26,7 @@ const VetRxScan = () => {
   });
 
   // ── Auth state ──────────────────────────────────────────────────────
-  const [authUser, setAuthUser] = useState(null);   // { phone, contactId, scanCount, paidScans, config }
+  const [authUser, setAuthUser] = useState(null);   // { phone, contactId, name, scanCount, paidScans, config }
   const [authReady, setAuthReady] = useState(false); // true once localStorage checked
   const [configReady, setConfigReady] = useState(false); // true once backend config has loaded
   const [payuMessage, setPayuMessage] = useState(null); // feedback after PayU redirect
@@ -279,7 +279,7 @@ const VetRxScan = () => {
       <PaywallScreen
         phone={authUser.phone || ''}
         contactId={authUser.contactId}
-        firstname={authUser.firstname || authUser.phone || ''}
+        firstname={authUser.name || authUser.firstname || authUser.phone || ''}
         numScans={numPaidPerPack}
         onLogout={handleLogout}
         payuMessage={payuMessage}
@@ -325,6 +325,8 @@ const VetRxScan = () => {
               <WelcomeScreen
                 photo={photo}
                 scansLeft={scansLeft}
+                userName={authUser?.name || null}
+                phone={authUser?.phone || null}
                 onPhotoUploaded={(p) => { setPhoto(p); setSelectedPart(''); setSelectedSymptoms([]); }}
                 onClearPhoto={() => setPhoto(null)}
                 onNext={() => goTo('symptoms')}

@@ -24,15 +24,26 @@ function verifyToken(token) {
 // ── Upsert user + fetch scan counts from Supabase ────────────────────
 
 async function getOrCreateUser(phone) {
-    // Upsert: create user if not exists, return existing data if they do
+    // Check if user already exists
+    const { data: existing } = await supabase
+        .from('vetrx_users')
+        .select('id, phone, name, scan_count, paid_scans')
+        .eq('phone', phone)
+        .single();
+
+    if (existing) {
+        return { ...existing, isNewUser: false };
+    }
+
+    // New user — insert
     const { data, error } = await supabase
         .from('vetrx_users')
-        .upsert({ phone }, { onConflict: 'phone', ignoreDuplicates: false })
-        .select('id, phone, scan_count, paid_scans')
+        .insert({ phone })
+        .select('id, phone, name, scan_count, paid_scans')
         .single();
 
     if (error) throw error;
-    return data;
+    return { ...data, isNewUser: true };
 }
 
 async function recordLoginEvent(phone) {
@@ -81,6 +92,8 @@ export default async function handler(req, res) {
         valid: true,
         contactId: payload.phone,
         phone: payload.phone,
+        name: user.name || null,
+        isNewUser: user.isNewUser ?? false,
         scanCount: user.scan_count ?? 0,
         paidScans: user.paid_scans ?? 0,
         config: {

@@ -249,26 +249,7 @@ export default function Home() {
               <h1 className="hero-h1">Fresh food &amp;<br />AI care for your<br /><em>dog. 🐾</em></h1>
               <p className="hero-tagline">Different Dog. <span>Different Food.</span></p>
               <p className="hero-sub"><strong>Vet-approved &amp; internationally acclaimed.</strong> Freshly cooked every morning, delivered same day. Free AI health analysis for every dog.</p>
-              <div className="hero-cards">
-                <button className="hcard hcard-a" onClick={() => openModal('sample')}>
-                  <div className="hcard-glow" />
-                  <span className="hcard-icon">🍗</span>
-                  <div className="hcard-over">AI-Driven</div>
-                  <div className="hcard-title">Personalised Nutrition, Cooked Fresh.</div>
-                  <div className="hcard-desc">Vet-approved · Internationally acclaimed · Fresh food cooked daily &amp; delivered</div>
-                  <div className="hcard-badge">Try a sample · <strong>₹99</strong></div>
-                  <span className="hcard-arr">→</span>
-                </button>
-                <button className="hcard hcard-b" onClick={() => navigate('/poopsense')}>
-                  <div className="hcard-glow" />
-                  <span className="hcard-icon">🔍</span>
-                  <div className="hcard-over">AI-Driven</div>
-                  <div className="hcard-title">Scan → Diagnose → Feed Right.</div>
-                  <div className="hcard-desc">AI-powered health &amp; nutrition analysis for your dog</div>
-                  <div className="hcard-badge">Free · First scan complimentary</div>
-                  <span className="hcard-arr">→</span>
-                </button>
-              </div>
+
               <div className="trust-chips">
                 {['Vet Approved', 'Internationally Acclaimed', 'NABL Certified', 'AAFCO Aligned', 'Zero Preservatives', '5L+ Meals Served'].map(c => <span key={c} className="chip">{c}</span>)}
               </div>

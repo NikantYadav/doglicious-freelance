@@ -1,11 +1,26 @@
 import React, { useState } from 'react';
 import { LOGO_PLACEHOLDER } from './constants';
 import { getSession } from '../../services/auth';
+import { generateReportPDF } from '../../utils/generateReportPDF';
 
 const ReportScreen = ({ report, dogProfile, photoUrl, onComplete, onReset }) => {
     if (!report) return null;
     const r = report;
     const dog = dogProfile || {};
+    const [pdfLoading, setPdfLoading] = useState(false);
+
+    const handleDownloadPDF = async () => {
+        setPdfLoading(true);
+        try {
+            const session = getSession();
+            await generateReportPDF(r, dog, session?.name || session?.phone || '', new Date().toISOString());
+        } catch (e) {
+            console.error('[ReportScreen] PDF generation failed:', e);
+            alert('PDF generation failed. Please try again.');
+        } finally {
+            setPdfLoading(false);
+        }
+    };
 
     const sevEmoji = { mild: '🟢', moderate: '🟡', severe: '🔴' };
     const urgColor = { routine: '#2D6A2D', urgent: '#D97706', emergency: '#B33A3A' };
@@ -171,6 +186,14 @@ const ReportScreen = ({ report, dogProfile, photoUrl, onComplete, onReset }) => 
                     {/* Action buttons */}
                     <button className="btn btn-secondary mb-12" onClick={onComplete}>
                         📅 2-Day Follow-Up Check-In
+                    </button>
+                    <button
+                        className="btn btn-secondary mb-12"
+                        onClick={handleDownloadPDF}
+                        disabled={pdfLoading}
+                        style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
+                    >
+                        {pdfLoading ? '⏳ Generating PDF…' : '📄 Download Report as PDF'}
                     </button>
                     <button className="btn btn-ghost" onClick={onReset}>
                         + Start New Diagnosis
