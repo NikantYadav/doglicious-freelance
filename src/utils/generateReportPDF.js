@@ -1,15 +1,10 @@
 // src/utils/generateReportPDF.js
-// Generates the VetRx Scan report entirely client-side using the Canvas API.
-// No Puppeteer / Chromium required — same approach as PoopSense's psPdf.js.
-// Page breaks: the single tall canvas is sliced into A4 pages; each slice is
-// drawn so that no content block is ever cut mid-render (blocks are kept whole
-// by measuring before drawing, then advancing to the next page if needed).
+// Generates the VetRx Scan report entirely client-side using pdfmake.
+import pdfMake from 'pdfmake/build/pdfmake';
+import pdfFonts from 'pdfmake/build/vfs_fonts';
 
-const SCALE = 4;          // render at 4× for crisp output
-const W     = 595;        // A4 width in pt (72 dpi logical)
-const A4_H  = 842;        // A4 height in pt
-const PAD   = 28;         // horizontal padding
-const INNER = W - PAD * 2;
+// Initialize pdfmake fonts
+pdfMake.vfs = pdfFonts.pdfMake ? pdfFonts.pdfMake.vfs : pdfFonts.vfs;
 
 // ── Palette ───────────────────────────────────────────────────────────
 const C = {
@@ -40,188 +35,90 @@ function scoreColor(s) {
   return n < 50 ? C.red : n < 70 ? C.amber : C.green;
 }
 
-// ── Canvas helpers ────────────────────────────────────────────────────
+// ── Helper Components ─────────────────────────────────────────────────
 
-function roundRect(ctx, x, y, w, h, r, fill, stroke) {
-  if (w <= 0 || h <= 0) return;
-  r = Math.min(r, w / 2, h / 2);
-  ctx.beginPath();
-  ctx.moveTo(x + r, y);
-  ctx.lineTo(x + w - r, y);
-  ctx.quadraticCurveTo(x + w, y, x + w, y + r);
-  ctx.lineTo(x + w, y + h - r);
-  ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
-  ctx.lineTo(x + r, y + h);
-  ctx.quadraticCurveTo(x, y + h, x, y + h - r);
-  ctx.lineTo(x, y + r);
-  ctx.quadraticCurveTo(x, y, x + r, y);
-  ctx.closePath();
-  if (fill)   { ctx.fillStyle = fill;     ctx.fill(); }
-  if (stroke) { ctx.strokeStyle = stroke; ctx.lineWidth = 1.5; ctx.stroke(); }
+function sectionHeader(title) {
+  return {
+    stack: [
+      { text: title.toUpperCase(), style: 'sectionTitle' },
+      { canvas: [{ type: 'line', x1: 0, y1: 0, x2: 515, y2: 0, lineWidth: 1, lineColor: C.gold, strokeOpacity: 0.55 }], margin: [0, 4, 0, 10] }
+    ],
+    unbreakable: true
+  };
 }
 
-/** Wrap text, return new y after last line. */
-function wrapText(ctx, text, x, y, maxWidth, lineHeight) {
-  if (!text) return y;
-  const words = String(text).split(' ');
-  let line = '';
-  for (const word of words) {
-    const test = line ? `${line} ${word}` : word;
-    if (ctx.measureText(test).width > maxWidth && line) {
-      ctx.fillText(line, x, y);
-      line = word;
-      y += lineHeight;
-    } else {
-      line = test;
-    }
-  }
-  if (line) { ctx.fillText(line, x, y); y += lineHeight; }
-  return y;
+function progressBar(label, value, color) {
+  const w = 515;
+  const fillW = Math.max(4, w * Math.min(value, 100) / 100);
+  return {
+    stack: [
+      {
+        columns: [
+          { text: label, fontSize: 12, color: C.brand },
+          { text: `${value}/100`, fontSize: 12, color: color, bold: true, alignment: 'right' }
+        ],
+        margin: [0, 0, 0, 4]
+      },
+      {
+        canvas: [
+          { type: 'line', x1: 0, y1: 0, x2: w, y2: 0, lineWidth: 7, lineColor: C.border, lineCap: 'round' },
+          { type: 'line', x1: 0, y1: 0, x2: fillW, y2: 0, lineWidth: 7, lineColor: color, lineCap: 'round' }
+        ],
+        margin: [0, 0, 0, 10]
+      }
+    ],
+    unbreakable: true
+  };
 }
 
-/** Count lines text will occupy. */
-function measureLines(ctx, text, maxWidth) {
-  if (!text) return 0;
-  const words = String(text).split(' ');
-  let line = '', lines = 0;
-  for (const word of words) {
-    const test = line ? `${line} ${word}` : word;
-    if (ctx.measureText(test).width > maxWidth && line) { lines++; line = word; }
-    else line = test;
+function coloredBox(title, itemsOrText, bgColor, borderColor, titleColor, textColor) {
+  let bodyContent;
+  
+  if (Array.isArray(itemsOrText)) {
+    bodyContent = {
+      stack: itemsOrText.map(item => ({
+        text: `•  ${item}`,
+        color: textColor,
+        fontSize: 12,
+        margin: [0, 4, 0, 0],
+        unbreakable: true
+      }))
+    };
+  } else {
+    bodyContent = itemsOrText;
   }
-  if (line) lines++;
-  return lines;
+
+  return {
+    table: {
+      widths: ['*'],
+      body: [
+        [
+          {
+            stack: [
+              { text: title.toUpperCase(), color: titleColor, bold: true, fontSize: 8.5 },
+              bodyContent
+            ]
+          }
+        ]
+      ]
+    },
+    layout: {
+      fillColor: bgColor,
+      hLineWidth: () => 1, vLineWidth: () => 1,
+      hLineColor: () => borderColor, vLineColor: () => borderColor,
+      paddingLeft: () => 12, paddingRight: () => 12, paddingTop: () => 12, paddingBottom: () => 12
+    },
+    margin: [0, 0, 0, 10],
+    unbreakable: true
+  };
 }
 
-// ── Page-break-aware drawing context ─────────────────────────────────
-// We draw onto one tall canvas. Before drawing each block we check if it
-// fits on the current page; if not we advance y to the next page boundary.
+// ── Main PDF Generation API ───────────────────────────────────────────
 
-const HEADER_H  = 80;   // height of the top banner (only on page 1)
-const FOOTER_H  = 28;   // reserved at the bottom of every page for footer text
-const PAGE_TOP  = 12;   // top margin on pages 2+
-const USABLE_H  = A4_H - FOOTER_H - PAGE_TOP; // usable height per page after page 1
+export async function generateReportPDF(report, dogProfile, ownerName, scanDate) {
+  const r   = report || {};
+  const dog = dogProfile || {};
 
-/**
- * Advance y to the next page if the block of `blockH` won't fit.
- * Returns the (possibly advanced) y value.
- */
-function ensureFits(y, blockH) {
-  // Which page are we on? Page 1 starts at 0, page 2 at A4_H, etc.
-  const pageIndex = Math.floor(y / A4_H);
-  const pageStart = pageIndex * A4_H;
-  const pageEnd   = pageStart + A4_H - FOOTER_H;
-
-  if (y + blockH > pageEnd) {
-    // Move to next page
-    return (pageIndex + 1) * A4_H + PAGE_TOP;
-  }
-  return y;
-}
-
-/** Draw the footer line on every page of the canvas. */
-function drawFooters(ctx, totalH, dateStr) {
-  const pages = Math.ceil(totalH / A4_H);
-  for (let p = 0; p < pages; p++) {
-    const isLastPage = p === pages - 1;
-    // For last page, place footer at actual content bottom; for others, at A4 page boundary
-    const fy = isLastPage 
-      ? totalH - FOOTER_H + 10
-      : p * A4_H + A4_H - FOOTER_H + 10;
-    
-    ctx.fillStyle = 'rgba(61,43,0,0.12)';
-    ctx.fillRect(PAD, fy - 4, INNER, 1);
-    ctx.font = '7.5px Arial, sans-serif';
-    ctx.fillStyle = C.gray;
-    ctx.textAlign = 'left';
-    ctx.fillText('VetRx Scan is an AI assistance tool. Consult a licensed veterinarian for medical decisions.', PAD, fy + 8);
-    ctx.textAlign = 'right';
-    ctx.fillText(`Page ${p + 1} of ${pages}  |  doglicious.in`, W - PAD, fy + 8);
-    ctx.textAlign = 'left';
-  }
-}
-
-// ── Height estimation pass ────────────────────────────────────────────
-
-function estimateTotalHeight(r, dog, mCtx) {
-  let h = HEADER_H + 10; // header banner
-
-  // Dog meta
-  h += 50;
-
-  // Diagnosis card
-  if (r.diagnosis) h = ensureFits(h, 80) + 80 + 8;
-
-  // Health score
-  h = ensureFits(h, 90) + 90 + 8;
-
-  // AI Findings
-  if (r.imageFindings || r.summary) {
-    mCtx.font = '12px Arial, sans-serif';
-    const l1 = r.imageFindings ? measureLines(mCtx, r.imageFindings, INNER - 20) : 0;
-    const l2 = r.summary       ? measureLines(mCtx, r.summary,       INNER - 20) : 0;
-    const bh = 30 + (l1 + l2) * 16 + 10;
-    h = ensureFits(h, bh) + bh + 8;
-  }
-
-  // Treatment steps
-  const steps = Array.isArray(r.steps) ? r.steps.filter(Boolean) : [];
-  if (steps.length) {
-    mCtx.font = '12px Arial, sans-serif';
-    let sh = 28;
-    steps.forEach(s => { sh += Math.max(1, measureLines(mCtx, s, INNER - 50)) * 16 + 8; });
-    h = ensureFits(h, sh) + sh + 8;
-  }
-
-  // Natural remedies
-  const natural = Array.isArray(r.natural) ? r.natural.filter(Boolean) : [];
-  if (natural.length) {
-    mCtx.font = '12px Arial, sans-serif';
-    let nh = 28;
-    natural.forEach(n => { nh += Math.max(1, measureLines(mCtx, n, INNER - 20)) * 16 + 6; });
-    h = ensureFits(h, nh) + nh + 8;
-  }
-
-  // Diet
-  const dietText = r.diet || r.dietAdvice || '';
-  if (dietText) {
-    mCtx.font = '12px Arial, sans-serif';
-    const dl = measureLines(mCtx, dietText, INNER - 20);
-    const dh = 28 + dl * 16 + (r.currentDietAssessment ? 20 : 0) + 10;
-    h = ensureFits(h, dh) + dh + 8;
-  }
-
-  // Red flags
-  const redFlags = Array.isArray(r.redFlags) ? r.redFlags.filter(Boolean) : [];
-  if (redFlags.length) {
-    mCtx.font = '12px Arial, sans-serif';
-    let rh = 28;
-    redFlags.forEach(f => { rh += Math.max(1, measureLines(mCtx, f, INNER - 20)) * 16 + 6; });
-    h = ensureFits(h, rh) + rh + 8;
-  }
-
-  // Dog profile grid
-  h = ensureFits(h, 120) + 120 + 20;
-
-  return h + 40;
-}
-
-// ── Section header ────────────────────────────────────────────────────
-
-function drawSectionHead(ctx, label, y) {
-  ctx.font = 'bold 8.5px Arial, sans-serif';
-  ctx.fillStyle = C.gray;
-  ctx.fillText(label.toUpperCase(), PAD, y + 10);
-  ctx.fillStyle = C.gold;
-  ctx.globalAlpha = 0.55;
-  ctx.fillRect(PAD, y + 14, INNER, 1);
-  ctx.globalAlpha = 1;
-  return y + 20;
-}
-
-// ── Main draw function ────────────────────────────────────────────────
-
-async function buildVetRxCanvas(r, dog, ownerName, scanDate) {
   const dateStr = scanDate
     ? new Date(scanDate).toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' })
     : new Date().toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' });
@@ -253,434 +150,239 @@ async function buildVetRxCanvas(r, dog, ownerName, scanDate) {
     ['Notes',         dog.notes],
   ].filter(([, v]) => v);
 
-  // Measure pass
-  const measure = document.createElement('canvas');
-  measure.width = W; measure.height = 10;
-  const mCtx = measure.getContext('2d');
-  // Add a full A4 page buffer to prevent clipping if the estimate is too low
-  const totalH = Math.max(A4_H, estimateTotalHeight(r, dog, mCtx)) + A4_H;
+  const content = [];
 
-  // Draw pass
-  const canvas = document.createElement('canvas');
-  canvas.width  = W * SCALE;
-  canvas.height = totalH * SCALE;
-  const ctx = canvas.getContext('2d', { alpha: false });
-  ctx.scale(SCALE, SCALE);
+  // 1. Header Banner (Explicit margins applied to inner content to respect 40pt document walls)
+  content.push({
+    margin: [-40, -40, -40, 20],
+    table: {
+      widths: ['*'],
+      body: [[
+        {
+          fillColor: C.brand,
+          border: [false, false, false, false],
+          columns: [
+            {
+              stack: [
+                { text: 'VetRx Scan', color: C.light, fontSize: 20, bold: true },
+                { text: 'AI Dog Health Diagnosis Report', color: C.gold, fontSize: 10, margin: [0, 4, 0, 2] },
+                { text: dateStr, color: C.gold, fontSize: 10 }
+              ],
+              margin: [40, 30, 0, 20] // [Left, Top, Right, Bottom]
+            },
+            {
+              stack: [
+                {
+                  text: [
+                    { text: String(r.healthScore ?? '--'), fontSize: 38, color: sc, bold: true },
+                    { text: '/100', fontSize: 10, color: C.gold }
+                  ]
+                }
+              ],
+              alignment: 'right',
+              margin: [0, 34, 40, 20] // [Left, Top, Right, Bottom]
+            }
+          ]
+        }
+      ]]
+    },
+    layout: 'noBorders'
+  });
 
-  // Enable high-quality text rendering
-  ctx.imageSmoothingEnabled = true;
-  ctx.imageSmoothingQuality = 'high';
-  ctx.textRendering = 'optimizeLegibility';
+  // 2. Dog Meta
+  content.push({
+    columns: [
+      { text: dog.name || 'Dog', fontSize: 17, bold: true, color: C.brand },
+      ownerName ? { text: `Owner: ${ownerName}`, fontSize: 11, color: C.gray, alignment: 'right', margin: [0, 4, 0, 0] } : null
+    ].filter(Boolean),
+    margin: [0, 0, 0, 4]
+  });
 
-  // Fill background for all pages
-  ctx.fillStyle = C.white;
-  ctx.fillRect(0, 0, W, totalH);
-
-  let y = 0;
-
-  // ── HEADER BANNER ────────────────────────────────────────────────
-  ctx.fillStyle = C.brand;
-  ctx.fillRect(0, 0, W, HEADER_H);
-
-  ctx.fillStyle = C.light;
-  ctx.font = 'bold 20px Arial, sans-serif';
-  ctx.fillText('VetRx Scan', PAD, 30);
-  ctx.font = '10px Arial, sans-serif';
-  ctx.fillStyle = C.gold;
-  ctx.fillText('AI Dog Health Diagnosis Report', PAD, 46);
-  ctx.fillText(dateStr, PAD, 62);
-
-  // Score in header
-  ctx.font = 'bold 38px Arial, sans-serif';
-  ctx.fillStyle = sc;
-  ctx.textAlign = 'right';
-  ctx.fillText(String(r.healthScore ?? '--'), W - PAD, 58);
-  ctx.font = '10px Arial, sans-serif';
-  ctx.fillStyle = C.gold;
-  ctx.fillText('/100', W - PAD, 72);
-  ctx.textAlign = 'left';
-
-  y = HEADER_H + 14;
-
-  // ── DOG META ─────────────────────────────────────────────────────
-  ctx.font = 'bold 17px Arial, sans-serif';
-  ctx.fillStyle = C.brand;
-  ctx.fillText(dog.name || 'Dog', PAD, y + 14);
-  if (ownerName) {
-    ctx.font = '11px Arial, sans-serif';
-    ctx.fillStyle = C.gray;
-    ctx.textAlign = 'right';
-    ctx.fillText(`Owner: ${ownerName}`, W - PAD, y + 14);
-    ctx.textAlign = 'left';
-  }
   if (dogMeta) {
-    ctx.font = '11px Arial, sans-serif';
-    ctx.fillStyle = C.gray;
-    ctx.fillText(dogMeta, PAD, y + 28);
+    content.push({ text: dogMeta, fontSize: 11, color: C.gray, margin: [0, 0, 0, 20] });
   }
-  y += 44;
 
-
-  // ── DIAGNOSIS CARD ───────────────────────────────────────────────
+  // 3. Diagnosis Card
   if (r.diagnosis) {
-    const blockH = 80;
-    y = ensureFits(y, blockH);
-    roundRect(ctx, PAD, y, INNER, blockH, 10, C.bgLight, C.borderLight);
-    ctx.font = 'bold 14px Arial, sans-serif';
-    ctx.fillStyle = C.brand;
-    ctx.fillText(String(r.diagnosis).slice(0, 80), PAD + 14, y + 22);
-
-    let px = PAD + 14;
-    const pillY = y + 38;
+    const pillColumns = [];
     
-    // Set font early to measure text width
-    ctx.font = 'bold 9px Arial, sans-serif';
-
     if (r.severity) {
-      // Clean AI verbosity: "CRITICAL - POTENTIALLY FATAL" -> "CRITICAL"
       let sevText = r.severity.split(/[-:(]/)[0].trim().toUpperCase();
       if (sevText.length > 25) sevText = sevText.substring(0, 22) + '...';
-      const sevW = ctx.measureText(sevText).width + 20;
-      
-      roundRect(ctx, px, pillY, sevW, 22, 5, sevFill);
-      ctx.fillStyle = C.white;
-      ctx.textAlign = 'center';
-      ctx.fillText(sevText, px + (sevW / 2), pillY + 14);
-      ctx.textAlign = 'left';
-      px += sevW + 8;
+      pillColumns.push({
+        width: 'auto',
+        table: { widths: ['auto'], body: [[{ text: sevText, color: C.white, bold: true, fontSize: 9 }]] },
+        layout: { fillColor: sevFill, defaultBorder: false, paddingLeft: () => 8, paddingRight: () => 8, paddingTop: () => 4, paddingBottom: () => 4 },
+        margin: [0, 0, 8, 0]
+      });
     }
+
     if (r.urgency) {
-      // Clean AI verbosity: "EMERGENCY - REQUIRES IMMEDIATE..." -> "EMERGENCY"
       let urgText = r.urgency.split(/[-:(]/)[0].trim().toUpperCase();
       if (urgText.length > 25) urgText = urgText.substring(0, 22) + '...';
-      const urgW = ctx.measureText(urgText).width + 20;
-      
-      roundRect(ctx, px, pillY, urgW, 22, 5, urgFill);
-      ctx.fillStyle = C.white;
-      ctx.textAlign = 'center';
-      ctx.fillText(urgText, px + (urgW / 2), pillY + 14);
-      ctx.textAlign = 'left';
-      px += urgW + 8;
+      pillColumns.push({
+        width: 'auto',
+        table: { widths: ['auto'], body: [[{ text: urgText, color: C.white, bold: true, fontSize: 9 }]] },
+        layout: { fillColor: urgFill, defaultBorder: false, paddingLeft: () => 8, paddingRight: () => 8, paddingTop: () => 4, paddingBottom: () => 4 },
+        margin: [0, 0, 8, 0]
+      });
     }
+
     if (r.confidence != null) {
-      ctx.font = '10px Arial, sans-serif';
-      ctx.fillStyle = C.gray;
-      // Right-align the confidence score to the far right edge of the card
-      ctx.textAlign = 'right';
-      ctx.fillText(`${r.confidence}% ${r.confidenceLabel || ''} Confidence`, PAD + INNER - 14, pillY + 14);
-      ctx.textAlign = 'left'; // Reset alignment for the rest of the document
+      pillColumns.push({
+        width: '*',
+        text: `${r.confidence}% ${r.confidenceLabel || ''} Confidence`,
+        color: C.gray, fontSize: 10, alignment: 'right', margin: [0, 4, 0, 0]
+      });
     }
-    y += blockH + 10;
+
+    content.push({
+      table: {
+        widths: ['*'],
+        body: [
+          [
+            {
+              stack: [
+                { text: String(r.diagnosis), fontSize: 14, bold: true, color: C.brand, margin: [0, 0, 0, 10] },
+                pillColumns.length ? { columns: pillColumns } : null
+              ].filter(Boolean)
+            }
+          ]
+        ]
+      },
+      layout: {
+        fillColor: C.bgLight,
+        hLineWidth: () => 1, vLineWidth: () => 1,
+        hLineColor: () => C.borderLight, vLineColor: () => C.borderLight,
+        paddingLeft: () => 14, paddingRight: () => 14, paddingTop: () => 14, paddingBottom: () => 14
+      },
+      margin: [0, 0, 0, 20],
+      unbreakable: true
+    });
   }
 
-  // ── HEALTH SCORE ─────────────────────────────────────────────────
-  {
-    const blockH = 88;
-    y = ensureFits(y, blockH);
-    y = drawSectionHead(ctx, 'Health Score', y);
+  // 4. Health Score
+  content.push(sectionHeader('Health Score'));
+  content.push(progressBar('Current Health', r.healthScore ?? 0, sc));
+  content.push({ ...progressBar(`After ${r.daysToImprove || 10}-day treatment`, r.healthTarget ?? 85, C.green), margin: [0, 0, 0, 20] });
 
-    const drawBar = (label, value, color, barY) => {
-      ctx.font = '12px Arial, sans-serif';
-      ctx.fillStyle = C.brand;
-      ctx.fillText(label, PAD, barY + 10);
-      ctx.font = 'bold 12px Arial, sans-serif';
-      ctx.fillStyle = color;
-      ctx.textAlign = 'right';
-      ctx.fillText(`${value}/100`, W - PAD, barY + 10);
-      ctx.textAlign = 'left';
-      roundRect(ctx, PAD, barY + 14, INNER, 7, 4, C.border);
-      roundRect(ctx, PAD, barY + 14, Math.max(4, INNER * Math.min(value, 100) / 100), 7, 4, color);
-    };
-
-    drawBar('Current Health', r.healthScore ?? 0, sc, y);
-    y += 28;
-    drawBar(`After ${r.daysToImprove || 10}-day treatment`, r.healthTarget ?? 85, C.green, y);
-    y += 28 + 10;
-  }
-
-  // ── AI FINDINGS ──────────────────────────────────────────────────
+  // 5. AI Findings
   if (r.imageFindings || r.summary) {
-    ctx.font = '12px Arial, sans-serif';
-    const l1 = r.imageFindings ? measureLines(ctx, r.imageFindings, INNER - 20) : 0;
-    const l2 = r.summary       ? measureLines(ctx, r.summary,       INNER - 20) : 0;
-    const blockH = 30 + (l1 + l2) * 16 + 10;
-    y = ensureFits(y, blockH);
-    y = drawSectionHead(ctx, 'AI Findings', y);
+    content.push(sectionHeader('AI Findings'));
     if (r.imageFindings) {
-      ctx.font = 'italic 12px Arial, sans-serif';
-      ctx.fillStyle = C.gray;
-      y = wrapText(ctx, r.imageFindings, PAD, y + 4, INNER, 16);
-      y += 4;
+      content.push({ text: r.imageFindings, italics: true, color: C.gray, fontSize: 12, margin: [0, 0, 0, 6], unbreakable: true });
     }
     if (r.summary) {
-      ctx.font = '12px Arial, sans-serif';
-      ctx.fillStyle = C.brand;
-      y = wrapText(ctx, r.summary, PAD, y + 4, INNER, 16);
+      content.push({ text: r.summary, color: C.brand, fontSize: 12, margin: [0, 0, 0, 14], unbreakable: true });
     }
-    y += 10;
   }
 
-  // ── TREATMENT STEPS ──────────────────────────────────────────────
+  // 6. Treatment Steps
   if (steps.length) {
-    ctx.font = '12px Arial, sans-serif';
-    let sh = 28;
-    const stepData = steps.map(s => {
-      const lines = Math.max(1, measureLines(ctx, s, INNER - 50));
-      const h = lines * 16 + 8;
-      sh += h;
-      return { s, lines, h };
+    content.push(sectionHeader('Treatment Steps'));
+    
+    const stepsStack = steps.map((stepText, idx) => ({
+      columns: [
+        { text: `${idx + 1}.`, width: 18, fontSize: 12, color: C.brand, bold: true },
+        { text: stepText, width: '*', fontSize: 12, color: '#2A1E00' }
+      ],
+      margin: [0, 0, 0, 8],
+      unbreakable: true
+    }));
+
+    content.push({
+      stack: stepsStack,
+      margin: [0, 0, 0, 20]
     });
-    y = ensureFits(y, sh);
-    y = drawSectionHead(ctx, 'Treatment Steps', y);
-
-    stepData.forEach(({ s, lines }, i) => {
-      // Check if this individual step fits on the current page
-      const stepH = lines * 16 + 8;
-      y = ensureFits(y, stepH + 4);
-
-      // Number circle
-      ctx.beginPath();
-      ctx.arc(PAD + 11, y + 11, 11, 0, Math.PI * 2);
-      ctx.fillStyle = C.brand;
-      ctx.fill();
-      ctx.font = 'bold 9px Arial, sans-serif';
-      ctx.fillStyle = C.white;
-      ctx.textAlign = 'center';
-      ctx.fillText(String(i + 1), PAD + 11, y + 15);
-      ctx.textAlign = 'left';
-
-      ctx.font = '12px Arial, sans-serif';
-      ctx.fillStyle = '#2A1E00';
-      wrapText(ctx, s, PAD + 28, y + 14, INNER - 36, 16);
-      y += stepH + 4;
-    });
-    y += 6;
   }
 
-  // ── NATURAL REMEDIES ─────────────────────────────────────────────
+  // 7. Natural Remedies
   if (natural.length) {
-    ctx.font = '12px Arial, sans-serif';
-    let nh = 28;
-    const natData = natural.map(n => {
-      const lines = Math.max(1, measureLines(ctx, n, INNER - 30));
-      const h = lines * 16 + 6;
-      nh += h;
-      return { n, h };
-    });
-    y = ensureFits(y, nh);
-    roundRect(ctx, PAD, y, INNER, nh, 10, C.bgGreen, C.borderGreen);
-    ctx.font = 'bold 8.5px Arial, sans-serif';
-    ctx.fillStyle = C.green;
-    ctx.fillText('NATURAL REMEDIES', PAD + 12, y + 14);
-    let ny = y + 24;
-    natData.forEach(({ n, h }) => {
-      ctx.font = '12px Arial, sans-serif';
-      ctx.fillStyle = '#1A4A1A';
-      ny = wrapText(ctx, `• ${n}`, PAD + 12, ny + 4, INNER - 24, 16);
-    });
-    y += nh + 10;
+    content.push(coloredBox('NATURAL REMEDIES', natural, C.bgGreen, C.borderGreen, C.green, '#1A4A1A'));
   }
 
-  // ── DIET RECOMMENDATION ──────────────────────────────────────────
+  // 8. Diet Recommendation
   if (dietText) {
-    ctx.font = '12px Arial, sans-serif';
-    const dl = measureLines(ctx, dietText, INNER - 24);
-    const dh = 28 + dl * 16 + (r.currentDietAssessment ? 22 : 0) + 10;
-    y = ensureFits(y, dh);
-    roundRect(ctx, PAD, y, INNER, dh, 10, C.bgAmber, C.borderAmber);
-    ctx.font = 'bold 8.5px Arial, sans-serif';
-    ctx.fillStyle = '#7A4A00';
-    ctx.fillText('DIET RECOMMENDATION', PAD + 12, y + 14);
-    ctx.font = '12px Arial, sans-serif';
-    ctx.fillStyle = '#5C3800';
-    let dy = wrapText(ctx, dietText, PAD + 12, y + 28, INNER - 24, 16);
+    const dietStack = [ { text: dietText, color: '#5C3800', fontSize: 12, margin: [0, 4, 0, 0] } ];
     if (r.currentDietAssessment) {
-      ctx.font = 'italic 11px Arial, sans-serif';
-      ctx.fillStyle = C.gray;
-      ctx.fillText(`Current: ${r.currentDietAssessment}`, PAD + 12, dy + 6);
+      dietStack.push({ text: `Current: ${r.currentDietAssessment}`, italics: true, color: C.gray, fontSize: 11, margin: [0, 6, 0, 0] });
     }
-    y += dh + 10;
+    content.push(coloredBox('DIET RECOMMENDATION', { stack: dietStack, unbreakable: true }, C.bgAmber, C.borderAmber, '#7A4A00', '#5C3800'));
   }
 
-  // ── RED FLAGS ────────────────────────────────────────────────────
+  // 9. Red Flags
   if (redFlags.length) {
-    ctx.font = '12px Arial, sans-serif';
-    let rh = 28;
-    const rfData = redFlags.map(f => {
-      const lines = Math.max(1, measureLines(ctx, f, INNER - 30));
-      const h = lines * 16 + 6;
-      rh += h;
-      return { f, h };
-    });
-    y = ensureFits(y, rh);
-    roundRect(ctx, PAD, y, INNER, rh, 10, C.bgRed, C.borderRed);
-    ctx.font = 'bold 8.5px Arial, sans-serif';
-    ctx.fillStyle = C.red;
-    ctx.fillText('SEE VET IF YOU NOTICE', PAD + 12, y + 14);
-    let ry2 = y + 24;
-    rfData.forEach(({ f, h }) => {
-      ctx.font = '12px Arial, sans-serif';
-      ctx.fillStyle = '#7A1A1A';
-      ry2 = wrapText(ctx, `[!]  ${f}`, PAD + 12, ry2 + 4, INNER - 24, 16);
-    });
-    y += rh + 10;
+    const redFlagElements = redFlags.map(f => ({ text: `[!]  ${f}`, margin: [0, 4, 0, 0], color: '#7A1A1A', fontSize: 12, unbreakable: true }));
+    content.push(coloredBox('SEE VET IF YOU NOTICE', { stack: redFlagElements }, C.bgRed, C.borderRed, C.red, '#7A1A1A'));
   }
 
-  // ── DOG PROFILE ──────────────────────────────────────────────────
+  // 10. Dog Profile Grid
   if (profileRows.length) {
-    const colW = (INNER - 16) / 2;
-    const rowCount = Math.ceil(profileRows.length / 2);
-    const profileH = 28 + rowCount * 32 + 10;
-    y = ensureFits(y, profileH);
-    y = drawSectionHead(ctx, 'Dog Profile', y);
+    content.push({ text: '', margin: [0, 10, 0, 0] }); // spacer
+    content.push(sectionHeader('Dog Profile'));
 
-    profileRows.forEach(([label, value], i) => {
-      const col = i % 2;
-      const row = Math.floor(i / 2);
-      const cx = PAD + col * (colW + 16);
-      const cy = y + row * 32;
-      ctx.font = 'bold 8px Arial, sans-serif';
-      ctx.fillStyle = C.gray;
-      ctx.fillText(label.toUpperCase(), cx, cy + 10);
-      ctx.font = '12px Arial, sans-serif';
-      ctx.fillStyle = C.brand;
-      ctx.fillText(String(value).slice(0, 40), cx, cy + 24);
+    const gridBody = [];
+    for (let i = 0; i < profileRows.length; i += 2) {
+      const col1 = profileRows[i];
+      const col2 = profileRows[i + 1] || ['', ''];
+      
+      gridBody.push([
+        { stack: [ { text: col1[0].toUpperCase(), style: 'gridLabel' }, { text: col1[1], style: 'gridValue' } ], margin: [0, 0, 0, 10] },
+        { stack: [ { text: col2[0] ? col2[0].toUpperCase() : '', style: 'gridLabel' }, { text: col2[1] || '', style: 'gridValue' } ], margin: [0, 0, 0, 10] }
+      ]);
+    }
+
+    content.push({
+      table: { widths: ['*', '*'], body: gridBody },
+      layout: 'noBorders',
+      unbreakable: true
     });
-    y += rowCount * 32 + 16;
   }
 
-  // Pad the final height to a full A4 page multiple so all pages are uniform
-  const actualH = y + 20;
-  const pages   = Math.ceil(actualH / A4_H);
-  const fullH   = pages * A4_H;
-
-  // ── FOOTERS on every page (based on actual content) ──────────────
-  drawFooters(ctx, fullH, dateStr);
-
-  // Copy to final canvas (now sized to full A4 pages)
-  const final = document.createElement('canvas');
-  final.width  = W * SCALE;
-  final.height = fullH * SCALE;
-  const fCtx = final.getContext('2d', { alpha: false });
-  
-  // Explicitly fill white to prevent any black backgrounds
-  fCtx.fillStyle = C.white;
-  fCtx.fillRect(0, 0, final.width, final.height);
-  
-  const copyH = Math.min(totalH, fullH);
-  fCtx.drawImage(canvas, 0, 0, W * SCALE, copyH * SCALE, 0, 0, W * SCALE, copyH * SCALE);
-  
-  final._logicalWidth  = W;
-  final._logicalHeight = fullH;
-  final._pages         = pages;
-  return final;
-}
-
-// ── Public API ────────────────────────────────────────────────────────
-
-export async function generateReportPDF(report, dogProfile, ownerName, scanDate) {
-  const r   = report     || {};
-  const dog = dogProfile || {};
-
-  const canvas = await buildVetRxCanvas(r, dog, ownerName || '', scanDate || null);
+  // ── Document Definition ─────────────────────────────────────────────
+  const docDefinition = {
+    pageSize: 'A4',
+    pageMargins: [40, 40, 40, 60], // Left, Top, Right, Bottom
+    content: content,
+    footer: function(currentPage, pageCount) {
+      return {
+        margin: [40, 10, 40, 0],
+        stack: [
+          { canvas: [{ type: 'line', x1: 0, y1: 0, x2: 515, y2: 0, lineWidth: 1, lineColor: C.brand, strokeOpacity: 0.12 }], margin: [0, 0, 0, 8] },
+          {
+            columns: [
+              { text: 'VetRx Scan is an AI assistance tool. Consult a licensed veterinarian for medical decisions.', color: C.gray, fontSize: 7.5 },
+              { text: `Page ${currentPage} of ${pageCount}  |  doglicious.in`, color: C.gray, fontSize: 7.5, alignment: 'right' }
+            ]
+          }
+        ]
+      };
+    },
+    styles: {
+      sectionTitle: {
+        fontSize: 8.5,
+        bold: true,
+        color: C.gray
+      },
+      gridLabel: {
+        fontSize: 8,
+        bold: true,
+        color: C.gray,
+        margin: [0, 0, 0, 2]
+      },
+      gridValue: {
+        fontSize: 12,
+        color: C.brand
+      }
+    },
+    defaultStyle: {
+      font: 'Roboto'
+    }
+  };
 
   const dogName  = (dog.name || 'dog').replace(/\s+/g, '-');
   const dateSlug = new Date().toISOString().slice(0, 10);
   const filename = `VetRx-${dogName}-${dateSlug}.pdf`;
 
-  const imgData  = canvas.toDataURL('image/png');
-  const pages    = canvas._pages || 1;
-  const contentH = canvas._logicalHeight || canvas.height / SCALE;
-
-  // Build one <img> per A4 page so the browser's print dialog paginates correctly
-  const pageImgs = [];
-  const pageHeights = [];
-  for (let p = 0; p < pages; p++) {
-    // All pages are now exactly standard A4 height
-    const pageH = A4_H;
-    
-    const slice = document.createElement('canvas');
-    slice.width  = W * SCALE;
-    slice.height = pageH * SCALE;
-    const sCtx = slice.getContext('2d', { alpha: false });
-    
-    // Explicitly fill white to prevent black artifacts during slice creation
-    sCtx.fillStyle = '#FFFFFF';
-    sCtx.fillRect(0, 0, slice.width, slice.height);
-    
-    sCtx.imageSmoothingEnabled = false; // preserve sharpness when slicing
-    sCtx.drawImage(canvas, 0, p * A4_H * SCALE, W * SCALE, pageH * SCALE, 0, 0, W * SCALE, pageH * SCALE);
-    pageImgs.push(slice.toDataURL('image/png'));
-    pageHeights.push(pageH);
-  }
-
-  const win = window.open('', '_blank');
-  if (!win) {
-    // Fallback: download as PNG if popup blocked
-    const a = document.createElement('a');
-    a.href = imgData;
-    a.download = filename.replace('.pdf', '.png');
-    a.click();
-    return;
-  }
-
-
-  // Removed hardcoded width/height attributes to prevent print engine scaling conflicts
-  const imgTags = pageImgs.map((src, i) =>
-    `<div class="page${i === pageImgs.length - 1 ? ' last' : ''}">
-       <img src="${src}" />
-     </div>`
-  ).join('');
-
-  win.document.write(`<!DOCTYPE html>
-<html>
-<head>
-  <title>${filename}</title>
-  <style>
-    * { margin:0; padding:0; box-sizing:border-box; }
-    html, body { background:#fff; margin:0; padding:0; }
-
-    .page {
-      width: 210mm;
-      height: 297mm;
-      margin: 0 auto;
-      display: block;
-      overflow: hidden;
-      background: #fff;
-      page-break-after: always;
-    }
-    .page.last { page-break-after: auto; }
-    
-    .page img {
-      display: block;
-      width: 100%;
-      height: 100%;
-      /* The magic property: ensures aspect ratio fits inside boundaries without spilling */
-      object-fit: cover;
-      object-position: top center; 
-      image-rendering: -webkit-optimize-contrast;
-      image-rendering: crisp-edges;
-    }
-
-    @media print {
-      @page { margin:0; size:A4 portrait; }
-      html, body { margin:0; padding:0; }
-      .page {
-        width: 100%;
-        /* Hard boundary exactly 1mm under A4 height to consume the 0.19mm spillover */
-        height: 296mm; 
-        margin: 0;
-        page-break-inside: avoid;
-        page-break-after: always;
-      }
-      .page.last { page-break-after: auto; }
-    }
-  </style>
-</head>
-<body>
-  ${imgTags}
-  <script>window.onload=function(){setTimeout(function(){window.print();},500);};<\/script>
-</body>
-</html>`);
-  win.document.close();
+  pdfMake.createPdf(docDefinition).download(filename);
 }
