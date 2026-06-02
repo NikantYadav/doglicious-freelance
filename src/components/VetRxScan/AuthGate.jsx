@@ -69,12 +69,12 @@ const AuthGate = ({ onAuthenticated }) => {
                 return;
             }
 
-            if (result.isNewUser || !result.name) {
-                // New user OR existing user without a name — collect it
+            if (result.isNewUser) {
+                // Brand-new account — collect their name once
                 setPendingUser(result);
                 setStep('name');
             } else {
-                // Returning user — go straight in
+                // Returning user — go straight in with whatever name they already have
                 const paidScans = result.paidScans ?? 0;
                 saveSession({ phone: normPhone, contactId: result.contactId, name: result.name, scanCount: result.scanCount, paidScans });
                 onAuthenticated({ phone: normPhone, contactId: result.contactId, name: result.name, scanCount: result.scanCount, paidScans });

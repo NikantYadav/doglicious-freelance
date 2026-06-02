@@ -35,7 +35,7 @@ async function getOrCreateUser(phone) {
         return { ...existing, isNewUser: false };
     }
 
-    // New user — insert
+    // New user — insert (name collected on frontend immediately after)
     const { data, error } = await supabase
         .from('vetrx_users')
         .insert({ phone })
@@ -44,6 +44,13 @@ async function getOrCreateUser(phone) {
 
     if (error) throw error;
     return { ...data, isNewUser: true };
+}
+
+async function saveNewUserName(phone, name) {
+    await supabase
+        .from('vetrx_users')
+        .update({ name })
+        .eq('phone', phone);
 }
 
 async function recordLoginEvent(phone) {

@@ -3,8 +3,12 @@ import { LOGO_PLACEHOLDER } from './constants';
 import ScanHistory from './ScanHistory';
 import CameraModal from './CameraModal';
 
-const WelcomeScreen = ({ photo, scansLeft = 0, userName, phone, onPhotoUploaded, onClearPhoto, onNext }) => {
+// Detect mobile/tablet — used to pick native camera vs getUserMedia modal
+const isMobile = () => /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent);
+
+const WelcomeScreen = ({ photo, scansLeft = 0, userName, phone, onPhotoUploaded, onClearPhoto, onNext, onLogout }) => {
     const galleryInputRef = useRef(null);
+    const cameraInputRef = useRef(null); // native capture input for mobile
     const [showHistory, setShowHistory] = useState(false);
     const [showCamera, setShowCamera] = useState(false);
 
@@ -40,6 +44,17 @@ const WelcomeScreen = ({ photo, scansLeft = 0, userName, phone, onPhotoUploaded,
     };
 
     const handleGalleryChange = (e) => processFile(e.target.files[0]);
+    const handleNativeCameraChange = (e) => processFile(e.target.files[0]);
+
+    // On mobile use the native camera input (no getUserMedia, no permission dialog issues).
+    // On desktop open the getUserMedia modal for a richer in-browser experience.
+    const handleCameraClick = () => {
+        if (isMobile()) {
+            cameraInputRef.current.click();
+        } else {
+            setShowCamera(true);
+        }
+    };
 
     const handleCameraCapture = (photoData) => {
         setShowCamera(false);
@@ -75,8 +90,8 @@ const WelcomeScreen = ({ photo, scansLeft = 0, userName, phone, onPhotoUploaded,
                     position: 'relative',
                 }}
             >
-                {/* Scans left badge */}
-                <div style={{ position: 'absolute', top: '16px', right: '16px', zIndex: 2 }}>
+                {/* Scans left badge + logout */}
+                <div style={{ position: 'absolute', top: '16px', right: '16px', zIndex: 2, display: 'flex', alignItems: 'center', gap: '8px' }}>
                     <div style={{
                         background: 'rgba(61,43,0,0.92)', color: '#FBF6EC',
                         borderRadius: '999px', padding: '8px 12px',
@@ -85,6 +100,22 @@ const WelcomeScreen = ({ photo, scansLeft = 0, userName, phone, onPhotoUploaded,
                     }}>
                         {scansLeft} scans left
                     </div>
+                    {onLogout && (
+                        <button
+                            onClick={onLogout}
+                            title="Log out"
+                            style={{
+                                background: 'rgba(61,43,0,0.92)', color: '#FBF6EC',
+                                borderRadius: '999px', padding: '8px 12px',
+                                fontSize: '12px', fontWeight: 700,
+                                boxShadow: '0 8px 24px rgba(0,0,0,0.12)',
+                                border: 'none', cursor: 'pointer',
+                                fontFamily: 'inherit',
+                            }}
+                        >
+                            Logout
+                        </button>
+                    )}
                 </div>
 
                 {/* Logo + title */}
@@ -109,6 +140,16 @@ const WelcomeScreen = ({ photo, scansLeft = 0, userName, phone, onPhotoUploaded,
                     style={{ display: 'none' }}
                     ref={galleryInputRef}
                     onChange={handleGalleryChange}
+                />
+
+                {/* Hidden native camera input for mobile — bypasses getUserMedia entirely */}
+                <input
+                    type="file"
+                    accept="image/*"
+                    capture="environment"
+                    style={{ display: 'none' }}
+                    ref={cameraInputRef}
+                    onChange={handleNativeCameraChange}
                 />
 
                 {/* Photo zone */}
@@ -137,7 +178,7 @@ const WelcomeScreen = ({ photo, scansLeft = 0, userName, phone, onPhotoUploaded,
                                     <span style={{ fontSize: '10px', color: '#9B7E4A' }}>Upload from photos</span>
                                 </button>
                                 <button
-                                    onClick={() => setShowCamera(true)}
+                                    onClick={handleCameraClick}
                                     style={{
                                         flex: 1, padding: '12px 8px',
                                         background: '#3D2B00', border: '1.5px solid #3D2B00',
@@ -173,7 +214,7 @@ const WelcomeScreen = ({ photo, scansLeft = 0, userName, phone, onPhotoUploaded,
                                     <button
                                         className="btn btn-secondary"
                                         style={{ flex: 1 }}
-                                        onClick={() => setShowCamera(true)}
+                                        onClick={handleCameraClick}
                                     >
                                         📷 Camera
                                     </button>

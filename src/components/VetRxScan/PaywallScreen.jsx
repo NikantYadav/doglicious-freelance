@@ -16,12 +16,18 @@ const PaywallScreen = ({ phone, contactId, firstname, onLogout, numScans, payuMe
         setLoading(true);
         setError(null);
         try {
+            // Derive a consistent placeholder email from the phone number
+            // so the backend hash can be generated without asking the user
+            const safePhone = (phone || '').replace(/\D/g, '');
+            const derivedEmail = `${safePhone}@vetrx.doglicious.in`;
+
             const res = await fetch(`${API}/api/payu-initiate`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     phone: phone || '',
-                    firstname: firstname || phone || 'User',
+                    firstname: firstname || 'User',
+                    email: derivedEmail,
                     contactId: contactId || '',
                     returnPath: window.location.pathname,
                 }),

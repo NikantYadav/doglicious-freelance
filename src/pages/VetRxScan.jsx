@@ -12,7 +12,7 @@ import FollowUpScreen from '../components/VetRxScan/FollowUp';
 import AuthGate from '../components/VetRxScan/AuthGate';
 import PaywallScreen from '../components/VetRxScan/PaywallScreen';
 
-import { getSession, updateSessionScanCount, updateSessionPaidScans, getConfig } from '../services/auth';
+import { getSession, updateSessionScanCount, updateSessionPaidScans, updateSessionName, clearSession, getConfig, getScanHistory } from '../services/auth';
 import { pushReport } from '../services/wylto';
 import { useSEO } from '../hooks/useSEO';
 
@@ -70,6 +70,19 @@ const VetRxScan = () => {
     if (session) {
       // Restore auth session (but ignore any stored config - backend is source of truth)
       setAuthUser(session);
+
+      // Sync scan counts from backend so cross-device usage is reflected correctly
+      getScanHistory(session.phone)
+        .then(({ user }) => {
+          if (user) {
+            const freshScanCount = user.scanCount ?? session.scanCount;
+            const freshPaidScans = user.paidScans ?? session.paidScans ?? 0;
+            updateSessionScanCount(freshScanCount);
+            updateSessionPaidScans(freshPaidScans);
+            setAuthUser(prev => prev ? { ...prev, scanCount: freshScanCount, paidScans: freshPaidScans } : prev);
+          }
+        })
+        .catch(err => console.warn('[VetRxScan] Failed to sync scan counts from backend:', err));
     }
 
     setAuthReady(true);
@@ -80,6 +93,7 @@ const VetRxScan = () => {
   };
 
   const handleLogout = () => {
+    clearSession();
     setAuthUser(null);
   };
 
@@ -330,6 +344,7 @@ const VetRxScan = () => {
                 onPhotoUploaded={(p) => { setPhoto(p); setSelectedPart(''); setSelectedSymptoms([]); }}
                 onClearPhoto={() => setPhoto(null)}
                 onNext={() => goTo('symptoms')}
+                onLogout={handleLogout}
               />
             )}
 
