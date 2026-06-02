@@ -90,42 +90,41 @@ const WelcomeScreen = ({ photo, scansLeft = 0, userName, phone, onPhotoUploaded,
                     position: 'relative',
                 }}
             >
-                {/* Scans left badge + logout */}
-                <div style={{ position: 'absolute', top: '16px', right: '16px', zIndex: 2, display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <div style={{
-                        background: 'rgba(61,43,0,0.92)', color: '#FBF6EC',
-                        borderRadius: '999px', padding: '8px 12px',
-                        fontSize: '12px', fontWeight: 800,
-                        boxShadow: '0 8px 24px rgba(0,0,0,0.12)',
-                    }}>
-                        {scansLeft} scans left
-                    </div>
-                    {onLogout && (
-                        <button
-                            onClick={onLogout}
-                            title="Log out"
-                            style={{
-                                background: 'rgba(61,43,0,0.92)', color: '#FBF6EC',
-                                borderRadius: '999px', padding: '8px 12px',
-                                fontSize: '12px', fontWeight: 700,
-                                boxShadow: '0 8px 24px rgba(0,0,0,0.12)',
-                                border: 'none', cursor: 'pointer',
-                                fontFamily: 'inherit',
-                            }}
-                        >
-                            Logout
-                        </button>
-                    )}
-                </div>
-
-                {/* Logo + title */}
+                {/* Header row: logo + title on left, badges on right — all in flow, no absolute positioning */}
                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '6px', width: '100%', maxWidth: '420px' }}>
-                    <div className="logo-wrap">
+                    <div className="logo-wrap" style={{ flexShrink: 0 }}>
                         <img src={LOGO_PLACEHOLDER} alt="Doglicious" className="logo-img" style={{ width: '50px' }} />
                     </div>
-                    <div>
+                    <div style={{ flex: 1, minWidth: 0 }}>
                         <h1 style={{ color: '#3D2B00', fontSize: '22px', fontWeight: 900, letterSpacing: '-0.4px' }}>VetRx Scan</h1>
                         <p style={{ color: '#5C4215', fontSize: '12px' }}>AI Dog Health Scan</p>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0 }}>
+                        <div style={{
+                            background: 'rgba(61,43,0,0.92)', color: '#FBF6EC',
+                            borderRadius: '999px', padding: '7px 11px',
+                            fontSize: '11px', fontWeight: 800,
+                            boxShadow: '0 4px 12px rgba(0,0,0,0.12)',
+                            whiteSpace: 'nowrap',
+                        }}>
+                            {scansLeft} scans left
+                        </div>
+                        {onLogout && (
+                            <button
+                                onClick={onLogout}
+                                title="Log out"
+                                style={{
+                                    background: 'rgba(61,43,0,0.92)', color: '#FBF6EC',
+                                    borderRadius: '999px', padding: '7px 11px',
+                                    fontSize: '11px', fontWeight: 700,
+                                    boxShadow: '0 4px 12px rgba(0,0,0,0.12)',
+                                    border: 'none', cursor: 'pointer',
+                                    fontFamily: 'inherit', whiteSpace: 'nowrap',
+                                }}
+                            >
+                                Logout
+                            </button>
+                        )}
                     </div>
                 </div>
 
