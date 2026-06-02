@@ -32,7 +32,7 @@ export default function WhatIsFreshSection({ openModal }) {
                                 <div className="fresh-stat-l">Vet-approved recipes</div>
                             </div>
                         </div>
-                        <button className="btn btn-primary" onClick={() => openModal('sample')} style={{ width: "100%", justifyContent: "center" }}>Book sample — from ₹99</button>
+                        <button className="btn btn-primary" onClick={() => openModal('sample')} style={{ width: "100%", justifyContent: "center" }}>Get Fresh Food Sample — from ₹99</button>
                     </div>
                 </div>
             </div>

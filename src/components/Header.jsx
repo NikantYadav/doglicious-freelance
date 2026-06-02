@@ -12,7 +12,7 @@ export default function Header({ navScrolled, mobileMenuOpen, setMobileMenuOpen,
                     <a href="#tools">Tools</a>
                     <a href="#blogs">Blog</a>
                     <button className="btn btn-soft btn-sm" onClick={() => openModal('vet')}>🔍 Vet Rx Scan</button>
-                    <button className="btn btn-primary btn-sm" onClick={() => openModal('sample')}>Book Sample — ₹99</button>
+                    <button className="btn btn-primary btn-sm" onClick={() => openModal('sample')}>Get Fresh Food Sample — ₹99</button>
                 </div>
                 <button className="mbtn" onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 12h18M3 6h18M3 18h18" /></svg>
@@ -32,7 +32,7 @@ export default function Header({ navScrolled, mobileMenuOpen, setMobileMenuOpen,
                         <a href="#blogs" onClick={() => setMobileMenuOpen(false)}>Blog & Guides</a>
                         <hr style={{ opacity: ".1", margin: "20px 0" }} />
                         <button className="btn btn-soft" style={{ width: "100%", justifyContent: "center", marginBottom: "12px" }} onClick={() => { setMobileMenuOpen(false); openModal('vet'); }}>🔍 Vet Rx Scan — Free</button>
-                        <button className="btn btn-primary" style={{ width: "100%", justifyContent: "center" }} onClick={() => { setMobileMenuOpen(false); openModal('sample'); }}>Book Sample — ₹99</button>
+                        <button className="btn btn-primary" style={{ width: "100%", justifyContent: "center" }} onClick={() => { setMobileMenuOpen(false); openModal('sample'); }}>Get Fresh Food Sample — ₹99</button>
                     </div>
                 </div>
             </div>

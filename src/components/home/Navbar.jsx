@@ -39,7 +39,7 @@ export default function Navbar({
                 <a href="#case-studies" onClick={() => { setMobileMenuOpen(false) }}>Results</a>
                 <Link to="/blogs" onClick={() => { setMobileMenuOpen(false) }}>Blogs</Link>
                 <a href="#contact" onClick={() => { setMobileMenuOpen(false) }}>Contact</a>
-                <a href="#" onClick={(e) => { e.preventDefault(); setMobileMenuOpen(false); openModal('sample'); }}>Book Sample for ₹99 →</a>
+                <a href="#" onClick={(e) => { e.preventDefault(); setMobileMenuOpen(false); openModal('sample'); }}>Get Fresh Food Sample for ₹99 →</a>
             </div>
         </>
     );

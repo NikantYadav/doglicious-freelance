@@ -53,7 +53,7 @@ export default function Header({
                 <a href="#case-studies" onClick={() => { setMobileMenuOpen(false) }}>Results</a>
                 <a href="#blogs" onClick={() => { setMobileMenuOpen(false) }}>Blogs</a>
                 <a href="#contact" onClick={() => { setMobileMenuOpen(false) }}>Contact</a>
-                <a href="#" onClick={() => { setMobileMenuOpen(false); openModal('sample'); }}>Book Sample for ₹99 →</a>
+                <a href="#" onClick={() => { setMobileMenuOpen(false); openModal('sample'); }}>Get Fresh Food Sample for ₹99 →</a>
             </div>
         </>
     );

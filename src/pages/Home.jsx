@@ -181,7 +181,7 @@ export default function Home() {
               <img src={logoImg} alt="Doglicious.in" style={{ height: '44px', width: 'auto', mixBlendMode: 'multiply', display: 'block' }} />
             </Link>
             <ul className="nav-links">
-              <li><a href="#book">Book Sample</a></li>
+              <li><a href="#book">Get Fresh Food Sample</a></li>
               <li><a href="#recipes">Recipes</a></li>
               <li>
                 <button>AI Analysis <span className="nav-caret">▾</span></button>
@@ -248,7 +248,7 @@ export default function Home() {
               <div className="hero-label"><span className="hero-dot" />&nbsp;India's First AI Dog Nutrition &amp; Analysis Platform · Estd. 2020</div>
               <h1 className="hero-h1">Fresh food &amp;<br />AI care for your<br /><em>dog. 🐾</em></h1>
               <p className="hero-tagline">Different Dog. <span>Different Food.</span></p>
-              <p className="hero-sub"><strong>Vet-approved &amp; internationally acclaimed.</strong> Freshly cooked every morning, delivered same day. Free AI health analysis for every dog.</p>
+              <p className="hero-sub"><strong>Vet-approved &amp; internationally acclaimed.</strong><br /><span style={{whiteSpace:'nowrap'}}>Freshly cooked every morning, delivered same day.</span></p>
 
               <div className="trust-chips">
                 {['Vet Approved', 'Internationally Acclaimed', 'NABL Certified', 'AAFCO Aligned', 'Zero Preservatives', '5L+ Meals Served'].map(c => <span key={c} className="chip">{c}</span>)}

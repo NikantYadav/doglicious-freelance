@@ -93,7 +93,7 @@ export default function QuizModal({ isOpen, onClose, quizStep, setQuizStep, quiz
                             <span>✓ Full plan sent via WhatsApp</span>
                         </div>
                     </div>
-                    <button className="btn btn-primary" style={{ width: "100%", justifyContent: "center", marginBottom: "8px" }} onClick={() => { onClose(); setTimeout(() => openModal('sample'), 150); }}>Book sample for ₹99</button>
+                    <button className="btn btn-primary" style={{ width: "100%", justifyContent: "center", marginBottom: "8px" }} onClick={() => { onClose(); setTimeout(() => openModal('sample'), 150); }}>Get Fresh Food Sample for ₹99</button>
                     <a href="https://wa.me/919889887980?text=Hi!%20I%20completed%20the%20dog%20quiz%20and%20want%20my%20personalised%20plan!" target="_blank" rel="noreferrer" className="btn btn-wa" style={{ width: "100%", justifyContent: "center" }}>💬 Get full plan on WhatsApp</a>
                 </div>
             )}

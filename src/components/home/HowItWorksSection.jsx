@@ -13,7 +13,7 @@ export default function HowItWorksSection({ openModal }) {
                             <div className="st-t">Choose how you want to start</div>
                             <div className="st-d" style={{ marginBottom: "12px" }}>Two ways in — try before you commit, or scan first.</div>
                             <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
-                                <button className="btn btn-primary btn-sm" onClick={() => { openModal('sample') }} style={{ fontSize: "12px", padding: "8px 16px" }}>Book Sample — ₹99</button>
+                                <button className="btn btn-primary btn-sm" onClick={() => { openModal('sample') }} style={{ fontSize: "12px", padding: "8px 16px" }}>Get Fresh Food Sample — ₹99</button>
                                 <button className="btn btn-soft btn-sm" onClick={() => { openModal('vet') }} style={{ fontSize: "12px", padding: "8px 16px", border: ".5px solid var(--b2)" }}>🔍 Vet Rx Scan</button>
                             </div>
                         </div>

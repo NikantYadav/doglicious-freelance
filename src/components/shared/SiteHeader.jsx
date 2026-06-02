@@ -48,7 +48,7 @@ export default function SiteHeader({ openModal }) {
           </Link>
 
           <ul className="nav-links">
-            <li><Link to="/#book">Book Sample</Link></li>
+            <li><Link to="/#book">Get Fresh Food Sample</Link></li>
             <li><Link to="/#recipes">Recipes</Link></li>
             <li>
               <button>AI Analysis <span className="nav-caret">▾</span></button>
