@@ -22,6 +22,18 @@ const isAndroidDevice = () => {
   return /Android/i.test(navigator.userAgent || "");
 };
 
+const shouldTryInlineCameraOnAndroid = () => {
+  if (typeof navigator === "undefined") return false;
+  const ua = navigator.userAgent || "";
+  if (!/Android/i.test(ua)) return false;
+
+  const blockedBrowsers =
+    /SamsungBrowser|; wv\)|\bwv\b|FBAN|FBAV|Instagram|Line\//i;
+  if (blockedBrowsers.test(ua)) return false;
+
+  return /Chrome\/|EdgA\//i.test(ua);
+};
+
 const WelcomeScreen = ({
   photo,
   scansLeft = 0,
@@ -37,11 +49,17 @@ const WelcomeScreen = ({
   const [showHistory, setShowHistory] = useState(false);
   const [showCamera, setShowCamera] = useState(false);
   const supportsInlineCamera = useMemo(() => canUseInlineCamera(), []);
-  const prefersInlineCamera = useMemo(
-    () => supportsInlineCamera && !isAndroidDevice(),
-    [supportsInlineCamera],
-  );
   const isIOS = useMemo(() => isIOSDevice(), []);
+  const shouldTryInlineOnAndroid = useMemo(
+    () => shouldTryInlineCameraOnAndroid(),
+    [],
+  );
+  const prefersInlineCamera = useMemo(
+    () =>
+      supportsInlineCamera &&
+      (isIOS || !isAndroidDevice() || shouldTryInlineOnAndroid),
+    [isIOS, shouldTryInlineOnAndroid, supportsInlineCamera],
+  );
 
   const processFile = (file) => {
     if (!file) return;
@@ -100,8 +118,8 @@ const WelcomeScreen = ({
     cameraInputRef.current.click();
   };
 
-  // Android stays on native capture because some devices fail browser camera permission handoff.
-  // iOS and desktop prefer inline camera to avoid the iOS black native-capture issue.
+  // iOS prefers inline camera to avoid the iOS black native-capture issue.
+  // On Android, only safer Chrome-like browsers try inline first; others stay on native capture.
   const handleCameraClick = () => {
     if (prefersInlineCamera) {
       setShowCamera(true);
@@ -122,6 +140,10 @@ const WelcomeScreen = ({
         <CameraModal
           onCapture={handleCameraCapture}
           onClose={() => setShowCamera(false)}
+          onUseNativeCamera={
+            isAndroidDevice() ? openNativeCameraFallback : null
+          }
+          nativeFallbackLabel="Use system camera"
         />
       )}
 

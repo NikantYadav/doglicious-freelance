@@ -25,7 +25,6 @@ import { pushReport } from "../services/wylto";
 import { useSEO } from "../hooks/useSEO";
 
 const API = import.meta.env.VITE_API_URL ?? "";
-const SCAN_DRAFT_KEY = "vetrx_scan_draft";
 const EMPTY_DOG_PROFILE = {
   name: "",
   breed: "",
@@ -37,48 +36,6 @@ const EMPTY_DOG_PROFILE = {
   foodTimes: "",
   mobile: "",
   notes: "",
-};
-
-const clearScanDraft = () => {
-  try {
-    sessionStorage.removeItem(SCAN_DRAFT_KEY);
-  } catch {
-    // ignore storage failures
-  }
-};
-
-const loadScanDraft = () => {
-  try {
-    const raw = sessionStorage.getItem(SCAN_DRAFT_KEY);
-    if (!raw) return null;
-    const draft = JSON.parse(raw);
-    return draft && typeof draft === "object" ? draft : null;
-  } catch {
-    return null;
-  }
-};
-
-const saveScanDraft = (draft) => {
-  try {
-    sessionStorage.setItem(SCAN_DRAFT_KEY, JSON.stringify(draft));
-  } catch {
-    // ignore storage failures
-  }
-};
-
-const getResumeScreen = (draft) => {
-  const requestedScreen = draft?.currentScreen;
-
-  if (requestedScreen === "followup" && draft?.report) return "followup";
-  if (requestedScreen === "report" && draft?.report) return "report";
-  if (requestedScreen === "questions" && draft?.initialAnalysis)
-    return "questions";
-  if (requestedScreen === "profile" && draft?.photo) return "profile";
-  if (requestedScreen === "symptoms" && draft?.photo) return "symptoms";
-  if (requestedScreen === "welcome" || requestedScreen === "disclaimer")
-    return requestedScreen;
-
-  return draft?.photo ? "welcome" : "disclaimer";
 };
 
 const VetRxScan = () => {
@@ -141,21 +98,6 @@ const VetRxScan = () => {
       // Restore auth session (but ignore any stored config - backend is source of truth)
       setAuthUser(session);
 
-      const draft = loadScanDraft();
-      if (draft) {
-        setCurrentScreen(getResumeScreen(draft));
-        setPhoto(draft.photo || null);
-        setSelectedPart(draft.selectedPart || "");
-        setSelectedSymptoms(
-          Array.isArray(draft.selectedSymptoms) ? draft.selectedSymptoms : [],
-        );
-        setDogProfile({ ...EMPTY_DOG_PROFILE, ...(draft.dogProfile || {}) });
-        setInitialAnalysis(draft.initialAnalysis || null);
-        setQIndex(Number.isInteger(draft.qIndex) ? draft.qIndex : 0);
-        setAnswers(Array.isArray(draft.answers) ? draft.answers : []);
-        setReport(draft.report || null);
-      }
-
       // Sync scan counts from backend so cross-device usage is reflected correctly
       getScanHistory(session.phone)
         .then(({ user }) => {
@@ -181,8 +123,6 @@ const VetRxScan = () => {
             err,
           ),
         );
-    } else {
-      clearScanDraft();
     }
 
     setAuthReady(true);
@@ -193,7 +133,6 @@ const VetRxScan = () => {
   };
 
   const handleLogout = () => {
-    clearScanDraft();
     clearSession();
     setAuthUser(null);
   };
@@ -230,7 +169,6 @@ const VetRxScan = () => {
   };
 
   const resetAll = () => {
-    clearScanDraft();
     setPhoto(null);
     setSelectedPart("");
     setSelectedSymptoms([]);
@@ -387,45 +325,6 @@ const VetRxScan = () => {
       prev.includes(s) ? prev.filter((item) => item !== s) : [...prev, s],
     );
   };
-
-  useEffect(() => {
-    if (!authReady || !authUser) return;
-
-    const draftScreen =
-      currentScreen === "loading"
-        ? report
-          ? "report"
-          : initialAnalysis
-            ? "questions"
-            : photo
-              ? "profile"
-              : "welcome"
-        : currentScreen;
-
-    saveScanDraft({
-      currentScreen: draftScreen,
-      photo,
-      selectedPart,
-      selectedSymptoms,
-      dogProfile,
-      initialAnalysis,
-      qIndex,
-      answers,
-      report,
-    });
-  }, [
-    authReady,
-    authUser,
-    currentScreen,
-    photo,
-    selectedPart,
-    selectedSymptoms,
-    dogProfile,
-    initialAnalysis,
-    qIndex,
-    answers,
-    report,
-  ]);
 
   const handleSelectBodyPart = (part) => {
     if (selectedPart !== part) setSelectedSymptoms([]);

@@ -4,7 +4,12 @@ import React, { useRef, useEffect, useState, useCallback } from "react";
 // Uses getUserMedia to open the device camera directly.
 // Works on both mobile and desktop (any device with a camera).
 
-const CameraModal = ({ onCapture, onClose }) => {
+const CameraModal = ({
+  onCapture,
+  onClose,
+  onUseNativeCamera = null,
+  nativeFallbackLabel = "Use system camera instead",
+}) => {
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
   const streamRef = useRef(null);
@@ -102,7 +107,7 @@ const CameraModal = ({ onCapture, onClose }) => {
 
       console.error("[CameraModal] Unable to start camera:", lastError);
       setError(
-        "Camera access failed. Please allow camera permission and try again, or use Gallery instead.",
+        "Camera access failed. Please allow camera permission and try again. If your phone blocks in-app camera permission, use the system camera instead.",
       );
     },
     [attachStreamToVideo, stopCamera],
@@ -190,6 +195,7 @@ const CameraModal = ({ onCapture, onClose }) => {
         }}
       >
         <button
+          type="button"
           onClick={onClose}
           style={{
             background: "rgba(255,255,255,0.15)",
@@ -209,6 +215,7 @@ const CameraModal = ({ onCapture, onClose }) => {
           Take Photo
         </span>
         <button
+          type="button"
           onClick={toggleCamera}
           title="Flip camera"
           style={{
@@ -250,6 +257,7 @@ const CameraModal = ({ onCapture, onClose }) => {
             {error}
           </p>
           <button
+            type="button"
             onClick={onClose}
             style={{
               marginTop: "20px",
@@ -265,6 +273,30 @@ const CameraModal = ({ onCapture, onClose }) => {
           >
             Go Back
           </button>
+          {onUseNativeCamera && (
+            <button
+              type="button"
+              onClick={() => {
+                stopCamera();
+                onClose();
+                onUseNativeCamera();
+              }}
+              style={{
+                marginTop: "10px",
+                background: "rgba(255,255,255,0.15)",
+                border: "1px solid rgba(255,255,255,0.22)",
+                borderRadius: "12px",
+                padding: "12px 24px",
+                fontSize: "14px",
+                fontWeight: 700,
+                cursor: "pointer",
+                color: "#fff",
+                fontFamily: "inherit",
+              }}
+            >
+              {nativeFallbackLabel}
+            </button>
+          )}
         </div>
       ) : (
         <video
@@ -294,6 +326,7 @@ const CameraModal = ({ onCapture, onClose }) => {
           }}
         >
           <button
+            type="button"
             onClick={handleCapture}
             disabled={!ready}
             aria-label="Capture photo"
