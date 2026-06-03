@@ -71,11 +71,15 @@ export async function psRunAI(imageB64, dog, symptoms, phone) {
   });
   const data = await res.json();
   if (!res.ok) {
-    // Attach reason so frontend can show paywall
+    // Attach reason so frontend can show paywall or toast
     const err = new Error(data.error || 'AI analysis failed');
-    err.reason = data.reason;
-    err.scanCount = data.scanCount;
-    err.numFree = data.numFree;
+    err.reason     = data.reason;
+    err.scanCount  = data.scanCount;
+    err.trialScans = data.trialScans;
+    err.trialDays  = data.trialDays;
+    err.dailyUsed  = data.dailyUsed;
+    err.dailyCap   = data.dailyCap;
+    err.periodCap  = data.periodCap;
     throw err;
   }
   return data;

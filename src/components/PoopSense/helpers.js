@@ -46,26 +46,98 @@ export function calcAge(dob) {
   return { years: yrs, months: mo, days: totalDays, label };
 }
 
-const TRIAL_DAYS = 7;
+/**
+ * Compute trial/subscription display status.
+ *
+ * Driven entirely by the `quota` object returned by psGetQuota() — all quota
+ * values (prices, limits, days) come from the backend env and are never
+ * hardcoded or stored on the frontend.
+ *
+ * Pass `quota=null` only before the first psGetQuota() response arrives; the
+ * function returns a safe loading state in that case.
+ *
+ * Returned shape:
+ *   { isSubscribed, isTrial, isExpired, isLoading,
+ *     scansLeft, scansUsed, trialScans, trialDays,
+ *     dailyUsed, dailyCap, periodCap,
+ *     subPrice, subDays, daysLeft, daysUsed }
+ */
+export function getTrialStatus(startDateStr, subscribed, quota = null) {
+  // ── Quota not loaded yet — safe loading state ──────────────────────
+  if (!quota) {
+    return {
+      isLoading:    true,
+      isSubscribed: !!subscribed,
+      isTrial:      !subscribed,
+      isExpired:    false,
+      scansLeft:    null,
+      scansUsed:    null,
+      trialScans:   null,
+      trialDays:    null,
+      dailyUsed:    null,
+      dailyCap:     null,
+      periodCap:    null,
+      subPrice:     null,
+      subDays:      null,
+      daysLeft:     null,
+      daysUsed:     null,
+    };
+  }
 
-export function getTrialStatus(startDateStr, subscribed) {
-  if (subscribed) {
-    return { daysLeft: 999, daysUsed: 0, isExpired: false, isSubscribed: true, startDate: null };
+  // ── Subscribed ─────────────────────────────────────────────────────
+  if (quota.subscribed) {
+    const subExpiresAt = quota.subExpiresAt ? new Date(quota.subExpiresAt) : null;
+    const daysLeft = subExpiresAt
+      ? Math.max(0, Math.ceil((subExpiresAt.getTime() - Date.now()) / 86400000))
+      : 0;
+    return {
+      isLoading:    false,
+      isSubscribed: true,
+      isTrial:      false,
+      isExpired:    false,
+      scansLeft:    Math.max(0, quota.periodCap - (quota.scanCount ?? 0)),
+      scansUsed:    quota.scanCount ?? 0,
+      trialScans:   quota.trialScans,
+      trialDays:    quota.trialDays,
+      dailyUsed:    quota.dailyUsed ?? 0,
+      dailyCap:     quota.dailyCap,
+      periodCap:    quota.periodCap,
+      subPrice:     quota.subPrice,
+      subDays:      quota.subDays,
+      daysLeft,
+      daysUsed:     Math.max(0, quota.subDays - daysLeft),
+    };
   }
-  if (!startDateStr) {
-    return { daysLeft: TRIAL_DAYS, daysUsed: 0, isExpired: false, isSubscribed: false, startDate: null };
-  }
-  const startDate = new Date(startDateStr);
-  const today = new Date();
-  const daysUsed = Math.floor((today.getTime() - startDate.getTime()) / 86400000) + 1;
-  const daysLeft = Math.max(0, TRIAL_DAYS - daysUsed + 1);
+
+  // ── Free / trial ────────────────────────────────────────────────────
+  const scansUsed = quota.scanCount ?? 0;
+  const scansLeft = Math.max(0, quota.trialScans - scansUsed);
+
+  const startDate = startDateStr ? new Date(startDateStr) : null;
+  const daysUsed  = startDate
+    ? Math.floor((Date.now() - startDate.getTime()) / 86400000)
+    : 0;
+  const daysLeft  = startDate
+    ? Math.max(0, quota.trialDays - daysUsed)
+    : quota.trialDays;
+
+  const isExpired = quota.trialWindowElapsed || scansLeft === 0;
+
   return {
-    daysLeft,
-    daysUsed: Math.min(daysUsed, TRIAL_DAYS),
-    isExpired: daysLeft === 0,
+    isLoading:    false,
     isSubscribed: false,
-    startDate,
+    isTrial:      !isExpired,
+    isExpired,
+    scansLeft,
+    scansUsed,
+    trialScans:   quota.trialScans,
+    trialDays:    quota.trialDays,
+    dailyUsed:    0,
+    dailyCap:     quota.dailyCap,
+    periodCap:    quota.periodCap,
+    subPrice:     quota.subPrice,
+    subDays:      quota.subDays,
+    daysLeft,
+    daysUsed,
   };
 }
-
-export const DAILY_SCAN_LIMIT = 4;

@@ -84,8 +84,8 @@ export default function SiteHeader({ openModal }) {
 
           <div className="nav-r">
             <button className="btn-nav-cta" onClick={() => navigate('/?book=1')}>
-              <span style={{ fontSize: '13px', fontWeight: 800, letterSpacing: '.01em' }}>Upgrade Now! 🚀</span>
-              <span style={{ fontSize: '10px', fontWeight: 600, opacity: .80, marginTop: '1px' }}>Book a Sample for ₹99</span>
+              <span style={{ fontSize: '12px', fontWeight: 800, letterSpacing: '.01em' }}>Get Fresh Food Sample →</span>
+              <span style={{ fontSize: '10px', fontWeight: 600, opacity: .80, marginTop: '1px' }}>Delivered Fresh for ₹99</span>
             </button>
             <button className={`hbg${mobileMenuOpen ? ' o' : ''}`} onClick={() => setMobileMenuOpen(p => !p)}>
               <span /><span /><span />

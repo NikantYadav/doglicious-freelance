@@ -168,7 +168,7 @@ export default function PsAuthGate({ onAuthenticated }) {
         </div>
 
         <p style={{ textAlign: 'center', fontSize: 10, color: '#8B6B3D', marginTop: 16 }}>
-          7 days free · then ₹499/month · Cancel anytime
+          Free trial included · then ₹499/month · Cancel anytime
         </p>
       </div>
     </div>

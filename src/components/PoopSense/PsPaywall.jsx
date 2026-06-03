@@ -1,27 +1,68 @@
 import React, { useState } from 'react';
 import { psInitiatePayment, submitPayUForm } from './psService';
 
-const FEATURES = [
-  '✓ AI Analysis',
-  '✓ PDF Reports',
-  '✓ Vet Sharing',
-  '✓ Progress Charts',
-  '✓ Unlimited Scans',
-];
+// Human-readable headline for each quota-exceeded reason
+function getHeadline(reason) {
+  switch (reason) {
+    case 'subscription_expired': return 'Subscription Expired';
+    case 'daily_limit_reached':  return "Today's Scans Used Up";
+    case 'period_cap_reached':   return 'Monthly Limit Reached';
+    case 'trial_expired':        return 'Free Trial Ended';
+    case 'free_limit_reached':   return 'Free Trial Scans Used';
+    default:                     return 'Upgrade to PoopSense Premium';
+  }
+}
 
-export default function PsPaywall({ reason, phone, dogName, onClose, onDevActivate }) {
+function getSubline(reason, quota) {
+  const dailyCap  = quota?.dailyCap  ?? '—';
+  const periodCap = quota?.periodCap ?? '—';
+  const trialDays = quota?.trialDays ?? '—';
+  const trialScans = quota?.trialScans ?? '—';
+  switch (reason) {
+    case 'subscription_expired':
+      return 'Your subscription has expired. Renew to keep scanning.';
+    case 'daily_limit_reached':
+      return `You've used all ${dailyCap} scans for today. Come back tomorrow.`;
+    case 'period_cap_reached':
+      return `You've reached the ${periodCap}-scan limit for this period.`;
+    case 'trial_expired':
+      return `Your ${trialDays}-day free trial has ended.`;
+    case 'free_limit_reached':
+      return `You've used all ${trialScans} free trial scans.`;
+    default:
+      return quota
+        ? `Get full access — ${dailyCap} scans/day, up to ${periodCap} scans in ${quota.subDays ?? 30} days.`
+        : 'Get full access with PoopSense Premium.';
+  }
+}
+
+function buildFeatures(quota) {
+  const daily  = quota?.dailyCap  ?? '4';
+  const period = quota?.periodCap ?? '120';
+  return [
+    '✓ AI-powered poop analysis',
+    `✓ ${daily} scans / day · ${period} scans / month`,
+    '✓ Full history & progress charts',
+    '✓ PDF reports (English & Hindi)',
+    '✓ Share report to vet via WhatsApp',
+  ];
+}
+
+export default function PsPaywall({ reason, phone, dogName, quota, onClose, onDevActivate }) {
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
+  const [error, setError]     = useState('');
 
-  const isExpired = reason === 'subscription_expired';
+  const subPrice = quota?.subPrice ?? '499';
+  const subDays  = quota?.subDays  ?? 30;
+  const dailyCap = quota?.dailyCap ?? 4;
+  const periodCap = quota?.periodCap ?? 120;
 
   const handleSubscribe = async () => {
     setLoading(true);
     setError('');
     try {
-      // We need a name + email for PayU — use phone as fallback
       const firstname = dogName ? `${dogName}'s Parent` : 'Dog Parent';
-      const email = `${phone.replace(/\D/g, '')}@poopsense.in`; // synthetic email
+      const email     = `${phone.replace(/\D/g, '')}@poopsense.in`;
       const { payuUrl, params } = await psInitiatePayment(phone, firstname, email);
       submitPayUForm(payuUrl, params);
     } catch (e) {
@@ -34,31 +75,30 @@ export default function PsPaywall({ reason, phone, dogName, onClose, onDevActiva
     <div style={{
       position: 'fixed', inset: 0, background: 'rgba(0,0,0,.65)',
       zIndex: 9999, display: 'flex', alignItems: 'flex-end', justifyContent: 'center',
-      padding: '0',
     }}>
       <div style={{
         background: '#FFF', borderRadius: '20px 20px 0 0',
         width: '100%', maxWidth: 430, maxHeight: '90dvh',
         overflowY: 'auto', WebkitOverflowScrolling: 'touch',
-        animation: 'ps-fu .25s ease',
+        animation: 'ps-fu .25s ease', position: 'relative',
       }}>
 
         {/* Close */}
         {onClose && (
           <button
             onClick={onClose}
-            style={{ position: 'absolute', top: 14, right: 14, background: 'rgba(58,39,0,.08)', border: 'none', borderRadius: '50%', width: 28, height: 28, cursor: 'pointer', fontSize: 13, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#5C3F18' }}
+            style={{ position: 'absolute', top: 14, right: 14, background: 'rgba(58,39,0,.08)', border: 'none', borderRadius: '50%', width: 28, height: 28, cursor: 'pointer', fontSize: 13, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#5C3F18', zIndex: 1 }}
           >✕</button>
         )}
 
         {/* Hero */}
-        <div style={{ background: 'linear-gradient(135deg,#3A2700,#6B4100)', padding: '28px 20px 22px', textAlign: 'center', position: 'relative' }}>
+        <div style={{ background: 'linear-gradient(135deg,#3A2700,#6B4100)', padding: '28px 20px 22px', textAlign: 'center' }}>
           <div style={{ fontSize: 36, marginBottom: 8 }}>💩✨</div>
-          <div style={{ fontSize: 20, fontWeight: 900, color: '#FFD580', marginBottom: 4 }}>PoopSense Premium</div>
-          <div style={{ fontSize: 11, color: 'rgba(255,255,255,.6)', lineHeight: 1.6 }}>
-            {isExpired
-              ? 'Your subscription has expired. Renew to continue scanning.'
-              : 'You\'ve used all your free scans. Subscribe to continue.'}
+          <div style={{ fontSize: 20, fontWeight: 900, color: '#FFD580', marginBottom: 6 }}>
+            {getHeadline(reason)}
+          </div>
+          <div style={{ fontSize: 11, color: 'rgba(255,255,255,.65)', lineHeight: 1.7 }}>
+            {getSubline(reason, quota)}
           </div>
         </div>
 
@@ -66,17 +106,18 @@ export default function PsPaywall({ reason, phone, dogName, onClose, onDevActiva
 
           {/* Price card */}
           <div style={{ background: 'linear-gradient(135deg,#3A2700,#6B4100)', borderRadius: 16, padding: 18, marginBottom: 16 }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 4 }}>
               <div>
                 <div style={{ fontSize: 30, fontWeight: 900, color: '#FFD580', lineHeight: 1 }}>
-                  ₹499<span style={{ fontSize: 14, fontWeight: 500, color: 'rgba(255,213,128,.6)' }}>/month</span>
+                  ₹{subPrice}
+                  <span style={{ fontSize: 14, fontWeight: 500, color: 'rgba(255,213,128,.6)' }}>/{subDays}days</span>
                 </div>
-                <div style={{ fontSize: 10, color: 'rgba(255,255,255,.55)', marginTop: 4 }}>
-                  1 Dog · Unlimited scans · All features
+                <div style={{ fontSize: 10, color: 'rgba(255,255,255,.5)', marginTop: 4 }}>
+                  {dailyCap} scans/day · {periodCap} scans total
                 </div>
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 3, alignItems: 'flex-end' }}>
-                {FEATURES.map(f => (
+                {buildFeatures(quota).map(f => (
                   <div key={f} style={{ fontSize: 9.5, color: 'rgba(255,255,255,.65)', fontWeight: 600 }}>{f}</div>
                 ))}
               </div>
@@ -92,11 +133,11 @@ export default function PsPaywall({ reason, phone, dogName, onClose, onDevActiva
                 marginTop: 14, opacity: loading ? 0.7 : 1,
               }}
             >
-              {loading ? 'Redirecting to payment…' : 'Subscribe Now →'}
+              {loading ? 'Redirecting to payment…' : `Subscribe for ₹${subPrice} →`}
             </button>
 
             <div style={{ textAlign: 'center', fontSize: 9, color: 'rgba(255,255,255,.35)', marginTop: 8 }}>
-              Renews automatically · Cancel anytime · 256-bit SSL
+              {dailyCap} scans/day · max {periodCap} scans in {subDays} days · 256-bit SSL
             </div>
           </div>
 
@@ -109,13 +150,25 @@ export default function PsPaywall({ reason, phone, dogName, onClose, onDevActiva
           {/* WhatsApp fallback */}
           <button
             onClick={() => {
-              const msg = encodeURIComponent('[PoopSense AI] Hi! I want to subscribe for ₹499/month. Please activate my plan.');
+              const msg = encodeURIComponent(`[PoopSense AI] Hi! I want to subscribe for ₹${subPrice}/${subDays} days. Please activate my plan.`);
               window.open('https://wa.me/919889887980?text=' + msg, '_blank');
             }}
-            style={{ width: '100%', padding: '11px', background: 'transparent', border: '1.5px solid rgba(58,39,0,.18)', color: '#5C3F18', borderRadius: 12, fontSize: 12, fontWeight: 600, cursor: 'pointer', fontFamily: 'Poppins, sans-serif' }}
+            style={{ width: '100%', padding: '11px', background: 'transparent', border: '1.5px solid rgba(58,39,0,.18)', color: '#5C3F18', borderRadius: 12, fontSize: 12, fontWeight: 600, cursor: 'pointer', fontFamily: 'Poppins, sans-serif', marginBottom: 8 }}
           >
             Or contact us on WhatsApp
           </button>
+
+          {/* Dev bypass */}
+          {onDevActivate && (
+            <div style={{ textAlign: 'center' }}>
+              <button
+                onClick={onDevActivate}
+                style={{ background: 'none', border: 'none', color: '#C0A57A', fontSize: 10, cursor: 'pointer' }}
+              >
+                [Dev] Activate subscription
+              </button>
+            </div>
+          )}
 
         </div>
       </div>

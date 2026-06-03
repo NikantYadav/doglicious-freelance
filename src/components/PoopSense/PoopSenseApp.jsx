@@ -135,8 +135,10 @@ const PoopSenseApp = () => {
   const [pendingSymptoms, setPendingSymptoms] = useState(null);
   const [pendingImage, setPendingImage] = useState(null);
 
-  const trialStatus = getTrialStatus(state.startDate, state.subscribed);
-  const isTrialOk = state.subscribed || trialStatus.daysLeft > 0;
+  const trialStatus = getTrialStatus(state.startDate, state.subscribed, quota);
+  const isTrialOk = quota
+    ? quota.canScan
+    : (state.subscribed || !trialStatus.isExpired);
 
   // Settings opens as modal (not a nav panel), trial gate redirects to paywall modal
   const showNav = useCallback((tab) => {
@@ -203,8 +205,14 @@ const PoopSenseApp = () => {
           dogAv: dog.av,
         };
 
-        // Update local quota count
-        if (result.scanCount) setQuota(q => q ? { ...q, scanCount: result.scanCount } : q);
+        // Update local quota counters
+        if (result.scanCount !== undefined) {
+          setQuota(q => q ? {
+            ...q,
+            scanCount: result.scanCount,
+            dailyUsed: result.dailyUsed ?? (q.dailyUsed ?? 0) + 1,
+          } : q);
+        }
 
         addEntry(entry);
         setCurrentEntry(entry);
@@ -212,9 +220,20 @@ const PoopSenseApp = () => {
         goToScreen('s5');
       } catch (e) {
         setScanRunning(false);
-        // Quota errors → show paywall
-        if (e.reason === 'free_limit_reached' || e.reason === 'subscription_expired') {
+        // Hard quota errors → show paywall
+        if (
+          e.reason === 'free_limit_reached'   ||
+          e.reason === 'subscription_expired' ||
+          e.reason === 'trial_expired'
+        ) {
           setPaywallReason(e.reason);
+          goToScreen('s1');
+        } else if (
+          e.reason === 'daily_limit_reached' ||
+          e.reason === 'period_cap_reached'
+        ) {
+          // Soft cap — toast is enough, user already has a subscription
+          toast('⚠️ ' + (e.message || 'Scan limit reached.'));
           goToScreen('s1');
         } else {
           toast('Scan failed: ' + (e.message || 'Unknown error'));
@@ -429,6 +448,7 @@ const PoopSenseApp = () => {
           reason={paywallReason || 'subscribe'}
           phone={phone}
           dogName={dog?.name}
+          quota={quota}
           onClose={() => { setPaywallReason(null); setPayOpen(false); }}
           onDevActivate={() => {
             activateSub();

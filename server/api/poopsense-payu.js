@@ -47,8 +47,9 @@ export async function initiateHandler(req, res) {
   if (!key || !salt) return res.status(500).json({ error: 'PayU not configured' });
 
   const normPhone = normalizePhone(phone);
-  const amount    = (499).toFixed(2); // ₹499/month
-  const productinfo = 'PoopSense AI - Monthly Subscription';
+  const subPrice    = parseFloat(process.env.PS_SUB_PRICE || '499');
+  const amount      = subPrice.toFixed(2);
+  const productinfo = process.env.PS_SUB_PRODUCT || 'PoopSense AI - Monthly Subscription';
   const txnid     = `PS${Date.now()}${Math.floor(Math.random() * 1000)}`;
 
   // udf1 = phone (to identify user on callback)
@@ -97,14 +98,15 @@ export async function successHandler(req, res) {
     return redirectFrontend(res, 'payment_failed', params.status);
   }
 
-  // 3. Grant subscription — 30 days from now
+  // 3. Grant subscription — PS_SUB_DAYS from now (default 30)
   const phone = params.udf1;
   if (!phone) return redirectFrontend(res, 'payment_failed', 'no_phone');
 
-  const subExpiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
+  const subDays = parseInt(process.env.PS_SUB_DAYS || '30', 10);
+  const subExpiresAt = new Date(Date.now() + subDays * 24 * 60 * 60 * 1000).toISOString();
 
   try {
-    // Find or create user
+    // Find or create user; reset scan_count to 0 for the new subscription period
     const { data: existing } = await supabase
       .from('ps_users')
       .select('id')
@@ -114,12 +116,25 @@ export async function successHandler(req, res) {
     if (existing) {
       await supabase
         .from('ps_users')
-        .update({ subscribed: true, sub_date: new Date().toISOString(), sub_expires_at: subExpiresAt })
+        .update({
+          subscribed:       true,
+          sub_date:         new Date().toISOString(),
+          sub_expires_at:   subExpiresAt,
+          scan_count:       0,    // reset for new period
+          daily_scan_count: 0,
+          daily_scan_date:  null,
+        })
         .eq('id', existing.id);
     } else {
       await supabase
         .from('ps_users')
-        .insert({ phone, subscribed: true, sub_date: new Date().toISOString(), sub_expires_at: subExpiresAt });
+        .insert({
+          phone,
+          subscribed:     true,
+          sub_date:       new Date().toISOString(),
+          sub_expires_at: subExpiresAt,
+          scan_count:     0,
+        });
     }
 
     console.log(`[ps-payu-success] Subscription granted to ${phone} until ${subExpiresAt}`);

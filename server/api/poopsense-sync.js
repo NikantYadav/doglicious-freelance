@@ -16,7 +16,7 @@ async function upsertUser(phone) {
   // Try to find existing user first
   const { data: existing } = await supabase
     .from('ps_users')
-    .select('id, phone, subscribed, sub_date, start_date, vet_name, vet_num, pdf_lang')
+    .select('id, phone, subscribed, sub_date, sub_expires_at, start_date, scan_count, daily_scan_count, daily_scan_date, vet_name, vet_num, pdf_lang')
     .eq('phone', phone)
     .maybeSingle();
 
@@ -26,7 +26,7 @@ async function upsertUser(phone) {
   const { data, error } = await supabase
     .from('ps_users')
     .insert({ phone })
-    .select('id, phone, subscribed, sub_date, start_date, vet_name, vet_num, pdf_lang')
+    .select('id, phone, subscribed, sub_date, sub_expires_at, start_date, scan_count, daily_scan_count, daily_scan_date, vet_name, vet_num, pdf_lang')
     .single();
 
   if (error) throw error;
@@ -269,17 +269,65 @@ export default async function handler(req, res) {
 
       case 'get-quota': {
         const user = await upsertUser(normPhone);
-        const numFree = parseInt(process.env.PS_FREE_SCANS || process.env.NUM_FREE_SCAN || '3', 10);
+        // All quota config from env — same defaults as poopsense-ai.js
+        const trialScans = parseInt(process.env.PS_TRIAL_SCANS || '4',   10);
+        const trialDays  = parseInt(process.env.PS_TRIAL_DAYS  || '7',   10);
+        const dailyCap   = parseInt(process.env.PS_DAILY_CAP   || '4',   10);
+        const periodCap  = parseInt(process.env.PS_PERIOD_CAP  || '120', 10);
+        const subDays    = parseInt(process.env.PS_SUB_DAYS    || '30',  10);
+        const subPrice   = parseFloat(process.env.PS_SUB_PRICE || '499');
+
         const now = new Date();
-        const isSubscribed = user.subscribed && user.sub_expires_at && new Date(user.sub_expires_at) > now;
-        const subExpired = user.subscribed && user.sub_expires_at && new Date(user.sub_expires_at) <= now;
+        const todayDate = now.toISOString().slice(0, 10);
+
+        const isSubscribed = user.subscribed &&
+          user.sub_expires_at &&
+          new Date(user.sub_expires_at) > now;
+
+        const subExpired = user.subscribed &&
+          user.sub_expires_at &&
+          new Date(user.sub_expires_at) <= now;
+
+        // Daily scans count (reset if it's a different day)
+        const lastDate   = user.daily_scan_date ? String(user.daily_scan_date).slice(0, 10) : null;
+        const dailyUsed  = lastDate === todayDate ? (user.daily_scan_count || 0) : 0;
+
+        // Trial window check
+        const startDate = user.start_date ? new Date(user.start_date) : null;
+        const trialDaysUsed = startDate
+          ? Math.floor((now.getTime() - startDate.getTime()) / 86400000)
+          : 0;
+        const trialWindowElapsed = startDate ? trialDaysUsed >= trialDays : false;
+        const trialScansUsed = user.scan_count || 0;
+        const trialScansLeft = Math.max(0, trialScans - trialScansUsed);
+
+        let canScan = false;
+        if (isSubscribed) {
+          canScan = dailyUsed < dailyCap && (user.scan_count || 0) < periodCap;
+        } else if (!trialWindowElapsed) {
+          canScan = trialScansUsed < trialScans;
+        }
+
         return res.status(200).json({
-          scanCount: user.scan_count || 0,
-          subscribed: isSubscribed,
-          subExpired,
-          subExpiresAt: user.sub_expires_at || null,
-          numFree,
-          canScan: isSubscribed || (user.scan_count || 0) < numFree,
+          // Subscription
+          subscribed:          isSubscribed,
+          subExpired:          !!subExpired,
+          subExpiresAt:        user.sub_expires_at || null,
+          subDays,
+          subPrice,
+          // Scans
+          scanCount:           user.scan_count || 0,
+          dailyUsed,
+          dailyCap,
+          periodCap,
+          // Trial
+          trialScans,
+          trialDays,
+          trialScansLeft,
+          trialDaysUsed,
+          trialWindowElapsed,
+          // Gate
+          canScan,
         });
       }
 
