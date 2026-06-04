@@ -206,7 +206,6 @@ const SettingsModal = ({ open, onClose, onSubscribe, onLogout, quota }) => {
         <div className="sett-section">
           <button
             onClick={() => {
-              clearPsSession();
               onClose();
               if (onLogout) onLogout();
             }}

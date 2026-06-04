@@ -90,7 +90,7 @@ export default function PsAuthGate({ onAuthenticated }) {
                 We'll send a one-time code to your WhatsApp number.
               </div>
 
-              <div style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
+              <div style={{ display: 'flex', gap: 8, marginBottom: 12, overflow: 'hidden' }}>
                 <div style={{ background: '#F5EDE0', border: '1.5px solid rgba(58,39,0,.18)', borderRadius: 10, padding: '11px 12px', fontSize: 13, fontWeight: 700, color: '#3A2700', flexShrink: 0 }}>
                   +91
                 </div>
@@ -100,7 +100,7 @@ export default function PsAuthGate({ onAuthenticated }) {
                   value={phone}
                   onChange={e => { setPhone(e.target.value.replace(/\D/g, '')); setPhoneErr(''); }}
                   onKeyDown={e => e.key === 'Enter' && handleSend()}
-                  style={{ flex: 1, padding: '11px 12px', border: `1.5px solid ${phoneErr ? '#AD2218' : 'rgba(58,39,0,.18)'}`, borderRadius: 10, fontSize: 14, color: '#1A1000', outline: 'none', fontFamily: 'Poppins, sans-serif' }}
+                  style={{ flex: 1, minWidth: 0, padding: '11px 12px', border: `1.5px solid ${phoneErr ? '#AD2218' : 'rgba(58,39,0,.18)'}`, borderRadius: 10, fontSize: 14, color: '#1A1000', outline: 'none', fontFamily: 'Poppins, sans-serif' }}
                 />
               </div>
 
