@@ -2,17 +2,22 @@ import React from 'react';
 import { useApp } from './AppContext';
 import { getTrialStatus, fmtDate } from './helpers';
 
-const GlobalInfoBar = () => {
+const GlobalInfoBar = ({ quota }) => {
   const { state } = useApp();
-  const trialStatus = getTrialStatus(state.startDate, state.subscribed);
+  const trialStatus = getTrialStatus(state.startDate, state.subscribed, quota);
 
   const startLabel = state.startDate
     ? `Member since ${fmtDate(new Date(state.startDate))}`
     : 'Member since -';
 
-  const daysLabel = state.subscribed
-    ? '✓ Active'
-    : `${trialStatus.daysLeft}/7 days`;
+  let daysLabel;
+  if (trialStatus.isSubscribed) {
+    daysLabel = `✓ Active · ${trialStatus.daysLeft ?? '—'}d left`;
+  } else if (trialStatus.isLoading || trialStatus.daysLeft === null || trialStatus.trialDays === null) {
+    daysLabel = '…';
+  } else {
+    daysLabel = `${trialStatus.daysLeft}/${trialStatus.trialDays} days`;
+  }
 
   return (
     <div

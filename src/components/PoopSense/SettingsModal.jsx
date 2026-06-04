@@ -5,7 +5,7 @@ import { getTrialStatus } from './helpers';
 import { psSaveSettings } from './psService';
 import { getPsSession } from './psSession';
 
-const SettingsModal = ({ open, onClose, onSubscribe }) => {
+const SettingsModal = ({ open, onClose, onSubscribe, quota }) => {
   const { state, dispatch, setVet, activateSub } = useApp();
   const { toast } = useToast();
 
@@ -45,13 +45,16 @@ const SettingsModal = ({ open, onClose, onSubscribe }) => {
     }
   };
 
-  const trialStatus = getTrialStatus(state.startDate, state.subscribed);
+  const trialStatus = getTrialStatus(state.startDate, state.subscribed, quota);
 
   // Trial dates
+  const trialDays = trialStatus.trialDays ?? 7;
   const startDate = state.startDate ? new Date(state.startDate) : null;
-  const endDate = startDate ? new Date(startDate.getTime() + 7 * 24 * 60 * 60 * 1000) : null;
+  const endDate = startDate ? new Date(startDate.getTime() + trialDays * 24 * 60 * 60 * 1000) : null;
   const fmtDate = (d) => d ? d.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) : '—';
-  const progressPct = Math.min(100, Math.round((trialStatus.daysUsed / 7) * 100));
+  const daysUsed   = trialStatus.daysUsed  ?? 0;
+  const daysLeft   = trialStatus.daysLeft  ?? trialDays;
+  const progressPct = Math.min(100, Math.round((daysUsed / trialDays) * 100));
 
   return (
     <div className="modal-bg open" onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}>

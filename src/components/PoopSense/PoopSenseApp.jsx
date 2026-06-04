@@ -322,7 +322,7 @@ const PoopSenseApp = () => {
   /* MAIN APP */
   return (
     <div className="app">
-      <GlobalInfoBar />
+      <GlobalInfoBar quota={quota} />
 
       {/* ── HOME / SCAN ── */}
       {activeTab === 'home' && (
