@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { logoImg } from '../../data/homeData';
 
 /**
@@ -8,6 +8,7 @@ import { logoImg } from '../../data/homeData';
  */
 export default function SiteHeader({ openModal }) {
   const navigate = useNavigate();
+  const location = useLocation();
   const [navScrolled, setNavScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const toggleMenu = (val) => {
@@ -15,6 +16,12 @@ export default function SiteHeader({ openModal }) {
     setMobileMenuOpen(next);
     document.body.classList.toggle('mob-open', next);
   };
+
+  // Close drawer on route change
+  useEffect(() => {
+    setMobileMenuOpen(false);
+    document.body.classList.remove('mob-open');
+  }, [location.pathname]);
 
   useEffect(() => () => document.body.classList.remove('mob-open'), []);
 
