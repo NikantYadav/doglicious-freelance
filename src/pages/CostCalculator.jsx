@@ -117,7 +117,17 @@ export default function CostCalculator() {
     window.open(`https://wa.me/+919889887980?text=${msg}`, '_blank');
   };
 
-  const openTool = (idx) => navigate('/', { state: { openTool: idx } });
+  const TOOL_ROUTES = [
+    '/tools/bmi-calculator',
+    '/tools/feeding-calculator',
+    '/tools/cost-calculator',
+    '/tools/age-calculator',
+    '/tools/best-vegetables',
+    '/tools/natural-healing',
+    '/tools/aafco-planner',
+    '/tools/health-quiz',
+  ];
+  const openTool = (idx) => { if (TOOL_ROUTES[idx]) navigate(TOOL_ROUTES[idx]); };
 
   return (
     <>

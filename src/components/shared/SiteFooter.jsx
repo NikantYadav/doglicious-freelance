@@ -39,8 +39,8 @@ export default function SiteFooter() {
             <ul className="fl">
               <li><Link to="/?book=1">Book ₹99 Sample</Link></li>
               <li><Link to="/#recipes">All Recipes</Link></li>
-              <li><Link to="/vetrxscan">Vet Rx Scan (Free · First 2 scans / ₹99/mo)</Link></li>
-              <li><Link to="/poopsense">PoopSense AI (Free)</Link></li>
+              <li><Link to="/vetrxscan">VetRx (Free · First 2 scans / ₹99/mo – 05 scans/mo)</Link></li>
+              <li><Link to="/poopsense">Poop AI – (First 07 days Free – ₹499/mo)</Link></li>
             </ul>
           </div>
 

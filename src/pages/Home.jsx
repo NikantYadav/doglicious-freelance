@@ -545,8 +545,8 @@ export default function Home() {
               <ul className="fl">
                 <li><a href="#" onClick={e => { e.preventDefault(); openModal('sample'); }}>Book ₹99 Sample</a></li>
                 <li><a href="#recipes">All Recipes</a></li>
-                <li><a href="#" onClick={e => { e.preventDefault(); openModal('vet'); }}>Vet Rx Scan (Free · First 2 scans / ₹99/mo)</a></li>
-                <li><a href="#" onClick={e => { e.preventDefault(); navigate('/poopsense'); }}>PoopSense AI (Free)</a></li>
+                <li><a href="#" onClick={e => { e.preventDefault(); openModal('vet'); }}>VetRx (Free · First 2 scans / ₹99/mo – 05 scans/mo)</a></li>
+                <li><a href="#" onClick={e => { e.preventDefault(); navigate('/poopsense'); }}>Poop AI – (First 07 days Free – ₹499/mo)</a></li>
               </ul>
             </div>
             <div>

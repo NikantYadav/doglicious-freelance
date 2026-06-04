@@ -222,7 +222,17 @@ export default function FeedingCalculator() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  const openTool = (idx) => navigate('/', { state: { openTool: idx } });
+  const TOOL_ROUTES = [
+    '/tools/bmi-calculator',
+    '/tools/feeding-calculator',
+    '/tools/cost-calculator',
+    '/tools/age-calculator',
+    '/tools/best-vegetables',
+    '/tools/natural-healing',
+    '/tools/aafco-planner',
+    '/tools/health-quiz',
+  ];
+  const openTool = (idx) => { if (TOOL_ROUTES[idx]) navigate(TOOL_ROUTES[idx]); };
 
   const filteredBreeds = BREEDS.filter(b =>
     !breedQuery || b.n.toLowerCase().includes(breedQuery.toLowerCase())

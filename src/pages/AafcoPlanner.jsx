@@ -8,6 +8,12 @@ import SiteFooter from '../components/shared/SiteFooter';
 import { useSEO } from '../hooks/useSEO';
 import '../styles/Home.css';
 import '../styles/AafcoPlanner.css';
+import SampleModal from '../components/modals/SampleModal';
+import { GRAM_OPTS, GRAM_PRICES, RECIPES } from '../data/homeData';
+import { normalizePhone } from '../utils/phone';
+import { initiatePayU } from '../services/sampleBooking';
+import { useToast } from '../components/common/Toast';
+import LoadingOverlay from '../components/common/LoadingOverlay';
 
 export default function AafcoPlanner() {
   useSEO({
@@ -17,6 +23,40 @@ export default function AafcoPlanner() {
   });
 
   const navigate = useNavigate();
+  const { toast } = useToast();
+
+  // Sample booking state
+  const [sampleModalOpen, setSampleModalOpen] = useState(false);
+  const [sampleStep, setSampleStep] = useState(1);
+  const [selectedRecipe, setSelectedRecipe] = useState(0);
+  const [selectedGramIdx, setSelectedGramIdx] = useState(0);
+  const [dogName, setDogName] = useState('');
+  const [mobile, setMobile] = useState('');
+  const [mobileValid, setMobileValid] = useState(false);
+  const [deliveryAddress, setDeliveryAddress] = useState('');
+  const [deliveryCity, setDeliveryCity] = useState('');
+  const [deliveryPin, setDeliveryPin] = useState('');
+  const [mapSrc, setMapSrc] = useState('');
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [paymentConfirm, setPaymentConfirm] = useState(null); // { success, txnid, amount }
+
+  // Detect PayU redirect back to this page
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const status = params.get('payu_status');
+    if (!status) return;
+    // Clean URL immediately
+    window.history.replaceState({}, '', window.location.pathname);
+    if (status === 'payment_success') {
+      setPaymentConfirm({
+        success: true,
+        txnid: params.get('txnid') || '',
+        amount: params.get('amount') || '99',
+      });
+    } else {
+      setPaymentConfirm({ success: false });
+    }
+  }, []);
 
   useEffect(() => {
   }, []);
@@ -25,10 +65,64 @@ export default function AafcoPlanner() {
     window.scrollTo(0, 0);
   }, []);
 
-  const openTool = (idx) => {
-    // Navigate back to home and open the tool modal
-    navigate('/', { state: { openTool: idx } });
+  const TOOL_ROUTES = [
+    '/tools/bmi-calculator',
+    '/tools/feeding-calculator',
+    '/tools/cost-calculator',
+    '/tools/age-calculator',
+    '/tools/best-vegetables',
+    '/tools/natural-healing',
+    '/tools/aafco-planner',
+    '/tools/health-quiz',
+  ];
+  const openTool = (idx) => { if (TOOL_ROUTES[idx]) navigate(TOOL_ROUTES[idx]); };
+
+  const handleMobileInput = (val) => {
+    setMobile(val);
+    const digits = val.replace(/\D/g, '');
+    setMobileValid(digits.length === 10 || (digits.length === 12 && digits.startsWith('91')) || (val.startsWith('+') && digits.length >= 7));
   };
+
+  const handlePincodeInput = (val) => {
+    setDeliveryPin(val);
+    if (val.length === 6) {
+      const q = encodeURIComponent(`${deliveryAddress} ${deliveryCity} ${val}`);
+      setMapSrc(`https://maps.google.com/maps?q=${q}&output=embed&z=15`);
+    }
+  };
+
+  const openMapVerify = () => {
+    const q = encodeURIComponent(`${deliveryAddress} ${deliveryCity} ${deliveryPin}`);
+    setMapSrc(`https://maps.google.com/maps?q=${q}&output=embed&z=15`);
+  };
+
+  const proceedToPayment = async () => {
+    if (!mobile || !dogName || !deliveryAddress || !deliveryCity || !deliveryPin) {
+      toast('Please fill all fields before proceeding.', 'error');
+      return;
+    }
+
+    const recipe = RECIPES[selectedRecipe];
+    const grams = GRAM_OPTS[selectedGramIdx];
+    const price = GRAM_PRICES[selectedGramIdx];
+
+    try {
+      setIsProcessing(true);
+      setSampleModalOpen(false);
+
+      // Initiate PayU (which also creates the PENDING record in db)
+      await initiatePayU({ dogName, phone: normalizePhone(mobile), price, recipe, grams, address: deliveryAddress, city: deliveryCity, pincode: deliveryPin });
+
+      // Note: Page will navigate away due to form.submit() in initiatePayU
+    } catch (err) {
+      setIsProcessing(false);
+      console.error('[PayU] initiation failed:', err);
+      toast('Payment could not be initiated. Please try again.', 'error');
+    }
+  };
+
+  const currentPrice = GRAM_PRICES[selectedGramIdx];
+  const currentGrams = GRAM_OPTS[selectedGramIdx];
 
   return (
     <>
@@ -148,9 +242,9 @@ export default function AafcoPlanner() {
               Doglicious prepares fresh, AAFCO-inspired meals daily and delivers them
               chilled across India.
             </p>
-            <a href="/#booking" className="aafco-cta-btn">
+            <button className="aafco-cta-btn" onClick={() => setSampleModalOpen(true)}>
               Order Fresh Dog Food Online — ₹99 Sample
-            </a>
+            </button>
           </div>
 
           {/* Key Nutrients */}
@@ -203,27 +297,6 @@ export default function AafcoPlanner() {
             can help identify issues that nutrition can address.
           </p>
 
-          {/* Related Guides */}
-          <div className="aafco-related">
-            <h3>📚 Related Guides</h3>
-            <div className="aafco-related-grid">
-              {[
-                { emoji: '🥦', label: 'Best Vegetables for Dogs', tool: 4 },
-                { emoji: '🍽️', label: 'How Much Should I Feed My Dog?', tool: 1 },
-                { emoji: '🐶', label: 'Puppy Feeding Guide: First Year', tool: null },
-                { emoji: '⚖️', label: 'Fresh Dog Food vs Kibble', tool: null },
-              ].map(({ emoji, label, tool }) => (
-                <button
-                  key={label}
-                  className="aafco-related-card"
-                  onClick={() => tool !== null ? openTool(tool) : navigate('/')}
-                >
-                  <span className="aafco-rc-emoji">{emoji}</span>
-                  <span className="aafco-rc-text">{label}</span>
-                </button>
-              ))}
-            </div>
-          </div>
 
         </div>
       </section>
@@ -254,6 +327,121 @@ export default function AafcoPlanner() {
           ))}
         </div>
       </section>
+
+      {/* Sample Booking Modal */}
+      <SampleModal
+        isOpen={sampleModalOpen}
+        onClose={() => setSampleModalOpen(false)}
+        sampleStep={sampleStep}
+        setSampleStep={setSampleStep}
+        selectedRecipe={selectedRecipe}
+        setSelectedRecipe={setSelectedRecipe}
+        selectedGramIdx={selectedGramIdx}
+        setSelectedGramIdx={setSelectedGramIdx}
+        dogName={dogName}
+        setDogName={setDogName}
+        mobile={mobile}
+        mobileValid={mobileValid}
+        handleMobileInput={handleMobileInput}
+        deliveryAddress={deliveryAddress}
+        setDeliveryAddress={setDeliveryAddress}
+        deliveryCity={deliveryCity}
+        setDeliveryCity={setDeliveryCity}
+        deliveryPin={deliveryPin}
+        handlePincodeInput={handlePincodeInput}
+        mapSrc={mapSrc}
+        openMapVerify={openMapVerify}
+        proceedToPayment={proceedToPayment}
+        currentPrice={currentPrice}
+        currentGrams={currentGrams}
+      />
+
+      {isProcessing && <LoadingOverlay />}
+
+      {/* ── PAYMENT CONFIRMATION MODAL ── */}
+      {paymentConfirm && (
+        <div
+          style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,.6)', zIndex: 99999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px', backdropFilter: 'blur(4px)' }}
+          onClick={() => setPaymentConfirm(null)}
+        >
+          <div
+            style={{ background: '#fff', borderRadius: '20px', width: '100%', maxWidth: '400px', overflow: 'hidden', boxShadow: '0 24px 64px rgba(0,0,0,.3)', position: 'relative' }}
+            onClick={e => e.stopPropagation()}
+          >
+            {paymentConfirm.success ? (
+              <>
+                {/* Success header */}
+                <div style={{ background: 'linear-gradient(135deg,#195C30,#2a7a44)', padding: '32px 24px', textAlign: 'center' }}>
+                  <div style={{ fontSize: '52px', marginBottom: '12px' }}>🎉</div>
+                  <div style={{ fontSize: '20px', fontWeight: 800, color: '#fff', marginBottom: '4px' }}>Payment Successful!</div>
+                  <div style={{ fontSize: '12px', color: 'rgba(255,255,255,.7)' }}>Your sample order has been confirmed</div>
+                </div>
+                <div style={{ padding: '24px' }}>
+                  <div style={{ background: '#F0FBF4', border: '1px solid rgba(25,92,48,.15)', borderRadius: '12px', padding: '16px', marginBottom: '16px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
+                      <span style={{ fontSize: '12px', color: '#5C3F18', fontWeight: 600 }}>Order Status</span>
+                      <span style={{ fontSize: '12px', fontWeight: 700, color: '#195C30' }}>✓ Confirmed</span>
+                    </div>
+                    {paymentConfirm.txnid && (
+                      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
+                        <span style={{ fontSize: '12px', color: '#5C3F18', fontWeight: 600 }}>Transaction ID</span>
+                        <span style={{ fontSize: '11px', fontFamily: 'monospace', color: '#3A2700' }}>{paymentConfirm.txnid}</span>
+                      </div>
+                    )}
+                    <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                      <span style={{ fontSize: '12px', color: '#5C3F18', fontWeight: 600 }}>Amount Paid</span>
+                      <span style={{ fontSize: '13px', fontWeight: 800, color: '#3A2700' }}>₹99</span>
+                    </div>
+                  </div>
+                  <div style={{ fontSize: '12px', color: '#8B6B3D', lineHeight: 1.7, marginBottom: '20px', textAlign: 'center' }}>
+                    We'll WhatsApp you the delivery update.
+                  </div>
+                  <button
+                    onClick={() => setPaymentConfirm(null)}
+                    style={{ width: '100%', padding: '14px', background: 'linear-gradient(135deg,#195C30,#2a7a44)', color: '#fff', border: 'none', borderRadius: '12px', fontSize: '14px', fontWeight: 700, cursor: 'pointer', fontFamily: 'Poppins, sans-serif' }}
+                  >
+                    Got it, thanks! 🐾
+                  </button>
+                </div>
+              </>
+            ) : (
+              <>
+                {/* Failure header */}
+                <div style={{ background: 'linear-gradient(135deg,#AD2218,#c8382c)', padding: '28px 24px', textAlign: 'center' }}>
+                  <div style={{ fontSize: '48px', marginBottom: '10px' }}>❌</div>
+                  <div style={{ fontSize: '18px', fontWeight: 800, color: '#fff', marginBottom: '4px' }}>Payment Not Completed</div>
+                  <div style={{ fontSize: '12px', color: 'rgba(255,255,255,.7)' }}>Your order was not placed</div>
+                </div>
+                <div style={{ padding: '24px' }}>
+                  <p style={{ fontSize: '13px', color: '#5C3F18', lineHeight: 1.7, marginBottom: '20px', textAlign: 'center' }}>
+                    No amount was charged. You can try again or contact us on WhatsApp if you need help.
+                  </p>
+                  <div style={{ display: 'flex', gap: '10px' }}>
+                    <button
+                      onClick={() => { setPaymentConfirm(null); setSampleModalOpen(true); }}
+                      style={{ flex: 1, padding: '13px', background: 'linear-gradient(135deg,#3A2700,#6B4100)', color: '#fff', border: 'none', borderRadius: '12px', fontSize: '13px', fontWeight: 700, cursor: 'pointer', fontFamily: 'Poppins, sans-serif' }}
+                    >
+                      Try Again
+                    </button>
+                    <a
+                      href="https://wa.me/919889887980"
+                      target="_blank"
+                      rel="noreferrer"
+                      style={{ flex: 1, padding: '13px', background: '#25D366', color: '#fff', border: 'none', borderRadius: '12px', fontSize: '13px', fontWeight: 700, cursor: 'pointer', fontFamily: 'Poppins, sans-serif', textDecoration: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                    >
+                      WhatsApp Us
+                    </a>
+                  </div>
+                </div>
+              </>
+            )}
+            <button
+              onClick={() => setPaymentConfirm(null)}
+              style={{ position: 'absolute', top: '12px', right: '12px', background: 'rgba(255,255,255,.2)', border: 'none', borderRadius: '50%', width: '28px', height: '28px', color: '#fff', fontSize: '14px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+            >✕</button>
+          </div>
+        </div>
+      )}
 
       <SiteFooter />
     </>

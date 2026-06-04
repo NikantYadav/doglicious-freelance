@@ -453,17 +453,17 @@ export async function downloadProgressPDF(history, dog, days) {
       const rk   = e.risk || 'w';
       const risk = RISK_MAP[rk] || RISK_MAP.w;
       const sc   = scoreColor(e.score ?? 0);
-      const snippet = e.sum ? (e.sum.length > 100 ? e.sum.slice(0, 100) + '…' : e.sum) : '';
+      const snippet = e.sum ? (e.sum.length > 120 ? e.sum.slice(0, 120) + '…' : e.sum) : '';
+      const hasImg = !!(e.imgB64 && e.imgB64.length > 100);
 
+      // Card header row: score pill + meta
       content.push({
         table: {
           widths: ['auto', '*'],
           body: [[
             {
-              // Score pill
               table: { widths: [40], body: [[{ text: String(e.score ?? 0), fontSize: 14, bold: true, color: C.white, alignment: 'center', margin: [0, 6, 0, 6] }]] },
               layout: { fillColor: sc, hLineWidth: () => 0, vLineWidth: () => 0, paddingLeft: () => 0, paddingRight: () => 0, paddingTop: () => 0, paddingBottom: () => 0 },
-              margin: [0, 0, 0, 0]
             },
             {
               stack: [
@@ -486,9 +486,32 @@ export async function downloadProgressPDF(history, dog, days) {
           hLineColor: () => C.border,
           paddingLeft: () => 0, paddingRight: () => 12, paddingTop: () => 0, paddingBottom: () => 0
         },
-        margin: [0, 0, 0, 8],
+        margin: [0, 0, 0, hasImg ? 2 : 8],
         unbreakable: true
       });
+
+      // Scan thumbnail — full width below the card header
+      if (hasImg) {
+        content.push({
+          table: {
+            widths: ['*'],
+            body: [[{
+              image: `data:image/jpeg;base64,${e.imgB64}`,
+              fit: [515, 180],
+              alignment: 'center',
+              margin: [0, 6, 0, 6]
+            }]]
+          },
+          layout: {
+            fillColor: C.light,
+            hLineWidth: () => 1, vLineWidth: () => 1,
+            hLineColor: () => C.border, vLineColor: () => C.border,
+            paddingLeft: () => 0, paddingRight: () => 0, paddingTop: () => 0, paddingBottom: () => 0
+          },
+          margin: [0, 0, 0, 10],
+          unbreakable: true
+        });
+      }
     }
   }
 
