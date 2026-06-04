@@ -291,7 +291,7 @@ const PoopSenseApp = () => {
 
   const handleDownloadProgressPDF = async (days) => {
     try {
-      await downloadProgressPDF(dogHistory, dog, days);
+      await downloadProgressPDF(allHistory, dog, days);
     } catch (e) {
       toast('PDF generation failed: ' + (e.message || 'Unknown error'));
     }
@@ -307,7 +307,9 @@ const PoopSenseApp = () => {
   };
 
   const dog = state.dogs[state.curDog] || null;
-  const dogHistory = dog ? (state.hist[dog.id] || []) : [];
+  // All scans across all dogs — flattened and sorted newest first
+  const allHistory = Object.values(state.hist).flat().sort((a, b) => (b.ts || 0) - (a.ts || 0));
+  const dogHistory = dog ? (state.hist[dog.id] || []).slice().sort((a, b) => (b.ts || 0) - (a.ts || 0)) : [];
   const today = todayStr();
   const todayScans = dogHistory.filter((e) => e.date === today);
 
@@ -391,7 +393,7 @@ const PoopSenseApp = () => {
       {/* ── HISTORY ── */}
       {activeTab === 'hist' && (
         <HistoryPanel
-          history={dogHistory}
+          history={allHistory}
           dogName={dog?.name || ''}
           vetName={state.vet.name}
           vetNum={state.vet.num}
@@ -404,7 +406,7 @@ const PoopSenseApp = () => {
       {/* ── PROGRESS ── */}
       {activeTab === 'prog' && (
         <ProgressPanel
-          history={dogHistory}
+          history={allHistory}
           dogName={dog?.name || ''}
           vetName={state.vet.name}
           onShareVet={handleShareVetFromHistory}

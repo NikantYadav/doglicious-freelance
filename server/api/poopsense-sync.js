@@ -51,8 +51,6 @@ async function handleLoad(phone) {
   if (!user) return { notFound: true };
 
   // Load dogs
-
-  // Load dogs
   const { data: dogs } = await supabase
     .from('ps_dogs')
     .select('*')
