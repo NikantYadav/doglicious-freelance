@@ -102,8 +102,12 @@ export default function SiteHeader({ openModal }) {
         <button onClick={() => { setMobileMenuOpen(false); open('vet'); }}>🔬 Vet Rx Scan — Free</button>
         <button onClick={() => { setMobileMenuOpen(false); open('analysis'); }}>💩 Poop Analyser — Coming soon</button>
         <span className="mob-section">Free Tools</span>
-        <button onClick={() => { setMobileMenuOpen(false); openTool(0); }}>⚖️ BMI · 🍽️ Feeding · 💰 Cost</button>
-        <button onClick={() => { setMobileMenuOpen(false); openTool(3); }}>📅 Age · 🥦 Vegetables · 🧠 Quiz</button>
+        <button onClick={() => { setMobileMenuOpen(false); openTool(0); }}>⚖️ BMI Calculator</button>
+        <button onClick={() => { setMobileMenuOpen(false); openTool(1); }}>🍽️ Feeding Calculator</button>
+        <button onClick={() => { setMobileMenuOpen(false); openTool(2); }}>💰 Cost Calculator</button>
+        <button onClick={() => { setMobileMenuOpen(false); openTool(3); }}>📅 Age Calculator</button>
+        <button onClick={() => { setMobileMenuOpen(false); openTool(4); }}>🥦 Safe Vegetables</button>
+        <button onClick={() => { setMobileMenuOpen(false); openTool(7); }}>🧠 Dog Health Quiz</button>
         <span className="mob-section">Browse</span>
         <Link to="/blogs" onClick={() => setMobileMenuOpen(false)}>Blogs</Link>
         <Link to="/#faq" onClick={() => setMobileMenuOpen(false)}>FAQs</Link>

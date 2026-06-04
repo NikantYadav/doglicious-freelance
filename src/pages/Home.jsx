@@ -232,8 +232,12 @@ export default function Home() {
         <button onClick={() => { setMobileMenuOpen(false); openModal('vet'); }}>🔬 Vet Rx Scan — Free</button>
         <button onClick={() => { setMobileMenuOpen(false); navigate('/poopsense'); }}>💩 PoopSense AI — Free</button>
         <span className="mob-section">Free Tools</span>
-        <button onClick={() => { setMobileMenuOpen(false); openTool(0); }}>⚖️ BMI · 🍽️ Feeding · 💰 Cost</button>
-        <button onClick={() => { setMobileMenuOpen(false); openTool(3); }}>📅 Age · 🥦 Vegetables · 🧠 Quiz</button>
+        <button onClick={() => { setMobileMenuOpen(false); openTool(0); }}>⚖️ BMI Calculator</button>
+        <button onClick={() => { setMobileMenuOpen(false); openTool(1); }}>🍽️ Feeding Calculator</button>
+        <button onClick={() => { setMobileMenuOpen(false); openTool(2); }}>💰 Cost Calculator</button>
+        <button onClick={() => { setMobileMenuOpen(false); openTool(3); }}>📅 Age Calculator</button>
+        <button onClick={() => { setMobileMenuOpen(false); openTool(4); }}>🥦 Safe Vegetables</button>
+        <button onClick={() => { setMobileMenuOpen(false); openTool(7); }}>🧠 Dog Health Quiz</button>
         <span className="mob-section">Questions &amp; Answers</span>
         <a href="#faq" onClick={() => setMobileMenuOpen(false)}>See all FAQs →</a>
         <button onClick={() => { setMobileMenuOpen(false); setTestimonialsOpen(true); }}>WHY CUSTOMERS CHOOSE US?</button>
