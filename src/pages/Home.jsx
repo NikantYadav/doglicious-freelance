@@ -595,7 +595,7 @@ export default function Home() {
       <div className="msb">
         <div className="msb-t"><strong>Fresh food · AI analysis</strong><span>From ₹99 · Free delivery</span></div>
         <div className="msb-btns">
-          <button className="msb-scan" onClick={() => navigate('/poopsense')}>🔍 AI Scan</button>
+          <button className="msb-scan" onClick={() => openModal('analysis')}>🔍 AI Scan</button>
           <button className="msb-book" onClick={() => openModal('sample')}>Book ₹99</button>
         </div>
       </div>
@@ -648,7 +648,7 @@ export default function Home() {
               <div className="am-label">Vet Rx Scan</div>
               <div className="am-name">Health &amp; Nutrition Scan</div>
               <div className="am-desc">Upload a photo, describe symptoms — AI-powered health assessment and customised meal recommendation for your ailing dog.</div>
-              <div className="am-cta">Launch Vet Rx Scan — Free →</div>
+              <div className="am-cta">Launch Vet Rx Scan</div>
             </div>
           </div>
           <div className="am-tool am-a" onClick={() => { closeModal(); navigate('/poopsense'); }}>
@@ -657,7 +657,7 @@ export default function Home() {
               <div className="am-label">PoopSense AI</div>
               <div className="am-name">Stool Health Analysis</div>
               <div className="am-desc">Upload a photo of your dog's stool — AI analyses colour, consistency, and form to flag gut health concerns and recommend dietary adjustments.</div>
-              <div className="am-cta">Launch PoopSense AI — Free →</div>
+              <div className="am-cta">Launch PoopSense AI</div>
             </div>
           </div>
           <p style={{ fontSize: '11px', color: 'var(--c1-50)', textAlign: 'center', marginTop: '12px' }}>Free for everyone · First scan complimentary · No sign-up needed</p>

@@ -53,6 +53,111 @@ async function sendConfirmationWhatsApp({ phone, txnid }) {
     }
 }
 
+/**
+ * Sends admin notification for sample order
+ * Template: order_confirmation_0406
+ * Parameters: {{1}}=customer name, {{2}}=customer phone, {{3}}=amount
+ */
+async function sendAdminOrderNotification({ customerName, customerPhone, amount }) {
+    const key = wyltoKey();
+    const adminPhone = process.env.ADMIN_PHONE;
+    
+    if (!key || !adminPhone) {
+        console.warn('[payu-success] WYLTO_API_KEY or ADMIN_PHONE not set — skipping admin notification');
+        return;
+    }
+
+    const body = {
+        to: adminPhone,
+        message: {
+            type: 'template',
+            template: {
+                templateName: 'order_confirmation_0406',
+                language: 'en_US',
+                category: 'UTILITY',
+                body: [
+                    { type: 'text', text: String(customerName) },
+                    { type: 'text', text: String(customerPhone) },
+                    { type: 'text', text: String(amount) },
+                ],
+            },
+        },
+    };
+
+    try {
+        const res = await fetch(`${WYLTO_BASE}/api/v1/wa/send?sync=true`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${key}`,
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(body),
+        });
+
+        const data = await res.json();
+
+        if (!res.ok || data.status === 'failed') {
+            console.error('[payu-success] Admin order notification failed:', data.error || JSON.stringify(data));
+        } else {
+            console.log(`[payu-success] Admin order notification sent (customer: ${customerPhone}, amount: ${amount})`);
+        }
+    } catch (err) {
+        console.error('[payu-success] Admin order notification error (non-fatal):', err.message);
+    }
+}
+
+/**
+ * Sends admin notification for VetRx subscription
+ * Template: subscription_done
+ * Parameters: {{1}}=customer name, {{2}}=service name (VetRx)
+ */
+async function sendAdminSubscriptionNotification({ customerName, serviceName }) {
+    const key = wyltoKey();
+    const adminPhone = process.env.ADMIN_PHONE;
+    
+    if (!key || !adminPhone) {
+        console.warn('[payu-success] WYLTO_API_KEY or ADMIN_PHONE not set — skipping admin subscription notification');
+        return;
+    }
+
+    const body = {
+        to: adminPhone,
+        message: {
+            type: 'template',
+            template: {
+                templateName: 'subscription_done',
+                language: 'en_US',
+                category: 'UTILITY',
+                body: [
+                    { type: 'text', text: String(customerName) },
+                    { type: 'text', text: String(serviceName) },
+                ],
+            },
+        },
+    };
+
+    try {
+        const res = await fetch(`${WYLTO_BASE}/api/v1/wa/send?sync=true`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${key}`,
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(body),
+        });
+
+        const data = await res.json();
+
+        if (!res.ok || data.status === 'failed') {
+            console.error('[payu-success] Admin subscription notification failed:', data.error || JSON.stringify(data));
+        } else {
+            console.log(`[payu-success] Admin subscription notification sent (service: ${serviceName})`);
+        }
+    } catch (err) {
+        console.error('[payu-success] Admin subscription notification error (non-fatal):', err.message);
+    }
+}
+
 // Reverse hash: SHA512( salt|status||||||udf5|udf4|udf3|udf2|udf1|email|firstname|productinfo|amount|txnid|key )
 function verifyReverseHash(params, salt) {
     const { status, udf5 = '', udf4 = '', udf3 = '', udf2 = '', udf1 = '',
@@ -122,8 +227,14 @@ export default async function handler(req, res) {
                 console.error('[payu-success] sample_bookings update error:', bookingErr.message);
             } else {
                 console.log(`[payu-success] Booking marked COMPLETED for txnid ${params.txnid} (${phone})`);
-                // Send WhatsApp order confirmation (non-blocking)
+                // Send WhatsApp order confirmation to customer (non-blocking)
                 sendConfirmationWhatsApp({ phone, txnid: params.txnid });
+                // Send admin notification for the order (non-blocking)
+                sendAdminOrderNotification({ 
+                    customerName: dogName || params.firstname || 'Customer', 
+                    customerPhone: phone, 
+                    amount: params.amount || price 
+                });
             }
         } catch (err) {
             console.error('[payu-success] Booking update failed (non-fatal):', err.message);
@@ -142,6 +253,11 @@ export default async function handler(req, res) {
                 .upsert({ phone, paid_scans: newPaid }, { onConflict: 'phone' });
             if (error) throw error;
             console.log(`[payu-success] VetRx: granted ${numScans} scans to ${phone}. New total: ${newPaid}`);
+            // Send admin notification for VetRx subscription (non-blocking)
+            sendAdminSubscriptionNotification({ 
+                customerName: params.firstname || phone, 
+                serviceName: 'VetRx' 
+            });
             return redirectToFrontend(res, 'payment_success', null, { paidScans: newPaid, txnid: params.txnid }, params.udf2);
         } catch (err) {
             console.error('[payu-success] VetRx Supabase update failed:', err.message);

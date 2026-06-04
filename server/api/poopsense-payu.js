@@ -10,6 +10,61 @@ const PAYU_KEY  = () => process.env.PAYU_KEY;
 const PAYU_SALT = () => process.env.PAYU_SALT;
 const isProd    = () => process.env.PAYU_ENV === 'production';
 
+const WYLTO_BASE = 'https://server.wylto.com';
+const wyltoKey = () => process.env.WYLTO_API_KEY;
+
+/**
+ * Sends admin notification for PoopSense subscription
+ * Template: subscription_done
+ * Parameters: {{1}}=customer name, {{2}}=service name (PoopSense)
+ */
+async function sendAdminSubscriptionNotification({ customerName, serviceName }) {
+    const key = wyltoKey();
+    const adminPhone = process.env.ADMIN_PHONE;
+
+    if (!key || !adminPhone) {
+        console.warn('[ps-payu] WYLTO_API_KEY or ADMIN_PHONE not set — skipping admin subscription notification');
+        return;
+    }
+
+    const body = {
+        to: adminPhone,
+        message: {
+            type: 'template',
+            template: {
+                templateName: 'subscription_done',
+                language: 'en_US',
+                category: 'UTILITY',
+                body: [
+                    { type: 'text', text: String(customerName) },
+                    { type: 'text', text: String(serviceName) },
+                ],
+            },
+        },
+    };
+
+    try {
+        const res = await fetch(`${WYLTO_BASE}/api/v1/wa/send?sync=true`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${key}`,
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(body),
+        });
+
+        const data = await res.json();
+
+        if (!res.ok || data.status === 'failed') {
+            console.error('[ps-payu] Admin subscription notification failed:', data.error || JSON.stringify(data));
+        } else {
+            console.log(`[ps-payu] Admin subscription notification sent (service: ${serviceName}, customer: ${customerName})`);
+        }
+    } catch (err) {
+        console.error('[ps-payu] Admin subscription notification error (non-fatal):', err.message);
+    }
+}
+
 function generateHash({ key, txnid, amount, productinfo, firstname, email, udf1, udf2, udf3, salt }) {
   const str = `${key}|${txnid}|${amount}|${productinfo}|${firstname}|${email}|${udf1}|${udf2}|${udf3}||||||||${salt}`;
   return crypto.createHash('sha512').update(str).digest('hex');
@@ -138,6 +193,11 @@ export async function successHandler(req, res) {
     }
 
     console.log(`[ps-payu-success] Subscription granted to ${phone} until ${subExpiresAt}`);
+    // Send admin notification for PoopSense subscription (non-blocking)
+    sendAdminSubscriptionNotification({
+      customerName: params.firstname || phone,
+      serviceName: 'PoopSense'
+    });
     return redirectFrontend(res, 'payment_success', null, { sub_expires_at: subExpiresAt });
 
   } catch (err) {

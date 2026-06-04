@@ -212,6 +212,13 @@ export default function BmiCalculator() {
 
       <div className="bmi-body">
 
+        {/* ── DISCLAIMER BEFORE TOOL ── */}
+        <div style={{ background: '#FEF5E4', border: '1px solid #E5D4B0', borderRadius: '12px', padding: '16px 20px', marginBottom: '24px' }}>
+          <p style={{ fontSize: '13px', color: '#5C3F18', lineHeight: 1.6, margin: 0 }}>
+            <strong>⚠️ Disclaimer:</strong> Please consult your veterinarian before starting any treatment, supplement, or medication, or making changes to your pet's diet, exercise, or lifestyle. Individual health needs may vary.
+          </p>
+        </div>
+
         {/* BCS Guide */}
         <div className="bmi-bcs-info">
           <h3>📊 Body Condition Score (BCS) Guide</h3>
@@ -438,6 +445,13 @@ export default function BmiCalculator() {
             </div>
 
             <button className="bmi-btn-reset" onClick={reset}>↩ Check another dog</button>
+
+            {/* ── DISCLAIMER AFTER TOOL ── */}
+            <div style={{ background: '#FEF5E4', border: '1px solid #E5D4B0', borderRadius: '12px', padding: '16px 20px', marginTop: '24px' }}>
+              <p style={{ fontSize: '13px', color: '#5C3F18', lineHeight: 1.6, margin: 0 }}>
+                <strong>⚠️ Disclaimer:</strong> Please consult your veterinarian before starting any treatment, supplement, or medication, or making changes to your pet's diet, exercise, or lifestyle. Individual health needs may vary.
+              </p>
+            </div>
           </div>
         )}
       </div>

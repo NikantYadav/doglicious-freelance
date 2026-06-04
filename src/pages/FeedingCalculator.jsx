@@ -268,6 +268,17 @@ export default function FeedingCalculator() {
         <div className="fc-trust-item"><div className="fc-trust-icon">🥦</div><div className="fc-trust-text">Fresh &amp; Natural Only</div></div>
       </div>
 
+      {/* ── DISCLAIMER BEFORE TOOL ── */}
+      {!result && (
+        <div style={{ maxWidth: '900px', margin: '0 auto', padding: '0 20px', marginBottom: '24px' }}>
+          <div style={{ background: '#FEF5E4', border: '1px solid #E5D4B0', borderRadius: '12px', padding: '16px 20px' }}>
+            <p style={{ fontSize: '13px', color: '#5C3F18', lineHeight: 1.6, margin: 0 }}>
+              <strong>⚠️ Disclaimer:</strong> Please consult your veterinarian before starting any treatment, supplement, or medication, or making changes to your pet's diet, exercise, or lifestyle. Individual health needs may vary.
+            </p>
+          </div>
+        </div>
+      )}
+
       {/* Calculator */}
       {!result && (
         <section className="fc-calc-section">
@@ -507,6 +518,13 @@ export default function FeedingCalculator() {
             </div>
 
             <button className="fc-recalc-btn" onClick={resetCalc}>🔄 Recalculate</button>
+
+            {/* ── DISCLAIMER AFTER TOOL ── */}
+            <div style={{ background: '#FEF5E4', border: '1px solid #E5D4B0', borderRadius: '12px', padding: '16px 20px', marginTop: '24px' }}>
+              <p style={{ fontSize: '13px', color: '#5C3F18', lineHeight: 1.6, margin: 0 }}>
+                <strong>⚠️ Disclaimer:</strong> Please consult your veterinarian before starting any treatment, supplement, or medication, or making changes to your pet's diet, exercise, or lifestyle. Individual health needs may vary.
+              </p>
+            </div>
           </div>
         </section>
       )}
