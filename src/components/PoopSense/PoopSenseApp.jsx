@@ -28,7 +28,7 @@ import PsPaywall from './PsPaywall';
 
 import { getTrialStatus, uid, todayStr } from './helpers';
 import { getPsSession, savePsSession, clearPsSession } from './psSession';
-import { psLoad, psRunAI, psGetQuota } from './psService';
+import { psLoad, psRunAI, psGetQuota, psSaveName } from './psService';
 import { LS } from './storage';
 import { downloadPoopSensePDF, downloadProgressPDF } from './psPdf';
 
@@ -41,6 +41,9 @@ const PoopSenseApp = () => {
   // ── Auth ──────────────────────────────────────────────────────────
   const [authReady, setAuthReady] = useState(false);
   const [phone, setPhone] = useState(null);
+  const [nameRequired, setNameRequired] = useState(false); // true = show name collection screen
+  const [nameInput, setNameInput] = useState('');
+  const [nameSaving, setNameSaving] = useState(false);
 
   useEffect(() => {
     const session = getPsSession();
@@ -68,8 +71,15 @@ const PoopSenseApp = () => {
           subDate: user.sub_date || null,
           startDate: user.start_date || null,
           memberSince: user.created_at || null,
+          userName: user.name || null,
         };
         dispatch({ type: 'INIT', payload });
+        // psLoad is authoritative — only prompt for name if DB confirms it's missing
+        if (!user.name) {
+          setNameRequired(true);
+        } else {
+          setNameRequired(false); // already has name — never show the prompt
+        }
       })
       .catch(e => {
         if (e.reason === 'user_not_found') {
@@ -99,7 +109,13 @@ const PoopSenseApp = () => {
   useEffect(() => {
     if (!phone) return;
     psGetQuota(phone)
-      .then(q => setQuota(q))
+      .then(q => {
+        setQuota(q);
+        // Sync name if quota has it (fast path before psLoad completes)
+        if (q.name) {
+          dispatch({ type: 'SET_USER_NAME', name: q.name });
+        }
+      })
       .catch(e => console.warn('[PoopSenseApp] psGetQuota failed:', e.message));
   }, [phone]);
 
@@ -159,6 +175,32 @@ const PoopSenseApp = () => {
     if (!isTrialOk) { setPayOpen(true); return; }
     setActiveTab(tab);
   }, [isTrialOk]);
+
+  // Gate scan interaction — show paywall if trial/subscription expired
+  const handleScanAttempt = useCallback((callback) => {
+    if (!isTrialOk) {
+      setPaywallReason('trial_expired');
+      return;
+    }
+    callback();
+  }, [isTrialOk]);
+
+  const handleSaveName = async () => {
+    if (!nameInput.trim()) return;
+    setNameSaving(true);
+    try {
+      await psSaveName(phone, nameInput.trim());
+      dispatch({ type: 'SET_USER_NAME', name: nameInput.trim() });
+      setNameRequired(false);
+    } catch (e) {
+      console.warn('[PoopSenseApp] psSaveName failed:', e.message);
+      // Allow continuing even if save fails — not a blocking error
+      dispatch({ type: 'SET_USER_NAME', name: nameInput.trim() });
+      setNameRequired(false);
+    } finally {
+      setNameSaving(false);
+    }
+  };
 
   const handleShareVetFromHistory = () => {
     const num = state.vet.num?.replace(/\D/g, '') || '';
@@ -321,6 +363,63 @@ const PoopSenseApp = () => {
     return <PsAuthGate onAuthenticated={handleAuthenticated} />;
   }
 
+  /* NAME COLLECTION — first-time user */
+  if (nameRequired) {
+    return (
+      <div style={{
+        position: 'fixed', inset: 0, background: '#EDE0CC',
+        display: 'flex', flexDirection: 'column', alignItems: 'center',
+        justifyContent: 'center', zIndex: 9999, padding: '24px',
+      }}>
+        <div style={{ width: '100%', maxWidth: 380 }}>
+          <div style={{ textAlign: 'center', marginBottom: 28 }}>
+            <div style={{ fontSize: 36, marginBottom: 8 }}>👋</div>
+            <div style={{ fontSize: 22, fontWeight: 900, color: '#2D1F0A', letterSpacing: -0.5 }}>Welcome to PoopSense!</div>
+            <div style={{ fontSize: 12, color: '#8B6B3D', marginTop: 4 }}>One quick thing before we start</div>
+          </div>
+
+          <div style={{ background: '#FFF', borderRadius: 18, padding: '24px 20px', boxShadow: '0 4px 24px rgba(74,50,24,.12)' }}>
+            <div style={{ fontSize: 15, fontWeight: 800, color: '#2D1F0A', marginBottom: 4 }}>What's your name?</div>
+            <div style={{ fontSize: 11, color: '#8B6B3D', marginBottom: 18, lineHeight: 1.6 }}>
+              We'll use this to personalise your experience.
+            </div>
+            <input
+              type="text"
+              placeholder="Your name (e.g. Priya)"
+              value={nameInput}
+              onChange={e => setNameInput(e.target.value)}
+              onKeyDown={e => e.key === 'Enter' && handleSaveName()}
+              autoFocus
+              style={{
+                width: '100%', padding: '12px 14px', borderRadius: 10, fontSize: 14,
+                border: '1.5px solid rgba(58,39,0,.18)', outline: 'none',
+                fontFamily: 'Poppins, sans-serif', color: '#1A1000', marginBottom: 16,
+                boxSizing: 'border-box',
+              }}
+            />
+            <button
+              onClick={handleSaveName}
+              disabled={nameSaving || !nameInput.trim()}
+              style={{
+                width: '100%', padding: 13, background: '#3A2700', color: '#FFF',
+                border: 'none', borderRadius: 12, fontSize: 14, fontWeight: 700,
+                cursor: (nameSaving || !nameInput.trim()) ? 'not-allowed' : 'pointer',
+                opacity: !nameInput.trim() ? 0.5 : 1,
+                fontFamily: 'Poppins, sans-serif',
+              }}
+            >
+              {nameSaving ? 'Saving…' : 'Continue →'}
+            </button>
+          </div>
+
+          <p style={{ textAlign: 'center', fontSize: 10, color: '#8B6B3D', marginTop: 16 }}>
+            Free trial included · then ₹499/month · Cancel anytime
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   /* LANDING */
   if (!hasSeenLanding) {
     return (
@@ -359,7 +458,8 @@ const PoopSenseApp = () => {
               hasDogHistory={dogHistory.length > 0}
               vetName={state.vet.name} vetNum={state.vet.num}
               onEditDog={() => { setEditDogTarget(dog); setEditDogOpen(true); }}
-              onContinue={(image) => { setPendingImage(image); if (!dog) goToScreen('s2'); else goToScreen('s3'); }}
+              onContinue={(image) => handleScanAttempt(() => { setPendingImage(image); if (!dog) goToScreen('s2'); else goToScreen('s3'); })}
+              onScanAttempt={handleScanAttempt}
               onNavHist={() => showNav('hist')}
               onNavProg={() => showNav('prog')}
               onShareVet={handleShareVet}

@@ -18,6 +18,7 @@ const DEFAULT_STATE = {
   curDays: 7,
   waVerified: false,
   phone: null,
+  userName: null,
 };
 
 // ─── Reducer ──────────────────────────────────────────────────────────────────
@@ -74,6 +75,9 @@ function reducer(state, action) {
 
     case 'SET_PHONE':
       return { ...state, phone: action.phone };
+
+    case 'SET_USER_NAME':
+      return { ...state, userName: action.name };
 
     case 'SET_CUR_DAYS':
       return { ...state, curDays: action.days };

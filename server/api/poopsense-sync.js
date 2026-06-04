@@ -15,7 +15,7 @@ function trunc(str, len = 500) {
 async function upsertUser(phone) {
   const { data: existing } = await supabase
     .from('ps_users')
-    .select('id, phone, subscribed, sub_date, sub_expires_at, start_date, scan_count, daily_scan_count, daily_scan_date, vet_name, vet_num, pdf_lang')
+    .select('id, phone, name, subscribed, sub_date, sub_expires_at, start_date, scan_count, daily_scan_count, daily_scan_date, vet_name, vet_num, pdf_lang')
     .eq('phone', phone)
     .maybeSingle();
 
@@ -24,7 +24,7 @@ async function upsertUser(phone) {
   const { data, error } = await supabase
     .from('ps_users')
     .insert({ phone })
-    .select('id, phone, subscribed, sub_date, sub_expires_at, start_date, scan_count, daily_scan_count, daily_scan_date, vet_name, vet_num, pdf_lang')
+    .select('id, phone, name, subscribed, sub_date, sub_expires_at, start_date, scan_count, daily_scan_count, daily_scan_date, vet_name, vet_num, pdf_lang')
     .single();
 
   if (error) throw error;
@@ -35,7 +35,7 @@ async function upsertUser(phone) {
 async function findUser(phone) {
   const { data, error } = await supabase
     .from('ps_users')
-    .select('id, phone, subscribed, sub_date, sub_expires_at, start_date, scan_count, daily_scan_count, daily_scan_date, vet_name, vet_num, pdf_lang, created_at')
+    .select('id, phone, name, subscribed, sub_date, sub_expires_at, start_date, scan_count, daily_scan_count, daily_scan_date, vet_name, vet_num, pdf_lang, created_at')
     .eq('phone', phone)
     .maybeSingle();
   if (error) throw error;
@@ -326,6 +326,8 @@ export default async function handler(req, res) {
         }
 
         return res.status(200).json({
+          // User
+          name:                user.name || null,
           // Subscription
           subscribed:          isSubscribed,
           subExpired:          !!subExpired,
@@ -346,6 +348,19 @@ export default async function handler(req, res) {
           // Gate
           canScan,
         });
+      }
+
+      case 'save-name': {
+        const { name } = payload;
+        if (!name || typeof name !== 'string' || !name.trim()) {
+          return res.status(400).json({ error: 'name required' });
+        }
+        const { error } = await supabase
+          .from('ps_users')
+          .update({ name: name.trim() })
+          .eq('phone', normPhone);
+        if (error) throw error;
+        return res.status(200).json({ ok: true });
       }
 
       default:

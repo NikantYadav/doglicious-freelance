@@ -138,3 +138,16 @@ export async function psGetQuota(phone) {
   if (!res.ok) throw new Error(data.error || 'Failed to fetch quota');
   return data; // { scanCount, subscribed, subExpiresAt, numFree, isSubscribed, canScan }
 }
+
+// ── Save user name (for first-time login) ────────────────────────────
+
+export async function psSaveName(phone, name) {
+  const res = await fetch(`${API}/api/poopsense/sync`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ action: 'save-name', phone, name }),
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || 'Failed to save name');
+  return data;
+}

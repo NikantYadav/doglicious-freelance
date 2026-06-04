@@ -164,7 +164,7 @@ export async function successHandler(req, res) {
     // Find or create user; reset scan_count to 0 for the new subscription period
     const { data: existing } = await supabase
       .from('ps_users')
-      .select('id')
+      .select('id, name')
       .eq('phone', phone)
       .maybeSingle();
 
@@ -195,7 +195,7 @@ export async function successHandler(req, res) {
     console.log(`[ps-payu-success] Subscription granted to ${phone} until ${subExpiresAt}`);
     // Send admin notification for PoopSense subscription (non-blocking)
     sendAdminSubscriptionNotification({
-      customerName: params.firstname || phone,
+      customerName: existing?.name || params.firstname || phone,
       serviceName: 'PoopSense'
     });
     return redirectFrontend(res, 'payment_success', null, { sub_expires_at: subExpiresAt });

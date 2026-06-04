@@ -10,6 +10,7 @@ import { normalizePhone } from '../utils/phone';
 import { pushLead } from '../services/wylto';
 import '../styles/Home.css';
 import '../styles/HealthQuiz.css';
+import { downloadHealthQuizPdf } from '../utils/toolsPdfGenerator';
 
 const BREEDS = ['Indian Pariah', 'Labrador', 'Golden Retriever', 'German Shepherd', 'Beagle', 'Pug', 'Shih Tzu', 'Rajapalayam', 'Mudhol Hound', 'Chippiparai', 'Kombai', 'Kanni', 'Bakharwal', 'Rampur Greyhound', 'Himalayan Sheepdog', 'Dachshund', 'Rottweiler', 'Indie (Mixed)', 'Other'];
 
@@ -460,7 +461,16 @@ export default function HealthQuiz() {
               </div>
             </div>
 
-            <button className="hq-retake" onClick={restart}>🔄 Retake Quiz</button>
+            <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
+              <button className="hq-retake" onClick={restart} style={{ flex: 1, minWidth: '200px' }}>🔄 Retake Quiz</button>
+              <button
+                className="hq-retake"
+                onClick={() => downloadHealthQuizPdf(result, aiTip)}
+                style={{ flex: 1, minWidth: '200px', background: '#1A7A45', borderColor: '#1A7A45', color: '#fff' }}
+              >
+                ⬇️ Download PDF Report
+              </button>
+            </div>
           </div>
         </section>
       )}

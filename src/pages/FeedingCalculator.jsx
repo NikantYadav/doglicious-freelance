@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 
-import { logoImg } from '../data/homeData';
+import { logoImg, GRAM_OPTS, GRAM_PRICES, RECIPES } from '../data/homeData';
 import SiteHeader from '../components/shared/SiteHeader';
 import SiteFooter from '../components/shared/SiteFooter';
 import { useSEO } from '../hooks/useSEO';
@@ -10,6 +10,11 @@ import { normalizePhone } from '../utils/phone';
 import { pushLead } from '../services/wylto';
 import '../styles/Home.css';
 import '../styles/FeedingCalculator.css';
+import { downloadFeedingPdf } from '../utils/toolsPdfGenerator';
+import SampleModal from '../components/modals/SampleModal';
+import { initiatePayU } from '../services/sampleBooking';
+import { useToast } from '../components/common/Toast';
+import LoadingOverlay from '../components/common/LoadingOverlay';
 
 // ── Data ──────────────────────────────────────────────────────
 const BREEDS = [
@@ -68,14 +73,42 @@ export default function FeedingCalculator() {
   // result
   const [result, setResult] = useState(null);
   const [aiTip, setAiTip] = useState(null);   // null=loading, string=done
-  const [ctaName, setCtaName] = useState('');
-  const [ctaPhone, setCtaPhone] = useState('');
-  const [ctaEmail, setCtaEmail] = useState('');
+
+  // Sample booking state
+  const [sampleModalOpen, setSampleModalOpen] = useState(false);
+  const [sampleStep, setSampleStep] = useState(1);
+  const [selectedRecipe, setSelectedRecipe] = useState(0);
+  const [selectedGramIdx, setSelectedGramIdx] = useState(0);
+  const [dogNameSample, setDogNameSample] = useState('');
+  const [mobile, setMobile] = useState('');
+  const [mobileValid, setMobileValid] = useState(false);
+  const [deliveryAddress, setDeliveryAddress] = useState('');
+  const [deliveryCity, setDeliveryCity] = useState('');
+  const [deliveryPin, setDeliveryPin] = useState('');
+  const [mapSrc, setMapSrc] = useState('');
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [paymentConfirm, setPaymentConfirm] = useState(null);
+
+  const { toast } = useToast();
 
   const resultRef = useRef(null);
   const weightRef = useRef(null);
 
+  // Detect PayU redirect back to this page
   useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const status = params.get('payu_status');
+    if (!status) return;
+    window.history.replaceState({}, '', window.location.pathname);
+    if (status === 'payment_success') {
+      setPaymentConfirm({
+        success: true,
+        txnid: params.get('txnid') || '',
+        amount: params.get('amount') || '99',
+      });
+    } else {
+      setPaymentConfirm({ success: false });
+    }
   }, []);
 
   useEffect(() => { window.scrollTo(0, 0); }, []);
@@ -185,27 +218,52 @@ export default function FeedingCalculator() {
     window.open(`https://wa.me/+919889887980?text=${msg}`, '_blank');
   };
 
-  const doEmail = () => {
-    if (!result) return;
-    const normPhone = normalizePhone(ctaPhone);
-
-    // Push to Wylto CRM
-    pushLead({
-      name: ctaName,
-      phone: normPhone,
-      email: ctaEmail,
-      source: 'feeding-calculator-email',
-      dogWeight: result.w,
-      dogAge: result.age,
-      breed: result.breedName,
-      dailyGrams: result.dailyG,
-      dailyKcal: result.dailyCal
-    });
-
-    const sub = encodeURIComponent('₹99 Fresh Food Sample — Doglicious');
-    const body = encodeURIComponent(`Name: ${ctaName}\nPhone: ${normPhone}\nDog: ${result.w}kg ${result.age} ${result.breedName}\nDaily: ${result.dailyG}g`);
-    window.location.href = `mailto:hello@doglicious.in?subject=${sub}&body=${body}`;
+  const bookSample = () => {
+    setSampleModalOpen(true);
   };
+
+  const handleMobileInput = (val) => {
+    setMobile(val);
+    const digits = val.replace(/\D/g, '');
+    setMobileValid(digits.length === 10 || (digits.length === 12 && digits.startsWith('91')) || (val.startsWith('+') && digits.length >= 7));
+  };
+
+  const handlePincodeInput = (val) => {
+    setDeliveryPin(val);
+    if (val.length === 6) {
+      const q = encodeURIComponent(`${deliveryAddress} ${deliveryCity} ${val}`);
+      setMapSrc(`https://maps.google.com/maps?q=${q}&output=embed&z=15`);
+    }
+  };
+
+  const openMapVerify = () => {
+    const q = encodeURIComponent(`${deliveryAddress} ${deliveryCity} ${deliveryPin}`);
+    setMapSrc(`https://maps.google.com/maps?q=${q}&output=embed&z=15`);
+  };
+
+  const proceedToPayment = async () => {
+    if (!mobile || !dogNameSample || !deliveryAddress || !deliveryCity || !deliveryPin) {
+      toast('Please fill all fields before proceeding.', 'error');
+      return;
+    }
+
+    const recipe = RECIPES[selectedRecipe];
+    const grams = GRAM_OPTS[selectedGramIdx];
+    const price = GRAM_PRICES[selectedGramIdx];
+
+    try {
+      setIsProcessing(true);
+      setSampleModalOpen(false);
+      await initiatePayU({ dogName: dogNameSample, phone: normalizePhone(mobile), price, recipe, grams, address: deliveryAddress, city: deliveryCity, pincode: deliveryPin });
+    } catch (err) {
+      setIsProcessing(false);
+      console.error('[PayU] initiation failed:', err);
+      toast('Payment could not be initiated. Please try again.', 'error');
+    }
+  };
+
+  const currentPrice = GRAM_PRICES[selectedGramIdx];
+  const currentGrams = GRAM_OPTS[selectedGramIdx];
 
   const resetCalc = () => {
     setResult(null);
@@ -503,21 +561,23 @@ export default function FeedingCalculator() {
             </div>
 
             <div className="fc-cta-section">
-              <div className="fc-cta-price">₹99</div>
-              <div className="fc-cta-title">Book a Fresh Food Sample</div>
-              <div className="fc-cta-sub">Try Doglicious fresh meals for your dog.<br />Talk to our pet nutrition expert.</div>
-              <div className="fc-cta-form">
-                <input className="fc-cta-input" type="text" placeholder="Your name" value={ctaName} onChange={e => setCtaName(e.target.value)} />
-                <input className="fc-cta-input" type="tel" placeholder="+91 98765 43210" value={ctaPhone} onChange={e => setCtaPhone(e.target.value)} />
-                <input className="fc-cta-input" type="email" placeholder="Email (optional)" value={ctaEmail} onChange={e => setCtaEmail(e.target.value)} />
-              </div>
-              <div className="fc-cta-btns">
-                <button className="fc-cta-btn fc-cta-wa" onClick={doWhatsApp}>💬 WhatsApp</button>
-                <button className="fc-cta-btn fc-cta-book" onClick={doEmail}>📧 Book Now</button>
-              </div>
+              <button
+                className="fc-recalc-btn"
+                style={{ background: '#1A7A45', color: '#fff', borderColor: '#1A7A45', width: '100%', marginTop: '16px' }}
+                onClick={bookSample}
+              >
+                🛒 Book Rs. 99 Sample
+              </button>
             </div>
 
             <button className="fc-recalc-btn" onClick={resetCalc}>🔄 Recalculate</button>
+            <button
+              className="fc-recalc-btn"
+              style={{ background: '#1A7A45', color: '#fff', borderColor: '#1A7A45', marginTop: '8px' }}
+              onClick={() => downloadFeedingPdf(result, aiTip)}
+            >
+              ⬇️ Download PDF Report
+            </button>
 
             {/* ── DISCLAIMER AFTER TOOL ── */}
             <div style={{ background: '#FEF5E4', border: '1px solid #E5D4B0', borderRadius: '12px', padding: '16px 20px', marginTop: '24px' }}>
@@ -527,6 +587,119 @@ export default function FeedingCalculator() {
             </div>
           </div>
         </section>
+      )}
+
+      {/* Sample Booking Modal */}
+      <SampleModal
+        isOpen={sampleModalOpen}
+        onClose={() => setSampleModalOpen(false)}
+        sampleStep={sampleStep}
+        setSampleStep={setSampleStep}
+        selectedRecipe={selectedRecipe}
+        setSelectedRecipe={setSelectedRecipe}
+        selectedGramIdx={selectedGramIdx}
+        setSelectedGramIdx={setSelectedGramIdx}
+        dogName={dogNameSample}
+        setDogName={setDogNameSample}
+        mobile={mobile}
+        mobileValid={mobileValid}
+        handleMobileInput={handleMobileInput}
+        deliveryAddress={deliveryAddress}
+        setDeliveryAddress={setDeliveryAddress}
+        deliveryCity={deliveryCity}
+        setDeliveryCity={setDeliveryCity}
+        deliveryPin={deliveryPin}
+        handlePincodeInput={handlePincodeInput}
+        mapSrc={mapSrc}
+        openMapVerify={openMapVerify}
+        proceedToPayment={proceedToPayment}
+        currentPrice={currentPrice}
+        currentGrams={currentGrams}
+      />
+
+      {isProcessing && <LoadingOverlay />}
+
+      {/* ── PAYMENT CONFIRMATION MODAL ── */}
+      {paymentConfirm && (
+        <div
+          style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,.6)', zIndex: 99999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px', backdropFilter: 'blur(4px)' }}
+          onClick={() => setPaymentConfirm(null)}
+        >
+          <div
+            style={{ background: '#fff', borderRadius: '20px', width: '100%', maxWidth: '400px', overflow: 'hidden', boxShadow: '0 24px 64px rgba(0,0,0,.3)', position: 'relative' }}
+            onClick={e => e.stopPropagation()}
+          >
+            {paymentConfirm.success ? (
+              <>
+                <div style={{ background: 'linear-gradient(135deg,#195C30,#2a7a44)', padding: '32px 24px', textAlign: 'center' }}>
+                  <div style={{ fontSize: '52px', marginBottom: '12px' }}>🎉</div>
+                  <div style={{ fontSize: '20px', fontWeight: 800, color: '#fff', marginBottom: '4px' }}>Payment Successful!</div>
+                  <div style={{ fontSize: '12px', color: 'rgba(255,255,255,.7)' }}>Your sample order has been confirmed</div>
+                </div>
+                <div style={{ padding: '24px' }}>
+                  <div style={{ background: '#F0FBF4', border: '1px solid rgba(25,92,48,.15)', borderRadius: '12px', padding: '16px', marginBottom: '16px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
+                      <span style={{ fontSize: '12px', color: '#5C3F18', fontWeight: 600 }}>Order Status</span>
+                      <span style={{ fontSize: '12px', fontWeight: 700, color: '#195C30' }}>✓ Confirmed</span>
+                    </div>
+                    {paymentConfirm.txnid && (
+                      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
+                        <span style={{ fontSize: '12px', color: '#5C3F18', fontWeight: 600 }}>Transaction ID</span>
+                        <span style={{ fontSize: '11px', fontFamily: 'monospace', color: '#3A2700' }}>{paymentConfirm.txnid}</span>
+                      </div>
+                    )}
+                    <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                      <span style={{ fontSize: '12px', color: '#5C3F18', fontWeight: 600 }}>Amount Paid</span>
+                      <span style={{ fontSize: '13px', fontWeight: 800, color: '#3A2700' }}>₹{paymentConfirm.amount}</span>
+                    </div>
+                  </div>
+                  <div style={{ fontSize: '12px', color: '#8B6B3D', lineHeight: 1.7, marginBottom: '20px', textAlign: 'center' }}>
+                    We'll WhatsApp you the delivery update.
+                  </div>
+                  <button
+                    onClick={() => setPaymentConfirm(null)}
+                    style={{ width: '100%', padding: '14px', background: 'linear-gradient(135deg,#195C30,#2a7a44)', color: '#fff', border: 'none', borderRadius: '12px', fontSize: '14px', fontWeight: 700, cursor: 'pointer', fontFamily: 'Poppins, sans-serif' }}
+                  >
+                    Got it, thanks! 🐾
+                  </button>
+                </div>
+              </>
+            ) : (
+              <>
+                <div style={{ background: 'linear-gradient(135deg,#AD2218,#c8382c)', padding: '28px 24px', textAlign: 'center' }}>
+                  <div style={{ fontSize: '48px', marginBottom: '10px' }}>❌</div>
+                  <div style={{ fontSize: '18px', fontWeight: 800, color: '#fff', marginBottom: '4px' }}>Payment Not Completed</div>
+                  <div style={{ fontSize: '12px', color: 'rgba(255,255,255,.7)' }}>Your order was not placed</div>
+                </div>
+                <div style={{ padding: '24px' }}>
+                  <p style={{ fontSize: '13px', color: '#5C3F18', lineHeight: 1.7, marginBottom: '20px', textAlign: 'center' }}>
+                    No amount was charged. You can try again or contact us on WhatsApp if you need help.
+                  </p>
+                  <div style={{ display: 'flex', gap: '10px' }}>
+                    <button
+                      onClick={() => { setPaymentConfirm(null); setSampleModalOpen(true); }}
+                      style={{ flex: 1, padding: '13px', background: 'linear-gradient(135deg,#3A2700,#6B4100)', color: '#fff', border: 'none', borderRadius: '12px', fontSize: '13px', fontWeight: 700, cursor: 'pointer', fontFamily: 'Poppins, sans-serif' }}
+                    >
+                      Try Again
+                    </button>
+                    <a
+                      href="https://wa.me/919889887980"
+                      target="_blank"
+                      rel="noreferrer"
+                      style={{ flex: 1, padding: '13px', background: '#25D366', color: '#fff', border: 'none', borderRadius: '12px', fontSize: '13px', fontWeight: 700, cursor: 'pointer', fontFamily: 'Poppins, sans-serif', textDecoration: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                    >
+                      WhatsApp Us
+                    </a>
+                  </div>
+                </div>
+              </>
+            )}
+            <button
+              onClick={() => setPaymentConfirm(null)}
+              style={{ position: 'absolute', top: '12px', right: '12px', background: 'rgba(255,255,255,.2)', border: 'none', borderRadius: '50%', width: '28px', height: '28px', color: '#fff', fontSize: '14px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+            >✕</button>
+          </div>
+        </div>
       )}
 
       <SiteFooter />

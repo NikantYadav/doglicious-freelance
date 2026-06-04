@@ -347,6 +347,7 @@ export const UploadScreen = ({
   vetNum,
   onEditDog,
   onContinue,
+  onScanAttempt,
   onNavHist,
   onNavProg,
   onShareVet,
@@ -428,6 +429,14 @@ export const UploadScreen = ({
     openNativeCamera();
   };
 
+  // Gate: if onScanAttempt provided, check trial before allowing gallery/camera/dropzone
+  const guardedGallery = () => {
+    if (onScanAttempt) { onScanAttempt(handleGallery); } else { handleGallery(); }
+  };
+  const guardedCamera = () => {
+    if (onScanAttempt) { onScanAttempt(handleCamera); } else { handleCamera(); }
+  };
+
   return (
     <>
       {showCamera && (
@@ -472,7 +481,7 @@ export const UploadScreen = ({
             onClick={(e) => {
               const t = e.target;
               if (t.closest("button")) return;
-              handleGallery();
+              guardedGallery();
             }}
           >
             <span className="upicon">💩</span>
@@ -496,7 +505,7 @@ export const UploadScreen = ({
                 style={{ flex: 1, fontSize: 13, gap: 6 }}
                 onClick={(e) => {
                   e.stopPropagation();
-                  handleGallery();
+                  guardedGallery();
                 }}
                 type="button"
               >
@@ -513,7 +522,7 @@ export const UploadScreen = ({
                 }}
                 onClick={(e) => {
                   e.stopPropagation();
-                  handleCamera();
+                  guardedCamera();
                 }}
                 type="button"
               >

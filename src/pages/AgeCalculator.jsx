@@ -10,6 +10,7 @@ import { normalizePhone } from '../utils/phone';
 import { pushLead } from '../services/wylto';
 import '../styles/Home.css';
 import '../styles/AgeCalculator.css';
+import { downloadAgePdf } from '../utils/toolsPdfGenerator';
 import SampleModal from '../components/modals/SampleModal';
 import { GRAM_OPTS, GRAM_PRICES, RECIPES } from '../data/homeData';
 import { initiatePayU } from '../services/sampleBooking';
@@ -487,9 +488,15 @@ export default function AgeCalculator() {
                 </button>
               </div>
 
-              <div className="ac-secondary-btns" style={{ marginTop: '16px', display: 'flex', gap: '8px' }}>
+              <div className="ac-secondary-btns" style={{ marginTop: '16px', display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
                 <button className="ac-share-reset" onClick={shareWA} style={{ flex: 1, padding: '10px', fontSize: '11px', border: '1px solid #ccc', borderRadius: '50px', background: 'transparent' }}>📲 Share Result</button>
                 <button className="ac-share-reset" onClick={reset} style={{ flex: 1, padding: '10px', fontSize: '11px', border: '1px solid #ccc', borderRadius: '50px', background: 'transparent' }}>🔄 Recalculate</button>
+                <button
+                  onClick={() => downloadAgePdf(result)}
+                  style={{ flex: 1, padding: '10px', fontSize: '11px', border: '1px solid #1A7A45', borderRadius: '50px', background: '#1A7A45', color: '#fff', cursor: 'pointer', fontFamily: 'inherit' }}
+                >
+                  ⬇️ Download PDF
+                </button>
               </div>
 
               {/* ── DISCLAIMER AFTER TOOL ── */}

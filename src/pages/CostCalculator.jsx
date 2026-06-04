@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 
-import { logoImg } from '../data/homeData';
+import { logoImg, GRAM_OPTS, GRAM_PRICES, RECIPES } from '../data/homeData';
 import SiteHeader from '../components/shared/SiteHeader';
 import SiteFooter from '../components/shared/SiteFooter';
 import { useSEO } from '../hooks/useSEO';
@@ -10,6 +10,11 @@ import { normalizePhone } from '../utils/phone';
 import { pushLead } from '../services/wylto';
 import '../styles/Home.css';
 import '../styles/CostCalculator.css';
+import { downloadCostPdf } from '../utils/toolsPdfGenerator';
+import SampleModal from '../components/modals/SampleModal';
+import { initiatePayU } from '../services/sampleBooking';
+import { useToast } from '../components/common/Toast';
+import LoadingOverlay from '../components/common/LoadingOverlay';
 
 const BRANDS = ['Pedigree', 'Royal Canin', 'Drools', 'Farmina', 'Acana', 'Other'];
 
@@ -37,11 +42,34 @@ export default function CostCalculator() {
   const [result, setResult] = useState(null);
   const resultRef = useRef(null);
 
-  const [ctaName, setCtaName] = useState('');
-  const [ctaPhone, setCtaPhone] = useState('');
-  const [ctaEmail, setCtaEmail] = useState('');
+  // Sample booking state
+  const [sampleModalOpen, setSampleModalOpen] = useState(false);
+  const [sampleStep, setSampleStep] = useState(1);
+  const [selectedRecipe, setSelectedRecipe] = useState(0);
+  const [selectedGramIdx, setSelectedGramIdx] = useState(0);
+  const [dogNameSample, setDogNameSample] = useState('');
+  const [mobile, setMobile] = useState('');
+  const [mobileValid, setMobileValid] = useState(false);
+  const [deliveryAddress, setDeliveryAddress] = useState('');
+  const [deliveryCity, setDeliveryCity] = useState('');
+  const [deliveryPin, setDeliveryPin] = useState('');
+  const [mapSrc, setMapSrc] = useState('');
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [paymentConfirm, setPaymentConfirm] = useState(null);
 
+  const { toast } = useToast();
+
+  // Detect PayU redirect back to this page
   useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const status = params.get('payu_status');
+    if (!status) return;
+    window.history.replaceState({}, '', window.location.pathname);
+    if (status === 'payment_success') {
+      setPaymentConfirm({ success: true, txnid: params.get('txnid') || '', amount: params.get('amount') || '99' });
+    } else {
+      setPaymentConfirm({ success: false });
+    }
   }, []);
 
   useEffect(() => { window.scrollTo(0, 0); }, []);
@@ -95,27 +123,48 @@ export default function CostCalculator() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  const bookSample = () => {
-    const normPhone = normalizePhone(ctaPhone);
+  const bookSample = () => setSampleModalOpen(true);
 
-    // Push to Wylto CRM
-    pushLead({
-      name: ctaName,
-      phone: normPhone,
-      email: ctaEmail,
-      source: 'cost-calculator',
-      dogWeight: result?.weight || dogWeight,
-      brand: result?.brand || brand,
-      kibbleMonthly: result?.kibbleMonthly,
-      freshMonthly: result?.freshMonthly,
-      savingsYearly: result?.diff
-    });
-
-    const msg = encodeURIComponent(
-      `🐾 Hi Doglicious!\n\nI used your cost calculator and want to try the ₹99 fresh food sample.\n\nMy dog: ${dogWeight || '?'} kg, currently on ${brand || 'kibble'}\n\nName: ${ctaName}\nPhone: ${normPhone}\n\nPlease help me get started!`
-    );
-    window.open(`https://wa.me/+919889887980?text=${msg}`, '_blank');
+  const handleMobileInput = (val) => {
+    setMobile(val);
+    const digits = val.replace(/\D/g, '');
+    setMobileValid(digits.length === 10 || (digits.length === 12 && digits.startsWith('91')) || (val.startsWith('+') && digits.length >= 7));
   };
+
+  const handlePincodeInput = (val) => {
+    setDeliveryPin(val);
+    if (val.length === 6) {
+      const q = encodeURIComponent(`${deliveryAddress} ${deliveryCity} ${val}`);
+      setMapSrc(`https://maps.google.com/maps?q=${q}&output=embed&z=15`);
+    }
+  };
+
+  const openMapVerify = () => {
+    const q = encodeURIComponent(`${deliveryAddress} ${deliveryCity} ${deliveryPin}`);
+    setMapSrc(`https://maps.google.com/maps?q=${q}&output=embed&z=15`);
+  };
+
+  const proceedToPayment = async () => {
+    if (!mobile || !dogNameSample || !deliveryAddress || !deliveryCity || !deliveryPin) {
+      toast('Please fill all fields before proceeding.', 'error');
+      return;
+    }
+    const recipe = RECIPES[selectedRecipe];
+    const grams = GRAM_OPTS[selectedGramIdx];
+    const price = GRAM_PRICES[selectedGramIdx];
+    try {
+      setIsProcessing(true);
+      setSampleModalOpen(false);
+      await initiatePayU({ dogName: dogNameSample, phone: normalizePhone(mobile), price, recipe, grams, address: deliveryAddress, city: deliveryCity, pincode: deliveryPin });
+    } catch (err) {
+      setIsProcessing(false);
+      console.error('[PayU] initiation failed:', err);
+      toast('Payment could not be initiated. Please try again.', 'error');
+    }
+  };
+
+  const currentPrice = GRAM_PRICES[selectedGramIdx];
+  const currentGrams = GRAM_OPTS[selectedGramIdx];
 
   const TOOL_ROUTES = [
     '/tools/bmi-calculator',
@@ -314,33 +363,23 @@ export default function CostCalculator() {
               ))}
             </div>
 
-            {/* WA CTA */}
+            {/* Book Sample CTA */}
             <div className="cc-wa-cta">
               <div className="cc-wa-cta-text">
                 <h3>Try fresh for ₹99</h3>
                 <p>One sample meal delivered to your door. No subscription needed.</p>
               </div>
-
-              <div className="cc-cta-form">
-                <input
-                  type="text"
-                  placeholder="Your Name"
-                  value={ctaName}
-                  onChange={e => setCtaName(e.target.value)}
-                  className="cc-cta-input"
-                />
-                <input
-                  type="tel"
-                  placeholder="+91 98765 43210"
-                  value={ctaPhone}
-                  onChange={e => setCtaPhone(e.target.value)}
-                  className="cc-cta-input"
-                />
-                <button className="cc-wa-cta-btn" onClick={bookSample}>📲 Book Now</button>
-              </div>
+              <button className="cc-wa-cta-btn" onClick={bookSample}>🛒 Book Now</button>
             </div>
 
             <button className="cc-btn-reset" onClick={reset}>↩ Recalculate</button>
+            <button
+              className="cc-btn-reset"
+              style={{ background: '#1A7A45', color: '#fff', borderColor: '#1A7A45', marginTop: '8px' }}
+              onClick={() => downloadCostPdf(result)}
+            >
+              ⬇️ Download PDF Report
+            </button>
 
             {/* ── DISCLAIMER AFTER TOOL ── */}
             <div style={{ background: '#FEF5E4', border: '1px solid #E5D4B0', borderRadius: '12px', padding: '16px 20px', marginTop: '24px' }}>
@@ -351,6 +390,117 @@ export default function CostCalculator() {
           </div>
         )}
       </div>
+
+      <SampleModal
+        isOpen={sampleModalOpen}
+        onClose={() => setSampleModalOpen(false)}
+        sampleStep={sampleStep}
+        setSampleStep={setSampleStep}
+        selectedRecipe={selectedRecipe}
+        setSelectedRecipe={setSelectedRecipe}
+        selectedGramIdx={selectedGramIdx}
+        setSelectedGramIdx={setSelectedGramIdx}
+        dogName={dogNameSample}
+        setDogName={setDogNameSample}
+        mobile={mobile}
+        mobileValid={mobileValid}
+        handleMobileInput={handleMobileInput}
+        deliveryAddress={deliveryAddress}
+        setDeliveryAddress={setDeliveryAddress}
+        deliveryCity={deliveryCity}
+        setDeliveryCity={setDeliveryCity}
+        deliveryPin={deliveryPin}
+        handlePincodeInput={handlePincodeInput}
+        mapSrc={mapSrc}
+        openMapVerify={openMapVerify}
+        proceedToPayment={proceedToPayment}
+        currentPrice={currentPrice}
+        currentGrams={currentGrams}
+      />
+
+      {isProcessing && <LoadingOverlay />}
+
+      {paymentConfirm && (
+        <div
+          style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,.6)', zIndex: 99999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px', backdropFilter: 'blur(4px)' }}
+          onClick={() => setPaymentConfirm(null)}
+        >
+          <div
+            style={{ background: '#fff', borderRadius: '20px', width: '100%', maxWidth: '400px', overflow: 'hidden', boxShadow: '0 24px 64px rgba(0,0,0,.3)', position: 'relative' }}
+            onClick={e => e.stopPropagation()}
+          >
+            {paymentConfirm.success ? (
+              <>
+                <div style={{ background: 'linear-gradient(135deg,#195C30,#2a7a44)', padding: '32px 24px', textAlign: 'center' }}>
+                  <div style={{ fontSize: '52px', marginBottom: '12px' }}>🎉</div>
+                  <div style={{ fontSize: '20px', fontWeight: 800, color: '#fff', marginBottom: '4px' }}>Payment Successful!</div>
+                  <div style={{ fontSize: '12px', color: 'rgba(255,255,255,.7)' }}>Your sample order has been confirmed</div>
+                </div>
+                <div style={{ padding: '24px' }}>
+                  <div style={{ background: '#F0FBF4', border: '1px solid rgba(25,92,48,.15)', borderRadius: '12px', padding: '16px', marginBottom: '16px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
+                      <span style={{ fontSize: '12px', color: '#5C3F18', fontWeight: 600 }}>Order Status</span>
+                      <span style={{ fontSize: '12px', fontWeight: 700, color: '#195C30' }}>✓ Confirmed</span>
+                    </div>
+                    {paymentConfirm.txnid && (
+                      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
+                        <span style={{ fontSize: '12px', color: '#5C3F18', fontWeight: 600 }}>Transaction ID</span>
+                        <span style={{ fontSize: '11px', fontFamily: 'monospace', color: '#3A2700' }}>{paymentConfirm.txnid}</span>
+                      </div>
+                    )}
+                    <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                      <span style={{ fontSize: '12px', color: '#5C3F18', fontWeight: 600 }}>Amount Paid</span>
+                      <span style={{ fontSize: '13px', fontWeight: 800, color: '#3A2700' }}>₹{paymentConfirm.amount}</span>
+                    </div>
+                  </div>
+                  <div style={{ fontSize: '12px', color: '#8B6B3D', lineHeight: 1.7, marginBottom: '20px', textAlign: 'center' }}>
+                    We'll WhatsApp you the delivery update.
+                  </div>
+                  <button
+                    onClick={() => setPaymentConfirm(null)}
+                    style={{ width: '100%', padding: '14px', background: 'linear-gradient(135deg,#195C30,#2a7a44)', color: '#fff', border: 'none', borderRadius: '12px', fontSize: '14px', fontWeight: 700, cursor: 'pointer', fontFamily: 'Poppins, sans-serif' }}
+                  >
+                    Got it, thanks! 🐾
+                  </button>
+                </div>
+              </>
+            ) : (
+              <>
+                <div style={{ background: 'linear-gradient(135deg,#AD2218,#c8382c)', padding: '28px 24px', textAlign: 'center' }}>
+                  <div style={{ fontSize: '48px', marginBottom: '10px' }}>❌</div>
+                  <div style={{ fontSize: '18px', fontWeight: 800, color: '#fff', marginBottom: '4px' }}>Payment Not Completed</div>
+                  <div style={{ fontSize: '12px', color: 'rgba(255,255,255,.7)' }}>Your order was not placed</div>
+                </div>
+                <div style={{ padding: '24px' }}>
+                  <p style={{ fontSize: '13px', color: '#5C3F18', lineHeight: 1.7, marginBottom: '20px', textAlign: 'center' }}>
+                    No amount was charged. You can try again or contact us on WhatsApp if you need help.
+                  </p>
+                  <div style={{ display: 'flex', gap: '10px' }}>
+                    <button
+                      onClick={() => { setPaymentConfirm(null); setSampleModalOpen(true); }}
+                      style={{ flex: 1, padding: '13px', background: 'linear-gradient(135deg,#3A2700,#6B4100)', color: '#fff', border: 'none', borderRadius: '12px', fontSize: '13px', fontWeight: 700, cursor: 'pointer', fontFamily: 'Poppins, sans-serif' }}
+                    >
+                      Try Again
+                    </button>
+                    <a
+                      href="https://wa.me/919889887980"
+                      target="_blank"
+                      rel="noreferrer"
+                      style={{ flex: 1, padding: '13px', background: '#25D366', color: '#fff', border: 'none', borderRadius: '12px', fontSize: '13px', fontWeight: 700, cursor: 'pointer', fontFamily: 'Poppins, sans-serif', textDecoration: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                    >
+                      WhatsApp Us
+                    </a>
+                  </div>
+                </div>
+              </>
+            )}
+            <button
+              onClick={() => setPaymentConfirm(null)}
+              style={{ position: 'absolute', top: '12px', right: '12px', background: 'rgba(255,255,255,.2)', border: 'none', borderRadius: '50%', width: '28px', height: '28px', color: '#fff', fontSize: '14px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+            >✕</button>
+          </div>
+        </div>
+      )}
 
       <SiteFooter />
     </>

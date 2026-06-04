@@ -10,6 +10,7 @@ import { normalizePhone } from '../utils/phone';
 import { pushLead } from '../services/wylto';
 import '../styles/Home.css';
 import '../styles/BmiCalculator.css';
+import { downloadBmiPdf } from '../utils/toolsPdfGenerator';
 
 // ── Data ──────────────────────────────────────────────────────
 const IDEAL_RANGES = {
@@ -444,7 +445,16 @@ export default function BmiCalculator() {
               </div>
             </div>
 
-            <button className="bmi-btn-reset" onClick={reset}>↩ Check another dog</button>
+            <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', marginTop: '8px' }}>
+              <button className="bmi-btn-reset" onClick={reset}>↩ Check another dog</button>
+              <button
+                className="bmi-btn-reset"
+                style={{ background: '#1A7A45', color: '#fff', borderColor: '#1A7A45' }}
+                onClick={() => downloadBmiPdf(result)}
+              >
+                ⬇️ Download PDF Report
+              </button>
+            </div>
 
             {/* ── DISCLAIMER AFTER TOOL ── */}
             <div style={{ background: '#FEF5E4', border: '1px solid #E5D4B0', borderRadius: '12px', padding: '16px 20px', marginTop: '24px' }}>
