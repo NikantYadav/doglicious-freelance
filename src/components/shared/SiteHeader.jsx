@@ -10,6 +10,13 @@ export default function SiteHeader({ openModal }) {
   const navigate = useNavigate();
   const [navScrolled, setNavScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const toggleMenu = (val) => {
+    const next = typeof val === 'boolean' ? val : !mobileMenuOpen;
+    setMobileMenuOpen(next);
+    document.body.classList.toggle('mob-open', next);
+  };
+
+  useEffect(() => () => document.body.classList.remove('mob-open'), []);
 
   useEffect(() => {
     const onScroll = () => setNavScrolled(window.scrollY > 20);
@@ -87,7 +94,7 @@ export default function SiteHeader({ openModal }) {
               <span style={{ fontSize: '12px', fontWeight: 800, letterSpacing: '.01em' }}>Get Fresh Food Sample →</span>
               <span style={{ fontSize: '10px', fontWeight: 600, opacity: .80, marginTop: '1px' }}>Delivered Fresh for ₹99</span>
             </button>
-            <button className={`hbg${mobileMenuOpen ? ' o' : ''}`} onClick={() => setMobileMenuOpen(p => !p)}>
+            <button className={`hbg${mobileMenuOpen ? ' o' : ''}`} onClick={() => toggleMenu()}>
               <span /><span /><span />
             </button>
           </div>
@@ -96,22 +103,22 @@ export default function SiteHeader({ openModal }) {
 
       {/* MOBILE DRAWER */}
       <div className={`mob-drawer${mobileMenuOpen ? ' o' : ''}`}>
-        <Link to="/#book" onClick={() => setMobileMenuOpen(false)}>Book ₹99 Sample</Link>
-        <Link to="/#recipes" onClick={() => setMobileMenuOpen(false)}>Recipes</Link>
+        <Link to="/#book" onClick={() => toggleMenu(false)}>Book ₹99 Sample</Link>
+        <Link to="/#recipes" onClick={() => toggleMenu(false)}>Recipes</Link>
         <span className="mob-section">AI Analysis</span>
-        <button onClick={() => { setMobileMenuOpen(false); open('vet'); }}>🔬 Vet Rx Scan — Free</button>
-        <button onClick={() => { setMobileMenuOpen(false); open('analysis'); }}>💩 Poop Analyser — Coming soon</button>
+        <button onClick={() => { toggleMenu(false); open('vet'); }}>🔬 Vet Rx Scan — Free</button>
+        <button onClick={() => { toggleMenu(false); open('analysis'); }}>💩 Poop Analyser — Coming soon</button>
         <span className="mob-section">Free Tools</span>
-        <button onClick={() => { setMobileMenuOpen(false); openTool(0); }}>⚖️ BMI Calculator</button>
-        <button onClick={() => { setMobileMenuOpen(false); openTool(1); }}>🍽️ Feeding Calculator</button>
-        <button onClick={() => { setMobileMenuOpen(false); openTool(2); }}>💰 Cost Calculator</button>
-        <button onClick={() => { setMobileMenuOpen(false); openTool(3); }}>📅 Age Calculator</button>
-        <button onClick={() => { setMobileMenuOpen(false); openTool(4); }}>🥦 Safe Vegetables</button>
-        <button onClick={() => { setMobileMenuOpen(false); openTool(7); }}>🧠 Dog Health Quiz</button>
+        <button onClick={() => { toggleMenu(false); openTool(0); }}>⚖️ BMI Calculator</button>
+        <button onClick={() => { toggleMenu(false); openTool(1); }}>🍽️ Feeding Calculator</button>
+        <button onClick={() => { toggleMenu(false); openTool(2); }}>💰 Cost Calculator</button>
+        <button onClick={() => { toggleMenu(false); openTool(3); }}>📅 Age Calculator</button>
+        <button onClick={() => { toggleMenu(false); openTool(4); }}>🥦 Safe Vegetables</button>
+        <button onClick={() => { toggleMenu(false); openTool(7); }}>🧠 Dog Health Quiz</button>
         <span className="mob-section">Browse</span>
-        <Link to="/blogs" onClick={() => setMobileMenuOpen(false)}>Blogs</Link>
-        <Link to="/#faq" onClick={() => setMobileMenuOpen(false)}>FAQs</Link>
-        <button onClick={() => { setMobileMenuOpen(false); navigate('/?book=1'); }}>Book a Sample for ₹99 →</button>
+        <Link to="/blogs" onClick={() => toggleMenu(false)}>Blogs</Link>
+        <Link to="/#faq" onClick={() => toggleMenu(false)}>FAQs</Link>
+        <button onClick={() => { toggleMenu(false); navigate('/?book=1'); }}>Book a Sample for ₹99 →</button>
       </div>
     </div>
   );

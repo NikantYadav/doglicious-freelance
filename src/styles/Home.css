@@ -117,8 +117,9 @@ a{color:inherit;text-decoration:none}
 .hbg.o span:nth-child(3){transform:translateY(-6.5px) rotate(-45deg)}
 
 /* MOBILE DRAWER */
-.mob-drawer{position:fixed;top:104px;left:0;right:0;z-index:298;background:rgba(254,253,249,.98);backdrop-filter:blur(24px);border-bottom:1px solid var(--sep);padding:16px 22px 28px;transform:translateY(-110%);transition:transform .3s cubic-bezier(.25,1,.5,1)}
+.mob-drawer{position:fixed;top:104px;left:0;right:0;bottom:0;z-index:298;background:rgba(254,253,249,.98);backdrop-filter:blur(24px);border-bottom:1px solid var(--sep);padding:16px 22px 28px;transform:translateY(-110%);transition:transform .3s cubic-bezier(.25,1,.5,1);overflow-y:auto;-webkit-overflow-scrolling:touch}
 .mob-drawer.o{transform:none}
+body.mob-open{overflow:hidden;touch-action:none}
 .mob-drawer a,.mob-drawer button{display:block;width:100%;text-align:left;font-size:16px;font-weight:500;color:var(--c1);background:none;border:none;cursor:pointer;padding:12px 0;border-bottom:1px solid rgba(34,28,21,.06);font-family:var(--sans)}
 .mob-drawer a:last-child,.mob-drawer button:last-child{border:none;color:var(--c2);font-weight:700}
 .mob-section{font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--c1-50);padding:14px 0 4px;border-bottom:none;cursor:default;display:block}

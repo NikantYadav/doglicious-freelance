@@ -21,6 +21,13 @@ export default function Home() {
   const navigate = useNavigate();
   const [navScrolled, setNavScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const toggleMenu = (val) => {
+    const next = typeof val === 'boolean' ? val : !mobileMenuOpen;
+    setMobileMenuOpen(next);
+    document.body.classList.toggle('mob-open', next);
+  };
+
+  useEffect(() => () => document.body.classList.remove('mob-open'), []);
   const [activeModal, setActiveModal] = useState(null);
   const [faqOpen, setFaqOpen] = useState(null);
   const [testimonialsOpen, setTestimonialsOpen] = useState(false);
@@ -216,7 +223,7 @@ export default function Home() {
                 <span style={{ fontSize: '12px', fontWeight: 800, letterSpacing: '.01em' }}>Get Fresh Food Sample →</span>
                 <span style={{ fontSize: '10px', fontWeight: 600, opacity: .80, marginTop: '1px' }}>Delivered Fresh for ₹99</span>
               </button>
-              <button className={`hbg${mobileMenuOpen ? ' o' : ''}`} onClick={() => setMobileMenuOpen(p => !p)}>
+              <button className={`hbg${mobileMenuOpen ? ' o' : ''}`} onClick={() => toggleMenu()}>
                 <span /><span /><span />
               </button>
             </div>
@@ -226,22 +233,22 @@ export default function Home() {
 
       {/* MOBILE DRAWER */}
       <div className={`mob-drawer${mobileMenuOpen ? ' o' : ''}`}>
-        <a href="#book" onClick={() => setMobileMenuOpen(false)}>Book ₹99 Sample</a>
-        <a href="#recipes" onClick={() => setMobileMenuOpen(false)}>Recipes</a>
+        <a href="#book" onClick={() => toggleMenu(false)}>Book ₹99 Sample</a>
+        <a href="#recipes" onClick={() => toggleMenu(false)}>Recipes</a>
         <span className="mob-section">AI Analysis</span>
-        <button onClick={() => { setMobileMenuOpen(false); openModal('vet'); }}>🔬 Vet Rx Scan — Free</button>
-        <button onClick={() => { setMobileMenuOpen(false); navigate('/poopsense'); }}>💩 PoopSense AI — Free</button>
+        <button onClick={() => { toggleMenu(false); openModal('vet'); }}>🔬 Vet Rx Scan — Free</button>
+        <button onClick={() => { toggleMenu(false); navigate('/poopsense'); }}>💩 PoopSense AI — Free</button>
         <span className="mob-section">Free Tools</span>
-        <button onClick={() => { setMobileMenuOpen(false); openTool(0); }}>⚖️ BMI Calculator</button>
-        <button onClick={() => { setMobileMenuOpen(false); openTool(1); }}>🍽️ Feeding Calculator</button>
-        <button onClick={() => { setMobileMenuOpen(false); openTool(2); }}>💰 Cost Calculator</button>
-        <button onClick={() => { setMobileMenuOpen(false); openTool(3); }}>📅 Age Calculator</button>
-        <button onClick={() => { setMobileMenuOpen(false); openTool(4); }}>🥦 Safe Vegetables</button>
-        <button onClick={() => { setMobileMenuOpen(false); openTool(7); }}>🧠 Dog Health Quiz</button>
+        <button onClick={() => { toggleMenu(false); openTool(0); }}>⚖️ BMI Calculator</button>
+        <button onClick={() => { toggleMenu(false); openTool(1); }}>🍽️ Feeding Calculator</button>
+        <button onClick={() => { toggleMenu(false); openTool(2); }}>💰 Cost Calculator</button>
+        <button onClick={() => { toggleMenu(false); openTool(3); }}>📅 Age Calculator</button>
+        <button onClick={() => { toggleMenu(false); openTool(4); }}>🥦 Safe Vegetables</button>
+        <button onClick={() => { toggleMenu(false); openTool(7); }}>🧠 Dog Health Quiz</button>
         <span className="mob-section">Questions &amp; Answers</span>
-        <a href="#faq" onClick={() => setMobileMenuOpen(false)}>See all FAQs →</a>
-        <button onClick={() => { setMobileMenuOpen(false); setTestimonialsOpen(true); }}>WHY CUSTOMERS CHOOSE US?</button>
-        <button onClick={() => { setMobileMenuOpen(false); openModal('sample'); }}>Book a Sample for ₹99 →</button>
+        <a href="#faq" onClick={() => toggleMenu(false)}>See all FAQs →</a>
+        <button onClick={() => { toggleMenu(false); setTestimonialsOpen(true); }}>WHY CUSTOMERS CHOOSE US?</button>
+        <button onClick={() => { toggleMenu(false); openModal('sample'); }}>Book a Sample for ₹99 →</button>
       </div>
 
       {/* ── HERO ── */}
