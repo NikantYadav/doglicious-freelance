@@ -6,9 +6,10 @@ const GlobalInfoBar = ({ quota }) => {
   const { state } = useApp();
   const trialStatus = getTrialStatus(state.startDate, state.subscribed, quota);
 
-  const startLabel = state.startDate
-    ? `Member since ${fmtDate(new Date(state.startDate))}`
-    : 'Member since -';
+  const dateStr = state.memberSince || state.startDate;
+  const startLabel = dateStr
+    ? `Member since ${fmtDate(new Date(dateStr))}`
+    : 'Member since —';
 
   let daysLabel;
   if (trialStatus.isSubscribed) {

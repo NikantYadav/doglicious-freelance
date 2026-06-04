@@ -27,8 +27,9 @@ import PsAuthGate from './PsAuthGate';
 import PsPaywall from './PsPaywall';
 
 import { getTrialStatus, uid, todayStr } from './helpers';
-import { getPsSession, savePsSession } from './psSession';
+import { getPsSession, savePsSession, clearPsSession } from './psSession';
 import { psLoad, psRunAI, psGetQuota } from './psService';
+import { LS } from './storage';
 import { downloadPoopSensePDF, downloadProgressPDF } from './psPdf';
 
 /* ─── PAY MODAL ─── */
@@ -50,26 +51,38 @@ const PoopSenseApp = () => {
     setAuthReady(true);
   }, []);
 
-  // Load from Supabase after auth
+  // Load from Supabase after auth — always authoritative over localStorage
   useEffect(() => {
     if (!phone) return;
     psLoad(phone)
       .then(({ user, dogs, hist }) => {
+        // Always use server data — even empty arrays overwrite stale localStorage
         const payload = {
           phone,
-          dogs: dogs.length > 0 ? dogs : undefined,
-          hist: Object.keys(hist).length > 0 ? hist : undefined,
-          vet: user.vet_name ? { name: user.vet_name, num: user.vet_num || '' } : undefined,
+          dogs,
+          hist,
+          vet: user.vet_name ? { name: user.vet_name, num: user.vet_num || '' } : { name: '', num: '' },
           pdfLang: user.pdf_lang || 'en',
           lang: user.pdf_lang || 'en',
           subscribed: user.subscribed || false,
-          subDate: user.sub_date || undefined,
-          startDate: user.start_date || undefined,
+          subDate: user.sub_date || null,
+          startDate: user.start_date || null,
+          memberSince: user.created_at || null,
         };
-        Object.keys(payload).forEach(k => payload[k] === undefined && delete payload[k]);
         dispatch({ type: 'INIT', payload });
       })
-      .catch(e => console.warn('[PoopSenseApp] psLoad failed (non-fatal):', e.message));
+      .catch(e => {
+        if (e.reason === 'user_not_found') {
+          // User deleted from DB — force full logout
+          clearPsSession();
+          LS.clear();
+          dispatch({ type: 'RESET' });
+          setPhone(null);
+          setQuota(null);
+        } else {
+          console.warn('[PoopSenseApp] psLoad failed (non-fatal):', e.message);
+        }
+      });
   }, [phone]);
 
   const handleAuthenticated = (p) => {
@@ -418,6 +431,15 @@ const PoopSenseApp = () => {
         open={settingsOpen}
         onClose={() => setSettingsOpen(false)}
         onSubscribe={() => { setSettingsOpen(false); setPayOpen(true); }}
+        onLogout={() => {
+          clearPsSession();   // clear session token
+          LS.clear();         // wipe all ps9_ localStorage keys
+          dispatch({ type: 'RESET' }); // reset in-memory state to DEFAULT_STATE
+          setPhone(null);
+          setQuota(null);
+          setPaywallReason(null);
+        }}
+        quota={quota}
       />
 
       <ScoreInfoPopup open={scoreInfoOpen} onClose={() => setScoreInfoOpen(false)} />
@@ -450,13 +472,6 @@ const PoopSenseApp = () => {
           dogName={dog?.name}
           quota={quota}
           onClose={() => { setPaywallReason(null); setPayOpen(false); }}
-          onDevActivate={() => {
-            activateSub();
-            setPaywallReason(null);
-            setPayOpen(false);
-            setQuota(q => q ? { ...q, canScan: true, subscribed: true } : q);
-            toast('Dev: subscription activated!');
-          }}
         />
       )}
     </div>

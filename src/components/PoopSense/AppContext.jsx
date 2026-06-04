@@ -13,10 +13,11 @@ const DEFAULT_STATE = {
   pdfLang: 'en',
   lang: 'en',
   startDate: null,
+  memberSince: null,
   subscribed: false,
   curDays: 7,
   waVerified: false,
-  phone: null, // authenticated phone number
+  phone: null,
 };
 
 // ─── Reducer ──────────────────────────────────────────────────────────────────
@@ -76,6 +77,9 @@ function reducer(state, action) {
 
     case 'SET_CUR_DAYS':
       return { ...state, curDays: action.days };
+
+    case 'RESET':
+      return { ...DEFAULT_STATE };
 
     default:
       return state;

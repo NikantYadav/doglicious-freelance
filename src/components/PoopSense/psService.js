@@ -42,8 +42,20 @@ async function sync(action, phone, payload = {}) {
 
 // Load all user data from Supabase on login
 // Returns { user, dogs, hist }
-export function psLoad(phone) {
-  return sync('load', phone);
+// Throws with err.reason = 'user_not_found' if user was deleted from DB
+export async function psLoad(phone) {
+  const res = await fetch(`${API}/api/poopsense/sync`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ action: 'load', phone }),
+  });
+  const data = await res.json();
+  if (!res.ok) {
+    const err = new Error(data.error || 'Load failed');
+    err.reason = data.reason;
+    throw err;
+  }
+  return data;
 }
 
 // Save a single scan entry

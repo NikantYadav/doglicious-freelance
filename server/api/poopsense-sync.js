@@ -11,9 +11,8 @@ function trunc(str, len = 500) {
   return str ? String(str).substring(0, len) : null;
 }
 
-// Upsert user row, return user id + subscription info
+// Upsert user row — used by write actions (creates user if missing)
 async function upsertUser(phone) {
-  // Try to find existing user first
   const { data: existing } = await supabase
     .from('ps_users')
     .select('id, phone, subscribed, sub_date, sub_expires_at, start_date, scan_count, daily_scan_count, daily_scan_date, vet_name, vet_num, pdf_lang')
@@ -22,7 +21,6 @@ async function upsertUser(phone) {
 
   if (existing) return existing;
 
-  // Insert new user
   const { data, error } = await supabase
     .from('ps_users')
     .insert({ phone })
@@ -33,10 +31,26 @@ async function upsertUser(phone) {
   return data;
 }
 
+// Find user row — used by load (returns null if user doesn't exist)
+async function findUser(phone) {
+  const { data, error } = await supabase
+    .from('ps_users')
+    .select('id, phone, subscribed, sub_date, sub_expires_at, start_date, scan_count, daily_scan_count, daily_scan_date, vet_name, vet_num, pdf_lang, created_at')
+    .eq('phone', phone)
+    .maybeSingle();
+  if (error) throw error;
+  return data; // null if not found
+}
+
 // ── Action: load — fetch all user data ───────────────────────────────
 
 async function handleLoad(phone) {
-  const user = await upsertUser(phone);
+  const user = await findUser(phone);
+
+  // User was deleted from DB — tell frontend to log out
+  if (!user) return { notFound: true };
+
+  // Load dogs
 
   // Load dogs
   const { data: dogs } = await supabase
@@ -255,8 +269,13 @@ export default async function handler(req, res) {
 
   try {
     switch (action) {
-      case 'load':
-        return res.status(200).json(await handleLoad(normPhone));
+      case 'load': {
+        const result = await handleLoad(normPhone);
+        if (result.notFound) {
+          return res.status(404).json({ error: 'User not found', reason: 'user_not_found' });
+        }
+        return res.status(200).json(result);
+      }
 
       case 'save-scan':
         return res.status(200).json(await handleSaveScan(normPhone, payload.entry, payload.dogId));

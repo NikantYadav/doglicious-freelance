@@ -5,8 +5,8 @@ import { getTrialStatus } from './helpers';
 import { psSaveSettings } from './psService';
 import { getPsSession } from './psSession';
 
-const SettingsModal = ({ open, onClose, onSubscribe, quota }) => {
-  const { state, dispatch, setVet, activateSub } = useApp();
+const SettingsModal = ({ open, onClose, onSubscribe, onLogout, quota }) => {
+  const { state, dispatch, setVet } = useApp();
   const { toast } = useToast();
 
   const [lang, setLang] = useState(state.pdfLang);
@@ -200,6 +200,25 @@ const SettingsModal = ({ open, onClose, onSubscribe, quota }) => {
               </div>
             </>
           )}
+        </div>
+
+        {/* Logout */}
+        <div className="sett-section">
+          <button
+            onClick={() => {
+              clearPsSession();
+              onClose();
+              if (onLogout) onLogout();
+            }}
+            style={{
+              width: '100%', padding: '13px', background: 'transparent',
+              border: '1.5px solid rgba(173,34,24,.3)', borderRadius: 12,
+              fontSize: 14, fontWeight: 700, color: '#AD2218',
+              cursor: 'pointer', fontFamily: 'Poppins, sans-serif',
+            }}
+          >
+            🚪 Log Out
+          </button>
         </div>
 
         {/* Footer */}

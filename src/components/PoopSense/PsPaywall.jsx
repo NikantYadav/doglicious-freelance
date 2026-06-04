@@ -48,7 +48,7 @@ function buildFeatures(quota) {
   ];
 }
 
-export default function PsPaywall({ reason, phone, dogName, quota, onClose, onDevActivate }) {
+export default function PsPaywall({ reason, phone, dogName, quota, onClose }) {
   const [loading, setLoading] = useState(false);
   const [error, setError]     = useState('');
 
@@ -157,18 +157,6 @@ export default function PsPaywall({ reason, phone, dogName, quota, onClose, onDe
           >
             Or contact us on WhatsApp
           </button>
-
-          {/* Dev bypass */}
-          {onDevActivate && (
-            <div style={{ textAlign: 'center' }}>
-              <button
-                onClick={onDevActivate}
-                style={{ background: 'none', border: 'none', color: '#C0A57A', fontSize: 10, cursor: 'pointer' }}
-              >
-                [Dev] Activate subscription
-              </button>
-            </div>
-          )}
 
         </div>
       </div>
