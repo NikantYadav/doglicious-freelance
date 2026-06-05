@@ -1,118 +1,66 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
-
-const SUPABASE_STORAGE = 'https://osftreewgvsuahncsbhx.supabase.co/storage/v1/object/public/doglicious-media';
+import { useState, useCallback, useEffect } from 'react';
+import 'lite-youtube-embed/src/lite-yt-embed.css';
+import 'lite-youtube-embed/src/lite-yt-embed.js';
 
 const TESTIMONIALS = [
   {
     id: 'badrish',
-    dogName: 'Badrish',
-    breed: 'Dog Parent',
     ownerName: 'Badrish',
+    breed: 'Dog Parent',
     location: 'India',
     emoji: '🏅',
-    bgColor: '#1a1410',
-    video: `${SUPABASE_STORAGE}/Badrish%20Horizontal.mp4`,
+    youtubeId: 'pYBFJ9Jwqqk',
     quote: 'Real results, real food. My dog has never been happier.',
     stars: 5,
   },
   {
-    id: 'deepa',
-    dogName: 'Deepa\'s Dog',
+    id: 'tarini',
+    ownerName: 'Tarini Jain',
     breed: 'Dog Parent',
-    ownerName: 'Deepa',
     location: 'India',
-    emoji: '⭐',
-    bgColor: '#1a1410',
-    video: `${SUPABASE_STORAGE}/Deepa%20Horizontal.mp4`,
-    quote: 'Switched to Doglicious and never looked back.',
-    stars: 5,
-  },
-  {
-    id: 'expert',
-    dogName: 'Expert Review',
-    breed: 'Vet / Expert',
-    ownerName: 'Expert',
-    location: 'India',
-    emoji: '🔬',
-    bgColor: '#1a1410',
-    video: `${SUPABASE_STORAGE}/Expert%20Horizontal.mp4`,
-    quote: 'Vet-approved, NABL certified — the gold standard in fresh dog food.',
+    emoji: '🐾',
+    youtubeId: 'c3fHdEXsnVk',
+    quote: 'Fresh food made all the difference for my dog.',
     stars: 5,
   },
   {
     id: 'seerat',
-    dogName: 'Seerat\'s Dog',
+    ownerName: 'Seerat Kour',
     breed: 'Dog Parent',
-    ownerName: 'Seerat',
     location: 'India',
     emoji: '🌟',
-    bgColor: '#1a1410',
-    video: `${SUPABASE_STORAGE}/Seerat%20Horizontal.mp4`,
+    youtubeId: 'jKgYpkO4Gq4',
     quote: 'The difference in energy and coat quality was visible within days.',
     stars: 5,
   },
+  // {
+  //   id: 'viswa',
+  //   ownerName: 'Viswa',
+  //   breed: 'Dog Parent',
+  //   location: 'India',
+  //   emoji: '💫',
+  //   youtubeId: 'hkDU93rLL2U',
+  //   quote: 'My dog went from picky eater to bowl-licker in one meal.',
+  //   stars: 5,
+  // },
+  // {
+  //   id: 'zenith',
+  //   ownerName: 'Zenith',
+  //   breed: 'Dog Parent',
+  //   location: 'India',
+  //   emoji: '🏆',
+  //   youtubeId: 'QqOEYr72-KA',
+  //   quote: "Best decision I made for my dog's health.",
+  //   stars: 5,
+  // },
   {
-    id: 'tarini-a',
-    dogName: 'Tarini\'s Dog',
+    id: 'deepa',
+    ownerName: 'Deepa & Zia',
     breed: 'Dog Parent',
-    ownerName: 'Tarini Jain',
     location: 'India',
-    emoji: '🐾',
-    bgColor: '#1a1410',
-    video: `${SUPABASE_STORAGE}/Tarini%20Jain%20(a)%20Horizontal.mp4`,
-    quote: 'Fresh food made all the difference for my dog.',
-    stars: 5,
-    partLabel: 'Part 1',
-  },
-  {
-    id: 'tarini-b',
-    dogName: 'Tarini\'s Dog',
-    breed: 'Dog Parent',
-    ownerName: 'Tarini Jain',
-    location: 'India',
-    emoji: '🐾',
-    bgColor: '#1a1410',
-    video: `${SUPABASE_STORAGE}/Tarini%20Jain%20(b)%20Horizontal.mp4`,
-    quote: 'I recommend Doglicious to every dog parent I know.',
-    stars: 5,
-    partLabel: 'Part 2',
-  },
-  {
-    id: 'vishwa-a',
-    dogName: 'Vishwa\'s Dog',
-    breed: 'Dog Parent',
-    ownerName: 'Vishwa',
-    location: 'India',
-    emoji: '💫',
-    bgColor: '#1a1410',
-    video: `${SUPABASE_STORAGE}/Vishwa%20(a)%20Horizontal.mp4`,
-    quote: 'My dog went from picky eater to bowl-licker in one meal.',
-    stars: 5,
-    partLabel: 'Part 1',
-  },
-  {
-    id: 'vishwa-b',
-    dogName: 'Vishwa\'s Dog',
-    breed: 'Dog Parent',
-    ownerName: 'Vishwa',
-    location: 'India',
-    emoji: '💫',
-    bgColor: '#1a1410',
-    video: `${SUPABASE_STORAGE}/Vishwa%20(b)%20Horizontal.mp4`,
-    quote: 'The quality and freshness is unmatched. Highly recommend.',
-    stars: 5,
-    partLabel: 'Part 2',
-  },
-  {
-    id: 'zenith',
-    dogName: 'Zenith\'s Dog',
-    breed: 'Dog Parent',
-    ownerName: 'Zenith',
-    location: 'India',
-    emoji: '🏆',
-    bgColor: '#1a1410',
-    video: `${SUPABASE_STORAGE}/Zenith%20Horizontal.mp4`,
-    quote: 'Best decision I made for my dog\'s health.',
+    emoji: '⭐',
+    youtubeId: 'b79kUgLN1oI',
+    quote: 'Switched to Doglicious and never looked back.',
     stars: 5,
   },
 ];
@@ -125,80 +73,15 @@ const STATS = [
   { value: '0',     label: 'Lock-in' },
 ];
 
-// Separate component so video remounts (and autoplays) on each slide change
-function MainVideo({ src, bgColor }) {
-  const ref = useRef(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const v = ref.current;
-    if (!v) return;
-    setLoading(true);
-    v.load();
-
-    const onCanPlay = () => {
-      setLoading(false);
-      v.play().catch(() => {});
-    };
-    // canplaythrough = enough buffered to play without stalling
-    v.addEventListener('canplaythrough', onCanPlay);
-    // fallback: if metadata loads but canplaythrough is slow, show video anyway
-    const onCanPlayThrough = () => {
-      setLoading(false);
-      v.play().catch(() => {});
-    };
-    v.addEventListener('canplay', onCanPlayThrough);
-
-    return () => {
-      v.removeEventListener('canplaythrough', onCanPlay);
-      v.removeEventListener('canplay', onCanPlayThrough);
-    };
-  }, []);
-
+function YoutubeEmbed({ youtubeId }) {
+  // lite-youtube is a custom element — use key to force remount on slide change
   return (
-    <>
-      {loading && (
-        <div style={{
-          position: 'absolute', inset: 0,
-          background: '#1a1410',
-          display: 'flex', flexDirection: 'column',
-          alignItems: 'center', justifyContent: 'center',
-          gap: '14px', zIndex: 2,
-        }}>
-          {/* Spinner */}
-          <div style={{
-            width: '40px', height: '40px',
-            border: '3px solid rgba(255,255,255,.12)',
-            borderTopColor: '#C8956A',
-            borderRadius: '50%',
-            animation: 'tm-spin .8s linear infinite',
-          }} />
-          <span style={{
-            fontSize: '12px', fontWeight: 600,
-            color: 'rgba(255,255,255,.45)',
-            fontFamily: 'Poppins, sans-serif',
-            letterSpacing: '.04em',
-          }}>Loading video…</span>
-          <style>{`@keyframes tm-spin { to { transform: rotate(360deg); } }`}</style>
-        </div>
-      )}
-      <video
-        ref={ref}
-        src={src}
-        loop
-        playsInline
-        preload="auto"
-        style={{
-          width: '100%',
-          height: '100%',
-          objectFit: 'contain',
-          display: 'block',
-          background: bgColor,
-          opacity: loading ? 0 : 1,
-          transition: 'opacity .3s ease',
-        }}
-      />
-    </>
+    <lite-youtube
+      key={youtubeId}
+      videoid={youtubeId}
+      style={{ width: '100%', height: '100%', position: 'absolute', inset: 0 }}
+      params="rel=0&playsinline=1"
+    />
   );
 }
 
@@ -229,8 +112,8 @@ export default function TestimonialsModal({ isOpen, onClose }) {
   useEffect(() => {
     if (!isOpen) return;
     const h = (e) => {
-      if (e.key === 'ArrowLeft')  { prev(); }
-      if (e.key === 'ArrowRight') { next(); }
+      if (e.key === 'ArrowLeft')  prev();
+      if (e.key === 'ArrowRight') next();
       if (e.key === 'Escape') onClose();
     };
     window.addEventListener('keydown', h);
@@ -277,10 +160,18 @@ export default function TestimonialsModal({ isOpen, onClose }) {
           position: relative;
         }
 
+        /* scrollable middle section */
+        .tm-body {
+          flex: 1;
+          overflow-y: auto;
+          overscroll-behavior: contain;
+          min-height: 0;
+        }
+
         /* ── HEADER ── */
         .tm-header {
           background: linear-gradient(135deg, #221C15 0%, #3A2700 100%);
-          padding: 20px 22px 16px;
+          padding: 14px 18px 12px;
           flex-shrink: 0;
         }
         .tm-header-row {
@@ -337,23 +228,17 @@ export default function TestimonialsModal({ isOpen, onClose }) {
         .tm-video-wrap {
           position: relative;
           background: #1a1410;
-          flex: 1;
-          min-height: 0;
+          width: 100%;
+          aspect-ratio: 9 / 16;
+          max-height: 52svh;
           overflow: hidden;
+          flex-shrink: 0;
         }
-        .tm-video-wrap video {
+        .tm-video-wrap iframe {
+          position: absolute;
+          top: 0; left: 0;
           width: 100%; height: 100%;
-          object-fit: contain; display: block;
-        }
-        .tm-video-gradient {
-          position: absolute; inset: 0;
-          background: linear-gradient(
-            to top,
-            rgba(0,0,0,.65) 0%,
-            rgba(0,0,0,.05) 40%,
-            transparent 100%
-          );
-          pointer-events: none;
+          display: block; border: none;
         }
         .tm-video-tag {
           position: absolute; top: 12px; left: 12px;
@@ -366,15 +251,7 @@ export default function TestimonialsModal({ isOpen, onClose }) {
           display: flex; align-items: center; gap: 6px;
           font-size: 12px; font-weight: 700; color: #fff;
           font-family: Poppins, sans-serif;
-        }
-        .tm-part-badge {
-          position: absolute; top: 12px; right: 12px;
-          background: rgba(151,103,70,.85);
-          backdrop-filter: blur(6px);
-          border-radius: 999px;
-          padding: 4px 10px;
-          font-size: 10px; font-weight: 700; color: #fff;
-          font-family: Poppins, sans-serif;
+          pointer-events: none;
         }
 
         /* ── INFO STRIP ── */
@@ -452,6 +329,7 @@ export default function TestimonialsModal({ isOpen, onClose }) {
           .tm-controls { padding: 8px 14px 12px; }
           .tm-quote { font-size: 12px; }
           .tm-video-tag { font-size: 11px; padding: 4px 10px; }
+          .tm-video-wrap { max-height: 44svh; }
         }
       `}</style>
 
@@ -482,16 +360,13 @@ export default function TestimonialsModal({ isOpen, onClose }) {
           </div>
 
           {/* ── VIDEO ── */}
+          <div className="tm-body">
           <div className="tm-video-wrap">
-            <MainVideo key={t.id} src={t.video} bgColor={t.bgColor} />
-            <div className="tm-video-gradient" />
+            <YoutubeEmbed youtubeId={t.youtubeId} />
             <div className="tm-video-tag">
               <span>{t.emoji}</span>
               <span>{t.ownerName}</span>
             </div>
-            {t.partLabel && (
-              <div className="tm-part-badge">{t.partLabel}</div>
-            )}
           </div>
 
           {/* ── INFO ── */}
@@ -506,20 +381,17 @@ export default function TestimonialsModal({ isOpen, onClose }) {
             <p className="tm-quote">"{t.quote}"</p>
             <div className="tm-author-row">
               <div>
-                <div className="tm-author-name">{t.ownerName}{t.partLabel ? ` — ${t.partLabel}` : ''}</div>
+                <div className="tm-author-name">{t.ownerName}</div>
                 <div className="tm-author-dog">{t.breed} · {t.location}</div>
               </div>
               <div className="tm-counter">{active + 1} / {TESTIMONIALS.length}</div>
             </div>
           </div>
+          </div>
 
           {/* ── CONTROLS ── */}
           <div className="tm-controls">
-            <button
-              className="tm-nav-btn"
-              onClick={() => { prev(); resetAuto(); }}
-              aria-label="Previous"
-            >‹</button>
+            <button className="tm-nav-btn" onClick={prev} aria-label="Previous">‹</button>
 
             <div className="tm-dots">
               {TESTIMONIALS.map((_, i) => (
@@ -527,17 +399,13 @@ export default function TestimonialsModal({ isOpen, onClose }) {
                   key={i}
                   className={`tm-dot${i === active ? ' tm-dot-active' : ''}`}
                   style={{ width: i === active ? '18px' : '6px' }}
-                  onClick={() => { goTo(i, i > active ? 'next' : 'prev'); resetAuto(); }}
+                  onClick={() => goTo(i, i > active ? 'next' : 'prev')}
                   aria-label={`Go to ${i + 1}`}
                 />
               ))}
             </div>
 
-            <button
-              className="tm-nav-btn"
-              onClick={() => { next(); resetAuto(); }}
-              aria-label="Next"
-            >›</button>
+            <button className="tm-nav-btn" onClick={next} aria-label="Next">›</button>
           </div>
 
         </div>
