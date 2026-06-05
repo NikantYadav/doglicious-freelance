@@ -75,7 +75,7 @@ export default function SiteHeader({ openModal }) {
                   <div className="dd-icon">💩</div>
                   <div>
                     <div style={{ fontWeight: 700 }}>Poop Analyser <span style={{ fontSize: '9px', background: 'var(--c2)', color: 'var(--c3)', padding: '2px 6px', borderRadius: '999px', fontWeight: 700, letterSpacing: '.04em', verticalAlign: 'middle' }}>SOON</span></div>
-                    <div className="dd-sub">Stool health AI analysis — Coming soon</div>
+                    <div className="dd-sub">Stool health AI analysis — Free</div>
                   </div>
                 </div>
               </div>
@@ -114,13 +114,15 @@ export default function SiteHeader({ openModal }) {
         <Link to="/#recipes" onClick={() => toggleMenu(false)}>Recipes</Link>
         <span className="mob-section">AI Analysis</span>
         <button onClick={() => { toggleMenu(false); open('vet'); }}>🔬 Vet Rx Scan — Free</button>
-        <button onClick={() => { toggleMenu(false); open('analysis'); }}>💩 Poop Analyser — Coming soon</button>
+        <button onClick={() => { toggleMenu(false); open('analysis'); }}>💩 Poop Analyser — Free</button>
         <span className="mob-section">Free Tools</span>
         <button onClick={() => { toggleMenu(false); openTool(0); }}>⚖️ BMI Calculator</button>
         <button onClick={() => { toggleMenu(false); openTool(1); }}>🍽️ Feeding Calculator</button>
         <button onClick={() => { toggleMenu(false); openTool(2); }}>💰 Cost Calculator</button>
         <button onClick={() => { toggleMenu(false); openTool(3); }}>📅 Age Calculator</button>
         <button onClick={() => { toggleMenu(false); openTool(4); }}>🥦 Safe Vegetables</button>
+        <button onClick={() => { toggleMenu(false); openTool(5); }}>💊 Natural Healing Guide</button>
+        <button onClick={() => { toggleMenu(false); openTool(6); }}>📋 AAFCO Meal Planner</button>
         <button onClick={() => { toggleMenu(false); openTool(7); }}>🧠 Dog Health Quiz</button>
         <span className="mob-section">Browse</span>
         <Link to="/blogs" onClick={() => toggleMenu(false)}>Blogs</Link>
