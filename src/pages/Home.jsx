@@ -244,6 +244,8 @@ export default function Home() {
         <button onClick={() => { toggleMenu(false); openTool(2); }}>💰 Cost Calculator</button>
         <button onClick={() => { toggleMenu(false); openTool(3); }}>📅 Age Calculator</button>
         <button onClick={() => { toggleMenu(false); openTool(4); }}>🥦 Safe Vegetables</button>
+        <button onClick={() => { toggleMenu(false); openTool(5); }}>💊 Natural Healing Guide</button>
+        <button onClick={() => { toggleMenu(false); openTool(6); }}>📋 AAFCO Meal Planner</button>
         <button onClick={() => { toggleMenu(false); openTool(7); }}>🧠 Dog Health Quiz</button>
         <span className="mob-section">Questions &amp; Answers</span>
         <a href="#faq" onClick={() => toggleMenu(false)}>See all FAQs →</a>
